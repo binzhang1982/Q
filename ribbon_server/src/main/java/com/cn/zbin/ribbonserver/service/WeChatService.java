@@ -1,10 +1,16 @@
 package com.cn.zbin.ribbonserver.service;
 
 import com.cn.zbin.ribbonserver.dto.WeChatMessage;
+import com.cn.zbin.ribbonserver.utils.RibbonConstants;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 @Service
@@ -33,5 +39,26 @@ public class WeChatService {
     
     public Boolean getHiCheckError(String signature, String timestamp, String nonce) {
         return Boolean.FALSE;
+    }
+    
+    @HystrixCommand(fallbackMethod = "createPartnerError")
+    public String createPartner(String scenestr) {
+        String ret = "";
+		try {
+			ret = restTemplate.getForObject("http://SERVICE-HI/qr_limit_scene?atk=" 
+					+ URLEncoder.encode(RibbonConstants.APPTOKEN, "UTF-8")
+					+ "&scenestr=" + scenestr, String.class);
+		} catch (RestClientException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        return ret;
+    }
+    
+    public String createPartnerError(String scenestr) {
+        return "failed";
     }
 }
