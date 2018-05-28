@@ -1,4 +1,4 @@
-package com.cn.zbin.ribbonserver;
+package com.cn.zbin.ribbonserver.controller;
 
 
 import org.springframework.beans.factory.annotation.Autowired;

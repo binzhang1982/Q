@@ -13,10 +13,10 @@ import org.springframework.web.client.RestTemplate;
 @EnableDiscoveryClient
 @EnableHystrix
 @EnableScheduling
-public class RibbondemoApplication {
+public class RibbonServerApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(RibbondemoApplication.class, args);
+		SpringApplication.run(RibbonServerApplication.class, args);
 	}
 
 	@Bean

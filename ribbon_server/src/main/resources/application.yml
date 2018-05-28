@@ -7,3 +7,5 @@ server:
 spring:
   application:
     name: service-ribbon
+qlh:
+  imagesPath: file:/C:/qlh/image/
