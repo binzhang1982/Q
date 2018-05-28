@@ -1,4 +1,4 @@
-package com.cn.zbin.wechat;
+package com.cn.zbin.wechat.controller;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;

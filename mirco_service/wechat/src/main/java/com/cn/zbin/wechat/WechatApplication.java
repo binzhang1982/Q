@@ -10,7 +10,7 @@ import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication
 @EnableEurekaClient
-public class EurekaclientApplication {
+public class WechatApplication {
     @Autowired
     private RestTemplateBuilder builder;  
   
@@ -21,6 +21,6 @@ public class EurekaclientApplication {
     } 
     
 	public static void main(String[] args) {
-		SpringApplication.run(EurekaclientApplication.class, args);
+		SpringApplication.run(WechatApplication.class, args);
 	}
 }
