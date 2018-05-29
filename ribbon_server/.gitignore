@@ -25,3 +25,4 @@ nbdist/
 
 
 /src/main/java/com/cn/zbin/ribbonserver/utils/RibbonConstants.java
+/src/main/resources/*

@@ -23,5 +23,5 @@ dist/
 nbdist/
 .nb-gradle/
 
-#/src/main/java/com/cn/zbin/wechat/utils/WechatConstants.java
-/src/main/resources/application.yml
+/src/main/java/com/cn/zbin/report/utils/ReportConstants.java
+/src/main/resources/*
