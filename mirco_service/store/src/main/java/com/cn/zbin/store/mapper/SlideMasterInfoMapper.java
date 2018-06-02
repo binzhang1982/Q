@@ -1,7 +1,7 @@
-package com.cn.zbin.management.mapper;
+package com.cn.zbin.store.mapper;
 
-import com.cn.zbin.management.dto.SlideMasterInfo;
-import com.cn.zbin.management.dto.SlideMasterInfoExample;
+import com.cn.zbin.store.dto.SlideMasterInfo;
+import com.cn.zbin.store.dto.SlideMasterInfoExample;
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
 

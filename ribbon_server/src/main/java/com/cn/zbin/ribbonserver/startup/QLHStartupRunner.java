@@ -5,7 +5,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import com.cn.zbin.ribbonserver.dto.AccessToken;
+import com.cn.zbin.ribbonserver.bto.wechat.AccessToken;
 import com.cn.zbin.ribbonserver.utils.RibbonConstants;
 
 @Component
@@ -20,6 +20,7 @@ public class QLHStartupRunner implements CommandLineRunner {
 				+ "&appid=" + RibbonConstants.APPID
 				+ "&secret=" + RibbonConstants.APPSECRET, 
 				AccessToken.class);
+		System.out.println(atk.getAccess_token());
 		synchronized (RibbonConstants.APPTOKEN) {
 			RibbonConstants.APPTOKEN = atk.getAccess_token();
 		}

@@ -13,6 +13,7 @@ import com.cn.zbin.wechat.service.WechatPostSecurityService;
 import com.cn.zbin.wechat.utils.WechatConstants;
 
 @RestController
+@RequestMapping("recv")
 public class WechatReciverController {
 
 	@Autowired

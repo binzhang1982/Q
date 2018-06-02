@@ -1,4 +1,4 @@
-package com.cn.zbin.management.dto;
+package com.cn.zbin.store.dto;
 
 public class SlideMasterInfo {
     /**

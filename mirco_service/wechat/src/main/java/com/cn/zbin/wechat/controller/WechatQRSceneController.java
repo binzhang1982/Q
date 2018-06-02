@@ -8,16 +8,18 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 @RestController
-public class WechatSenderController {
+@RequestMapping("qr")
+public class WechatQRSceneController {
     @Autowired
     private RestTemplate restTemplate; 
 	
-	@RequestMapping("/qr_limit_scene")
+	@RequestMapping(value = "/qr_limit_scene", method = { RequestMethod.GET })
 	public String getQRLimitScene(@RequestParam("atk") String atk, 
 			@RequestParam("scenestr") String scenestr) throws UnsupportedEncodingException {
 		System.out.println("qrlimitscene:" + atk + " qrlimitscene:" + scenestr);

@@ -1,4 +1,4 @@
-package com.cn.zbin.ribbonserver.dto;
+package com.cn.zbin.ribbonserver.bto.wechat;
 
 import java.io.Serializable;
 

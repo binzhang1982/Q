@@ -1,4 +1,4 @@
-package com.cn.zbin.ribbonserver.dto;
+package com.cn.zbin.ribbonserver.bto.wechat;
 
 public class AccessToken {
 	private String access_token;
