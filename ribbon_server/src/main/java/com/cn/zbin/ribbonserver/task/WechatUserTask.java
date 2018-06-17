@@ -13,7 +13,7 @@ import com.cn.zbin.ribbonserver.utils.RibbonConstants;
 @Component
 public class WechatUserTask {
 	
-	@Scheduled(cron="0 0/5 * * * ? ")
+	@Scheduled(cron="0 0/30 * * * ? ")
 	public void getAllUser() throws RestClientException, UnsupportedEncodingException {
         RestTemplate restTemplate = new RestTemplate();
         Integer count = 10000;
