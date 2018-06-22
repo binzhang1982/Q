@@ -415,52 +415,52 @@ public class ProductViewHistoryExample {
             return (Criteria) this;
         }
 
-        public Criteria andIsHistoryEqualTo(Byte value) {
+        public Criteria andIsHistoryEqualTo(Boolean value) {
             addCriterion("is_history =", value, "isHistory");
             return (Criteria) this;
         }
 
-        public Criteria andIsHistoryNotEqualTo(Byte value) {
+        public Criteria andIsHistoryNotEqualTo(Boolean value) {
             addCriterion("is_history <>", value, "isHistory");
             return (Criteria) this;
         }
 
-        public Criteria andIsHistoryGreaterThan(Byte value) {
+        public Criteria andIsHistoryGreaterThan(Boolean value) {
             addCriterion("is_history >", value, "isHistory");
             return (Criteria) this;
         }
 
-        public Criteria andIsHistoryGreaterThanOrEqualTo(Byte value) {
+        public Criteria andIsHistoryGreaterThanOrEqualTo(Boolean value) {
             addCriterion("is_history >=", value, "isHistory");
             return (Criteria) this;
         }
 
-        public Criteria andIsHistoryLessThan(Byte value) {
+        public Criteria andIsHistoryLessThan(Boolean value) {
             addCriterion("is_history <", value, "isHistory");
             return (Criteria) this;
         }
 
-        public Criteria andIsHistoryLessThanOrEqualTo(Byte value) {
+        public Criteria andIsHistoryLessThanOrEqualTo(Boolean value) {
             addCriterion("is_history <=", value, "isHistory");
             return (Criteria) this;
         }
 
-        public Criteria andIsHistoryIn(List<Byte> values) {
+        public Criteria andIsHistoryIn(List<Boolean> values) {
             addCriterion("is_history in", values, "isHistory");
             return (Criteria) this;
         }
 
-        public Criteria andIsHistoryNotIn(List<Byte> values) {
+        public Criteria andIsHistoryNotIn(List<Boolean> values) {
             addCriterion("is_history not in", values, "isHistory");
             return (Criteria) this;
         }
 
-        public Criteria andIsHistoryBetween(Byte value1, Byte value2) {
+        public Criteria andIsHistoryBetween(Boolean value1, Boolean value2) {
             addCriterion("is_history between", value1, value2, "isHistory");
             return (Criteria) this;
         }
 
-        public Criteria andIsHistoryNotBetween(Byte value1, Byte value2) {
+        public Criteria andIsHistoryNotBetween(Boolean value1, Boolean value2) {
             addCriterion("is_history not between", value1, value2, "isHistory");
             return (Criteria) this;
         }

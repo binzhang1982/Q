@@ -264,6 +264,76 @@ public class ProductImageExample {
             return (Criteria) this;
         }
 
+        public Criteria andProductIdIsNull() {
+            addCriterion("product_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andProductIdIsNotNull() {
+            addCriterion("product_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andProductIdEqualTo(String value) {
+            addCriterion("product_id =", value, "productId");
+            return (Criteria) this;
+        }
+
+        public Criteria andProductIdNotEqualTo(String value) {
+            addCriterion("product_id <>", value, "productId");
+            return (Criteria) this;
+        }
+
+        public Criteria andProductIdGreaterThan(String value) {
+            addCriterion("product_id >", value, "productId");
+            return (Criteria) this;
+        }
+
+        public Criteria andProductIdGreaterThanOrEqualTo(String value) {
+            addCriterion("product_id >=", value, "productId");
+            return (Criteria) this;
+        }
+
+        public Criteria andProductIdLessThan(String value) {
+            addCriterion("product_id <", value, "productId");
+            return (Criteria) this;
+        }
+
+        public Criteria andProductIdLessThanOrEqualTo(String value) {
+            addCriterion("product_id <=", value, "productId");
+            return (Criteria) this;
+        }
+
+        public Criteria andProductIdLike(String value) {
+            addCriterion("product_id like", value, "productId");
+            return (Criteria) this;
+        }
+
+        public Criteria andProductIdNotLike(String value) {
+            addCriterion("product_id not like", value, "productId");
+            return (Criteria) this;
+        }
+
+        public Criteria andProductIdIn(List<String> values) {
+            addCriterion("product_id in", values, "productId");
+            return (Criteria) this;
+        }
+
+        public Criteria andProductIdNotIn(List<String> values) {
+            addCriterion("product_id not in", values, "productId");
+            return (Criteria) this;
+        }
+
+        public Criteria andProductIdBetween(String value1, String value2) {
+            addCriterion("product_id between", value1, value2, "productId");
+            return (Criteria) this;
+        }
+
+        public Criteria andProductIdNotBetween(String value1, String value2) {
+            addCriterion("product_id not between", value1, value2, "productId");
+            return (Criteria) this;
+        }
+
         public Criteria andFrontCoverFlagIsNull() {
             addCriterion("front_cover_flag is null");
             return (Criteria) this;
@@ -274,52 +344,52 @@ public class ProductImageExample {
             return (Criteria) this;
         }
 
-        public Criteria andFrontCoverFlagEqualTo(Byte value) {
+        public Criteria andFrontCoverFlagEqualTo(Boolean value) {
             addCriterion("front_cover_flag =", value, "frontCoverFlag");
             return (Criteria) this;
         }
 
-        public Criteria andFrontCoverFlagNotEqualTo(Byte value) {
+        public Criteria andFrontCoverFlagNotEqualTo(Boolean value) {
             addCriterion("front_cover_flag <>", value, "frontCoverFlag");
             return (Criteria) this;
         }
 
-        public Criteria andFrontCoverFlagGreaterThan(Byte value) {
+        public Criteria andFrontCoverFlagGreaterThan(Boolean value) {
             addCriterion("front_cover_flag >", value, "frontCoverFlag");
             return (Criteria) this;
         }
 
-        public Criteria andFrontCoverFlagGreaterThanOrEqualTo(Byte value) {
+        public Criteria andFrontCoverFlagGreaterThanOrEqualTo(Boolean value) {
             addCriterion("front_cover_flag >=", value, "frontCoverFlag");
             return (Criteria) this;
         }
 
-        public Criteria andFrontCoverFlagLessThan(Byte value) {
+        public Criteria andFrontCoverFlagLessThan(Boolean value) {
             addCriterion("front_cover_flag <", value, "frontCoverFlag");
             return (Criteria) this;
         }
 
-        public Criteria andFrontCoverFlagLessThanOrEqualTo(Byte value) {
+        public Criteria andFrontCoverFlagLessThanOrEqualTo(Boolean value) {
             addCriterion("front_cover_flag <=", value, "frontCoverFlag");
             return (Criteria) this;
         }
 
-        public Criteria andFrontCoverFlagIn(List<Byte> values) {
+        public Criteria andFrontCoverFlagIn(List<Boolean> values) {
             addCriterion("front_cover_flag in", values, "frontCoverFlag");
             return (Criteria) this;
         }
 
-        public Criteria andFrontCoverFlagNotIn(List<Byte> values) {
+        public Criteria andFrontCoverFlagNotIn(List<Boolean> values) {
             addCriterion("front_cover_flag not in", values, "frontCoverFlag");
             return (Criteria) this;
         }
 
-        public Criteria andFrontCoverFlagBetween(Byte value1, Byte value2) {
+        public Criteria andFrontCoverFlagBetween(Boolean value1, Boolean value2) {
             addCriterion("front_cover_flag between", value1, value2, "frontCoverFlag");
             return (Criteria) this;
         }
 
-        public Criteria andFrontCoverFlagNotBetween(Byte value1, Byte value2) {
+        public Criteria andFrontCoverFlagNotBetween(Boolean value1, Boolean value2) {
             addCriterion("front_cover_flag not between", value1, value2, "frontCoverFlag");
             return (Criteria) this;
         }
@@ -394,52 +464,52 @@ public class ProductImageExample {
             return (Criteria) this;
         }
 
-        public Criteria andIsImgEqualTo(Byte value) {
+        public Criteria andIsImgEqualTo(Boolean value) {
             addCriterion("is_img =", value, "isImg");
             return (Criteria) this;
         }
 
-        public Criteria andIsImgNotEqualTo(Byte value) {
+        public Criteria andIsImgNotEqualTo(Boolean value) {
             addCriterion("is_img <>", value, "isImg");
             return (Criteria) this;
         }
 
-        public Criteria andIsImgGreaterThan(Byte value) {
+        public Criteria andIsImgGreaterThan(Boolean value) {
             addCriterion("is_img >", value, "isImg");
             return (Criteria) this;
         }
 
-        public Criteria andIsImgGreaterThanOrEqualTo(Byte value) {
+        public Criteria andIsImgGreaterThanOrEqualTo(Boolean value) {
             addCriterion("is_img >=", value, "isImg");
             return (Criteria) this;
         }
 
-        public Criteria andIsImgLessThan(Byte value) {
+        public Criteria andIsImgLessThan(Boolean value) {
             addCriterion("is_img <", value, "isImg");
             return (Criteria) this;
         }
 
-        public Criteria andIsImgLessThanOrEqualTo(Byte value) {
+        public Criteria andIsImgLessThanOrEqualTo(Boolean value) {
             addCriterion("is_img <=", value, "isImg");
             return (Criteria) this;
         }
 
-        public Criteria andIsImgIn(List<Byte> values) {
+        public Criteria andIsImgIn(List<Boolean> values) {
             addCriterion("is_img in", values, "isImg");
             return (Criteria) this;
         }
 
-        public Criteria andIsImgNotIn(List<Byte> values) {
+        public Criteria andIsImgNotIn(List<Boolean> values) {
             addCriterion("is_img not in", values, "isImg");
             return (Criteria) this;
         }
 
-        public Criteria andIsImgBetween(Byte value1, Byte value2) {
+        public Criteria andIsImgBetween(Boolean value1, Boolean value2) {
             addCriterion("is_img between", value1, value2, "isImg");
             return (Criteria) this;
         }
 
-        public Criteria andIsImgNotBetween(Byte value1, Byte value2) {
+        public Criteria andIsImgNotBetween(Boolean value1, Boolean value2) {
             addCriterion("is_img not between", value1, value2, "isImg");
             return (Criteria) this;
         }

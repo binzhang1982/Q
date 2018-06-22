@@ -344,52 +344,52 @@ public class ProductServiceAreaExample {
             return (Criteria) this;
         }
 
-        public Criteria andBusinessFlagEqualTo(Byte value) {
+        public Criteria andBusinessFlagEqualTo(Boolean value) {
             addCriterion("business_flag =", value, "businessFlag");
             return (Criteria) this;
         }
 
-        public Criteria andBusinessFlagNotEqualTo(Byte value) {
+        public Criteria andBusinessFlagNotEqualTo(Boolean value) {
             addCriterion("business_flag <>", value, "businessFlag");
             return (Criteria) this;
         }
 
-        public Criteria andBusinessFlagGreaterThan(Byte value) {
+        public Criteria andBusinessFlagGreaterThan(Boolean value) {
             addCriterion("business_flag >", value, "businessFlag");
             return (Criteria) this;
         }
 
-        public Criteria andBusinessFlagGreaterThanOrEqualTo(Byte value) {
+        public Criteria andBusinessFlagGreaterThanOrEqualTo(Boolean value) {
             addCriterion("business_flag >=", value, "businessFlag");
             return (Criteria) this;
         }
 
-        public Criteria andBusinessFlagLessThan(Byte value) {
+        public Criteria andBusinessFlagLessThan(Boolean value) {
             addCriterion("business_flag <", value, "businessFlag");
             return (Criteria) this;
         }
 
-        public Criteria andBusinessFlagLessThanOrEqualTo(Byte value) {
+        public Criteria andBusinessFlagLessThanOrEqualTo(Boolean value) {
             addCriterion("business_flag <=", value, "businessFlag");
             return (Criteria) this;
         }
 
-        public Criteria andBusinessFlagIn(List<Byte> values) {
+        public Criteria andBusinessFlagIn(List<Boolean> values) {
             addCriterion("business_flag in", values, "businessFlag");
             return (Criteria) this;
         }
 
-        public Criteria andBusinessFlagNotIn(List<Byte> values) {
+        public Criteria andBusinessFlagNotIn(List<Boolean> values) {
             addCriterion("business_flag not in", values, "businessFlag");
             return (Criteria) this;
         }
 
-        public Criteria andBusinessFlagBetween(Byte value1, Byte value2) {
+        public Criteria andBusinessFlagBetween(Boolean value1, Boolean value2) {
             addCriterion("business_flag between", value1, value2, "businessFlag");
             return (Criteria) this;
         }
 
-        public Criteria andBusinessFlagNotBetween(Byte value1, Byte value2) {
+        public Criteria andBusinessFlagNotBetween(Boolean value1, Boolean value2) {
             addCriterion("business_flag not between", value1, value2, "businessFlag");
             return (Criteria) this;
         }

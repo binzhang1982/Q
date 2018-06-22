@@ -2,6 +2,7 @@ package com.cn.zbin.ribbonserver.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,5 +28,10 @@ public class StoreController {
 			@RequestParam(value = "offset", required = false) Integer offset, 
 			@RequestParam(value = "limit", required = false) Integer limit) {
     	return storeService.getProductList(strSearch, strScope, strCate, offset, limit);
+    }
+    
+    @GetMapping(value = "/prod/detail/{id}")
+    public String getProductDetail(@PathVariable("id") String prodID) {
+    	return storeService.getProductDetail(prodID);
     }
 }

@@ -38,4 +38,13 @@ public class StoreService {
     		String strCate,Integer offset, Integer limit) {
     	return "failed";
     }
+    
+    @HystrixCommand(fallbackMethod = "getProductDetailError")
+    public String getProductDetail(String prodID) {
+    	String url = "http://SERVICE-STORE/prod/detail/" + prodID;
+    	return restTemplate.getForObject(url, String.class);
+    }
+    public String getProductDetailError(String prodID) {
+    	return "failed";
+    }
 }

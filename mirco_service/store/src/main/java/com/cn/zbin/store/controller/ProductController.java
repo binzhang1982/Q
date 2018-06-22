@@ -1,11 +1,13 @@
 package com.cn.zbin.store.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cn.zbin.store.bto.ProductDetail;
 import com.cn.zbin.store.bto.ProductOverView;
 import com.cn.zbin.store.service.ProductService;
 
@@ -22,5 +24,10 @@ public class ProductController {
 			@RequestParam(value = "offset", required = false) Integer offset, 
 			@RequestParam(value = "limit", required = false) Integer limit) {
 		return productService.getProdOverviewList(strSearch, strScope, strCate, offset, limit);
+	}
+	
+	@RequestMapping(value = "/detail/{id}", produces = {"application/json;charset=UTF-8"}, method = { RequestMethod.GET })
+	public ProductDetail getProductDetail(@PathVariable("id") String prodID) {
+		return productService.getProductDetail(prodID);
 	}
 }
