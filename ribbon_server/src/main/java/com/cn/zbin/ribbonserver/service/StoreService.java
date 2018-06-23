@@ -47,4 +47,38 @@ public class StoreService {
     public String getProductDetailError(String prodID) {
     	return "failed";
     }
+
+    @HystrixCommand(fallbackMethod = "addProductViewHistoryError")
+    public String addProductViewHistory(String prodID, String openid) {
+    	String url = "http://SERVICE-STORE/prod/viewhist/" + prodID + "?openid=" + openid;
+    	return restTemplate.postForObject(url, null, String.class);
+    }
+    public String addProductViewHistoryError(String prodID, String openid) {
+    	return "failed";
+    }
+
+    @HystrixCommand(fallbackMethod = "getProductFavoriteError")
+    public String getProductFavorite(String openid, Integer limit) {
+    	String url = "http://SERVICE-STORE/prod/favorite";
+    	url = url + "?openid=" + openid;   	
+    	Map<String, Object> urlVariables = new HashMap<String, Object>();
+    	if (limit != null) urlVariables.put("limit", limit);
+    	return restTemplate.getForObject(url, String.class, urlVariables);
+    }
+    public String getProductFavoriteError(String openid, Integer limit) {
+    	return "failed";
+    }
+
+    @HystrixCommand(fallbackMethod = "getProductCommentError")
+    public String getProductComment(String prodID, Integer offset, Integer limit) {
+    	String url = "http://SERVICE-STORE/prod/comment";
+    	url = url + "?prodid=" + prodID;   	
+    	Map<String, Object> urlVariables = new HashMap<String, Object>();
+    	if (offset != null) urlVariables.put("offset", offset);
+    	if (limit != null) urlVariables.put("limit", limit);
+    	return restTemplate.getForObject(url, String.class, urlVariables);
+    }
+    public String getProductCommentError(String prodID, Integer offset, Integer limit) {
+    	return "failed";
+    }
 }

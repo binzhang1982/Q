@@ -93,4 +93,7 @@ public interface ProductViewHistoryMapper {
      * @mbggenerated
      */
     int updateByPrimaryKey(ProductViewHistory record);
+    
+    List<ProductViewHistory> selectOnePageFavorite(@Param("customerId") String customerId,
+    		@Param("limit") Integer limit);
 }

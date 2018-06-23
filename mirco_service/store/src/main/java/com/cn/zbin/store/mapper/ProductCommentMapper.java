@@ -93,4 +93,9 @@ public interface ProductCommentMapper {
      * @mbggenerated
      */
     int updateByPrimaryKey(ProductComment record);
+    
+    
+    List<ProductComment> selectOnePageByExample(@Param("example") ProductCommentExample example,
+    		@Param("offset") Integer offset, @Param("limit") Integer limit, 
+    		@Param("orderByClause") String orderByClause);
 }

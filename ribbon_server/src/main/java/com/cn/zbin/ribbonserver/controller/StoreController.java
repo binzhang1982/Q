@@ -31,7 +31,24 @@ public class StoreController {
     }
     
     @GetMapping(value = "/prod/detail/{id}")
-    public String getProductDetail(@PathVariable("id") String prodID) {
+    public String getProductDetail(@PathVariable("id") String prodID,
+    		@RequestParam("openid") String openid) {
+    	storeService.addProductViewHistory(prodID, openid);
     	return storeService.getProductDetail(prodID);
+    }
+    
+    @GetMapping(value = "/prod/favorite")
+    public String getProductFavorite(
+    		@RequestParam(value = "openid", required = true) String openid,
+    		@RequestParam(value = "limit", required = false) Integer limit) {
+    	return storeService.getProductFavorite(openid, limit);
+    }
+    
+    @GetMapping(value = "/prod/comment")
+    public String getProductComment(
+			@RequestParam(value = "prodid", required = true) String prodID,
+			@RequestParam(value = "offset", required = false) Integer offset, 
+			@RequestParam(value = "limit", required = false) Integer limit) {
+    	return storeService.getProductComment(prodID, offset, limit);
     }
 }

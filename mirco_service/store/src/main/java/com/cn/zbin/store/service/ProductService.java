@@ -3,9 +3,11 @@ package com.cn.zbin.store.service;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.cn.zbin.store.bto.ProductCategory;
 import com.cn.zbin.store.bto.ProductDetail;
@@ -23,6 +25,7 @@ import com.cn.zbin.store.dto.ProductInfo;
 import com.cn.zbin.store.dto.ProductInfoExample;
 import com.cn.zbin.store.dto.ProductPrice;
 import com.cn.zbin.store.dto.ProductPriceExample;
+import com.cn.zbin.store.dto.ProductViewHistory;
 import com.cn.zbin.store.mapper.CodeDictInfoMapper;
 import com.cn.zbin.store.mapper.ProductCommentMapper;
 import com.cn.zbin.store.mapper.ProductExtendMapper;
@@ -53,6 +56,35 @@ public class ProductService {
 	private ProductViewHistoryMapper productViewHistoryMapper;
 	@Autowired
 	private CodeDictInfoMapper codeDictInfoMapper;
+	
+	public List<ProductComment> getProductCommentList(String prodID,
+			Integer offset, Integer limit) {
+		ProductCommentExample exam_pc = new ProductCommentExample();
+		exam_pc.createCriteria().andProductIdEqualTo(prodID);
+		List<ProductComment> ret = productCommentMapper.selectOnePageByExample(
+				 exam_pc, offset, limit, "update_time desc");
+		if (!Utils.listNotNull(ret)) ret = new ArrayList<ProductComment>();
+		return ret;
+	}
+	
+	public List<ProductViewHistory> getViewHistoryFavorite(String customerId, Integer limit) {
+		List<ProductViewHistory> ret = productViewHistoryMapper.selectOnePageFavorite(customerId, limit);
+		if (!Utils.listNotNull(ret)) ret = new ArrayList<ProductViewHistory>();
+		return ret;
+	}
+	
+	@Transactional
+	public String addViewHistory(String prodID, String openid) {
+		String viewID = UUID.randomUUID().toString();
+		ProductViewHistory viewHist = new ProductViewHistory();
+		viewHist.setIsHistory(Boolean.FALSE);
+		viewHist.setCustomerId(openid);
+		viewHist.setProductId(prodID);
+		viewHist.setViewId(viewID);
+		viewHist.setViewCount(1);
+		productViewHistoryMapper.insert(viewHist);
+		return viewID;
+	}
 	
 	public ProductDetail getProductDetail(String prodID) {
 		ProductDetail ret = new ProductDetail();
