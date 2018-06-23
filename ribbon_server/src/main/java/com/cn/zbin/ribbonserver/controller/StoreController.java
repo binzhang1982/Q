@@ -1,6 +1,7 @@
 package com.cn.zbin.ribbonserver.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,16 +12,19 @@ import com.cn.zbin.ribbonserver.service.StoreService;
 
 @RestController
 @RequestMapping("store")
+@CrossOrigin
 public class StoreController {
     @Autowired
     StoreService storeService;
 
     @GetMapping(value = "/slide/list")
+    @CrossOrigin
     public String getSlideList() {
     	return storeService.getSlideList();
     }
     
     @GetMapping(value = "/prod/list")
+    @CrossOrigin
     public String getProductList(
     		@RequestParam(value = "search", required = false) String strSearch, 
 			@RequestParam(value = "scope", required = false) String strScope,
@@ -31,6 +35,7 @@ public class StoreController {
     }
     
     @GetMapping(value = "/prod/detail/{id}")
+    @CrossOrigin
     public String getProductDetail(@PathVariable("id") String prodID,
     		@RequestParam("openid") String openid) {
     	storeService.addProductViewHistory(prodID, openid);
@@ -38,6 +43,7 @@ public class StoreController {
     }
     
     @GetMapping(value = "/prod/favorite")
+    @CrossOrigin
     public String getProductFavorite(
     		@RequestParam(value = "openid", required = true) String openid,
     		@RequestParam(value = "limit", required = false) Integer limit) {
@@ -45,6 +51,7 @@ public class StoreController {
     }
     
     @GetMapping(value = "/prod/comment")
+    @CrossOrigin
     public String getProductComment(
 			@RequestParam(value = "prodid", required = true) String prodID,
 			@RequestParam(value = "offset", required = false) Integer offset, 
