@@ -632,52 +632,52 @@ public class CustomerInfoExample {
             return (Criteria) this;
         }
 
-        public Criteria andValidFlagEqualTo(Byte value) {
+        public Criteria andValidFlagEqualTo(Boolean value) {
             addCriterion("valid_flag =", value, "validFlag");
             return (Criteria) this;
         }
 
-        public Criteria andValidFlagNotEqualTo(Byte value) {
+        public Criteria andValidFlagNotEqualTo(Boolean value) {
             addCriterion("valid_flag <>", value, "validFlag");
             return (Criteria) this;
         }
 
-        public Criteria andValidFlagGreaterThan(Byte value) {
+        public Criteria andValidFlagGreaterThan(Boolean value) {
             addCriterion("valid_flag >", value, "validFlag");
             return (Criteria) this;
         }
 
-        public Criteria andValidFlagGreaterThanOrEqualTo(Byte value) {
+        public Criteria andValidFlagGreaterThanOrEqualTo(Boolean value) {
             addCriterion("valid_flag >=", value, "validFlag");
             return (Criteria) this;
         }
 
-        public Criteria andValidFlagLessThan(Byte value) {
+        public Criteria andValidFlagLessThan(Boolean value) {
             addCriterion("valid_flag <", value, "validFlag");
             return (Criteria) this;
         }
 
-        public Criteria andValidFlagLessThanOrEqualTo(Byte value) {
+        public Criteria andValidFlagLessThanOrEqualTo(Boolean value) {
             addCriterion("valid_flag <=", value, "validFlag");
             return (Criteria) this;
         }
 
-        public Criteria andValidFlagIn(List<Byte> values) {
+        public Criteria andValidFlagIn(List<Boolean> values) {
             addCriterion("valid_flag in", values, "validFlag");
             return (Criteria) this;
         }
 
-        public Criteria andValidFlagNotIn(List<Byte> values) {
+        public Criteria andValidFlagNotIn(List<Boolean> values) {
             addCriterion("valid_flag not in", values, "validFlag");
             return (Criteria) this;
         }
 
-        public Criteria andValidFlagBetween(Byte value1, Byte value2) {
+        public Criteria andValidFlagBetween(Boolean value1, Boolean value2) {
             addCriterion("valid_flag between", value1, value2, "validFlag");
             return (Criteria) this;
         }
 
-        public Criteria andValidFlagNotBetween(Byte value1, Byte value2) {
+        public Criteria andValidFlagNotBetween(Boolean value1, Boolean value2) {
             addCriterion("valid_flag not between", value1, value2, "validFlag");
             return (Criteria) this;
         }
