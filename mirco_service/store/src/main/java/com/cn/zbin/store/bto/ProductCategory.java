@@ -6,6 +6,7 @@ public class ProductCategory {
 	private String productCategoryCode;
 	private String productCategoryName;
 	private List<ProductOutline> prodList;
+	private List<List<ProductOutline>> prodList2;
 	public String getProductCategoryCode() {
 		return productCategoryCode;
 	}
@@ -23,5 +24,11 @@ public class ProductCategory {
 	}
 	public void setProdList(List<ProductOutline> prodList) {
 		this.prodList = prodList;
+	}
+	public List<List<ProductOutline>> getProdList2() {
+		return prodList2;
+	}
+	public void setProdList2(List<List<ProductOutline>> prodList2) {
+		this.prodList2 = prodList2;
 	}
 }

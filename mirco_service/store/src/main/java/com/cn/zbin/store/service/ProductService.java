@@ -173,14 +173,39 @@ public class ProductService {
 					.andProductNameLike(strSearch);
 		List<ProductInfo> pi_list = productInfoMapper.selectOnePageByExample(
 					exam_pi, offset, limit, "sale_start_time desc");
-		prodCate.setProdList(new ArrayList<ProductOutline>());
-		ProductOutline prodOutLine;
-		for (ProductInfo pi : pi_list) {
-			prodOutLine = new ProductOutline();
-			prodOutLine.setProdInfo(pi);
-			prodOutLine.setMinProdPrice(getMinProductPrice(pi.getProductId()));
-			prodOutLine.setFrontCoverImage(getFrontCoverImage(pi.getProductId()));
-			prodCate.getProdList().add(prodOutLine);
+		if (leaseFlag) {
+			prodCate.setProdList2(new ArrayList<>());
+			if (Utils.listNotNull(pi_list)) {
+				List<ProductOutline> prodList = new ArrayList<ProductOutline>();
+				ProductOutline prodOutLine;
+				ProductInfo pi;
+				for (int i = 0; i <= pi_list.size() - 1; i++) {
+					if (i%2 == 0) {
+						prodList = new ArrayList<ProductOutline>();
+					}
+					prodOutLine = new ProductOutline();
+					pi = pi_list.get(0);
+					prodOutLine.setProdInfo(pi);
+					prodOutLine.setMinProdPrice(getMinProductPrice(pi.getProductId()));
+					prodOutLine.setFrontCoverImage(getFrontCoverImage(pi.getProductId()));
+					prodList.add(prodOutLine);
+					if (i%2 != 0) {
+						prodCate.getProdList2().add(prodList);
+					}
+				}
+			}
+		} else {
+			prodCate.setProdList(new ArrayList<ProductOutline>());
+			if (Utils.listNotNull(pi_list)) {
+				ProductOutline prodOutLine;
+				for (ProductInfo pi : pi_list) {
+					prodOutLine = new ProductOutline();
+					prodOutLine.setProdInfo(pi);
+					prodOutLine.setMinProdPrice(getMinProductPrice(pi.getProductId()));
+					prodOutLine.setFrontCoverImage(getFrontCoverImage(pi.getProductId()));
+					prodCate.getProdList().add(prodOutLine);
+				}
+			}
 		}
 		return prodCate;
 	}
