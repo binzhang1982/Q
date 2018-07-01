@@ -1,11 +1,13 @@
 package com.cn.zbin.management.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cn.zbin.management.dto.CustomerInfo;
 import com.cn.zbin.management.service.CustomerService;
 
 @RestController
@@ -20,5 +22,16 @@ public class CustomerController {
 		String ret = "";
 		customerService.postCustomer(openid, registerType);
 		return ret;
+	}
+	
+	@RequestMapping(value = "/get/{regtype}/{refid}", method = { RequestMethod.GET })
+	public String getCustomerByRefID(@PathVariable("regtype") Integer registerType,
+			@PathVariable("refid") String refid) {
+		return customerService.getCustomerByRefID(refid, registerType);
+	}
+	
+	@RequestMapping(value = "/get/{customerid}", method = { RequestMethod.GET })
+	public CustomerInfo getRefIdByCustId(@PathVariable("customerid") String customerid) {
+		return customerService.getRefIdByCustId(customerid);
 	}
 }
