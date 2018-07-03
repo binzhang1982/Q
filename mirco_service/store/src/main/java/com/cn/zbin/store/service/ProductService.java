@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -74,11 +75,11 @@ public class ProductService {
 	}
 	
 	@Transactional
-	public String addViewHistory(String prodID, String openid) {
+	public String addViewHistory(String prodID, String customerid) {
 		String viewID = UUID.randomUUID().toString();
 		ProductViewHistory viewHist = new ProductViewHistory();
 		viewHist.setIsHistory(Boolean.FALSE);
-		viewHist.setCustomerId(openid);
+		viewHist.setCustomerId(customerid);
 		viewHist.setProductId(prodID);
 		viewHist.setViewId(viewID);
 		viewHist.setViewCount(1);
@@ -133,6 +134,10 @@ public class ProductService {
 	
 	public ProductOverView getProdOverviewList(String strSearch, String strScope, 
 			String strCate, Integer offset, Integer limit) {
+		if (StringUtils.isBlank(strSearch)) strSearch = null;
+		if (StringUtils.isBlank(strScope)) strScope = null;
+		if (StringUtils.isBlank(strCate)) strCate = null;
+		
 		ProductOverView ret = new ProductOverView();
 		ret.setLeaseProdCate(new ArrayList<ProductCategory>());
 		ret.setSellProdCate(new ArrayList<ProductCategory>());
@@ -160,7 +165,7 @@ public class ProductService {
 	private ProductCategory getProductCategory(CodeDictInfo code, Boolean leaseFlag,
 			String strSearch, Integer offset, Integer limit) {
 		ProductCategory prodCate = new ProductCategory();
-		prodCate.setProductCategoryCode(code.getCodecate());
+		prodCate.setProductCategoryCode(code.getDictcode());
 		prodCate.setProductCategoryName(code.getCodename());
 
 		ProductInfoExample exam_pi = new ProductInfoExample();

@@ -21,14 +21,14 @@ public class CustomerService {
 		return customerInfoMapper.selectByPrimaryKey(customerid);
 	}
 	
-	public String getCustomerByRefID(String refid, Integer registerType) {
-		String ret = "";
+	public CustomerInfo getCustomerByRefID(String refid, Integer registerType) {
+		CustomerInfo ret = new CustomerInfo();
 		CustomerInfoExample example = new CustomerInfoExample();
 		example.createCriteria().andRegisterIdEqualTo(refid)
 								.andRegisterTypeEqualTo(registerType);
 		List<CustomerInfo> custList = customerInfoMapper.selectByExample(example);
 		if (Utils.listNotNull(custList)) {
-			ret = custList.get(0).getCustomerId();
+			ret = custList.get(0);
 		}
 		return ret;
 	}

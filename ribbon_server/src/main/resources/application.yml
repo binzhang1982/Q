@@ -8,7 +8,8 @@ spring:
   application:
     name: service-ribbon
 qlh:
-  imagesPath: file:/C:/qlh/image/
+#  imagesPath: file:/C:/qlh/image/
+  imagesPath: file:/data/qlh/image/
 hystrix:   
   threadpool:   
     default:   

@@ -37,15 +37,15 @@ public class ProductController {
 	
 	@RequestMapping(value = "/viewhist/{id}", produces = {"application/json;charset=UTF-8"}, method = { RequestMethod.POST })
 	public String addViewHistory(@PathVariable("id") String prodID,
-			@RequestParam("openid") String openid) {
-		return productService.addViewHistory(prodID, openid);
+			@RequestParam("customerid") String customerid) {
+		return productService.addViewHistory(prodID, customerid);
 	}
 
 	@RequestMapping(value = "/favorite", produces = {"application/json;charset=UTF-8"}, method = { RequestMethod.GET })
 	public List<ProductViewHistory> getViewHistoryFavorite(
-			@RequestParam(value = "openid", required = true) String openid,
+			@RequestParam(value = "customerid", required = true) String customerid,
 			@RequestParam(value = "limit", required = false) Integer limit) {
-		return productService.getViewHistoryFavorite(openid, limit);
+		return productService.getViewHistoryFavorite(customerid, limit);
 	}
 
 	@RequestMapping(value = "/comment", produces = {"application/json;charset=UTF-8"}, method = { RequestMethod.GET })

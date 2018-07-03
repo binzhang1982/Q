@@ -14,7 +14,7 @@ public class QLHStartupRunner implements CommandLineRunner {
 
 	@Override
 	public void run(String... arg0) throws Exception {
-        RestTemplate restTemplate = new RestTemplate();
+      RestTemplate restTemplate = new RestTemplate();
 		AccessToken atk = restTemplate.getForObject(
 				"https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential"
 				+ "&appid=" + RibbonConstants.APPID

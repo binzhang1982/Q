@@ -37,17 +37,17 @@ public class StoreController {
     @GetMapping(value = "/prod/detail/{id}")
     @CrossOrigin
     public String getProductDetail(@PathVariable("id") String prodID,
-    		@RequestParam("openid") String openid) {
-    	storeService.addProductViewHistory(prodID, openid);
+    		@RequestParam("customerid") String customerid) {
+    	storeService.addProductViewHistory(prodID, customerid);
     	return storeService.getProductDetail(prodID);
     }
     
     @GetMapping(value = "/prod/favorite")
     @CrossOrigin
     public String getProductFavorite(
-    		@RequestParam(value = "openid", required = true) String openid,
+    		@RequestParam(value = "customerid", required = true) String customerid,
     		@RequestParam(value = "limit", required = false) Integer limit) {
-    	return storeService.getProductFavorite(openid, limit);
+    	return storeService.getProductFavorite(customerid, limit);
     }
     
     @GetMapping(value = "/prod/comment")

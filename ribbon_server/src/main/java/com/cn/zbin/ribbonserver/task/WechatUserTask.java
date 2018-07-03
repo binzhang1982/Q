@@ -32,10 +32,9 @@ public class WechatUserTask {
         	allUsers = restTemplate.getForObject(
         			url, WechatUserList.class);
         	for (String openid : allUsers.getData().getOpenid()) {
-        		System.out.println(openid);
-        		restTemplate.postForObject("http://localhost/wechat/update_user?openid="
+        		restTemplate.postForObject("http://localhost/wechat/user?openid="
         				+ openid, null, String.class);
-        		restTemplate.postForObject("http://localhost/mgmt/update_customer?openid="
+        		restTemplate.postForObject("http://localhost/mgmt//cust/regtype?openid="
         				+ openid + "&regtype=1", null, String.class);
         	}
         	count = allUsers.getCount();

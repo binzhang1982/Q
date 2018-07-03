@@ -14,7 +14,7 @@ import com.github.binarywang.java.emoji.EmojiConverter;
 public class WechatUserService {
 	@Autowired
 	private WeChatUserInfoMapper wechatUserInfoMapper;
-	private EmojiConverter emojiConverter = EmojiConverter.getInstance();
+//	private EmojiConverter emojiConverter = EmojiConverter.getInstance();
 	
 	@Transactional
 	public void postUser(WeChatUserBaseInfo userBaseInfo) {
@@ -63,7 +63,8 @@ public class WechatUserService {
 		ret.setGroupId(base.getGroupid());
 		ret.setHeadImgurl(base.getHeadimgurl());
 		ret.setLanguage(base.getLanguage());
-		ret.setNickName(emojiConverter.toHtml(base.getNickname()));
+		ret.setNickName(base.getNickname());
+//		ret.setNickName(emojiConverter.toHtml(base.getNickname()));
 //		try {
 //			ret.setNickName(EmojiUtil.emojiConvert(base.getNickname()));
 //		} catch (UnsupportedEncodingException e) {

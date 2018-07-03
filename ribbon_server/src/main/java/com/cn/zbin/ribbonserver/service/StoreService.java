@@ -26,13 +26,17 @@ public class StoreService {
     public String getProductList(String strSearch, String strScope, 
     		String strCate, Integer offset, Integer limit) {
     	String url = "http://SERVICE-STORE/prod/list";
-    	Map<String, Object> urlVariables = new HashMap<String, Object>();
-    	if (strSearch != null) urlVariables.put("search", strSearch);
-    	if (strScope != null) urlVariables.put("scope", strScope);
-    	if (strCate != null) urlVariables.put("cate", strCate);
-    	if (offset != null) urlVariables.put("offset", offset);
-    	if (limit != null) urlVariables.put("limit", limit);
-    	return restTemplate.getForObject(url, String.class, urlVariables);
+    	url = url + "?search=";
+    	if (strSearch != null) url = url + strSearch;
+    	url = url + "&scope=";
+    	if (strScope != null) url = url + strScope;
+    	url = url + "&cate=";
+    	if (strCate != null) url = url + strCate;
+    	url = url + "&offset=";
+    	if (offset != null) url = url + offset;
+    	url = url + "&limit=";
+    	if (limit != null) url = url + limit;
+    	return restTemplate.getForObject(url, String.class);
     }
     public String getProductListError(String strSearch, String strScope, 
     		String strCate,Integer offset, Integer limit) {
@@ -49,8 +53,8 @@ public class StoreService {
     }
 
     @HystrixCommand(fallbackMethod = "addProductViewHistoryError")
-    public String addProductViewHistory(String prodID, String openid) {
-    	String url = "http://SERVICE-STORE/prod/viewhist/" + prodID + "?openid=" + openid;
+    public String addProductViewHistory(String prodID, String customerid) {
+    	String url = "http://SERVICE-STORE/prod/viewhist/" + prodID + "?customerid=" + customerid;
     	return restTemplate.postForObject(url, null, String.class);
     }
     public String addProductViewHistoryError(String prodID, String openid) {
@@ -58,9 +62,9 @@ public class StoreService {
     }
 
     @HystrixCommand(fallbackMethod = "getProductFavoriteError")
-    public String getProductFavorite(String openid, Integer limit) {
+    public String getProductFavorite(String customerid, Integer limit) {
     	String url = "http://SERVICE-STORE/prod/favorite";
-    	url = url + "?openid=" + openid;   	
+    	url = url + "?customerid=" + customerid;   	
     	Map<String, Object> urlVariables = new HashMap<String, Object>();
     	if (limit != null) urlVariables.put("limit", limit);
     	return restTemplate.getForObject(url, String.class, urlVariables);

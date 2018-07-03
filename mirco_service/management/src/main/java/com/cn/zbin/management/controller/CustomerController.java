@@ -16,7 +16,7 @@ public class CustomerController {
 	@Autowired
 	private CustomerService customerService;
 	
-	@RequestMapping(value = "/update", method = { RequestMethod.POST })
+	@RequestMapping(value = "", method = { RequestMethod.POST })
 	public String addWechatUser(@RequestParam("openid") String openid,
 			@RequestParam("regtype") Integer registerType) {
 		String ret = "";
@@ -24,13 +24,13 @@ public class CustomerController {
 		return ret;
 	}
 	
-	@RequestMapping(value = "/get/{regtype}/{refid}", method = { RequestMethod.GET })
-	public String getCustomerByRefID(@PathVariable("regtype") Integer registerType,
+	@RequestMapping(value = "/{regtype}/{refid}", produces = {"application/json;charset=UTF-8"}, method = { RequestMethod.GET })
+	public CustomerInfo getCustomerByRefID(@PathVariable("regtype") Integer registerType,
 			@PathVariable("refid") String refid) {
 		return customerService.getCustomerByRefID(refid, registerType);
 	}
 	
-	@RequestMapping(value = "/get/{customerid}", method = { RequestMethod.GET })
+	@RequestMapping(value = "/{customerid}", produces = {"application/json;charset=UTF-8"}, method = { RequestMethod.GET })
 	public CustomerInfo getRefIdByCustId(@PathVariable("customerid") String customerid) {
 		return customerService.getRefIdByCustId(customerid);
 	}

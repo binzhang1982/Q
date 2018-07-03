@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -41,14 +42,14 @@ public class WechatController {
 		return wechatService.postEventService(signature, timestamp, nonce, msg);
 	}
 	
-	@GetMapping(value = "/create_partner")
+	@PutMapping(value = "/partner")
 	@CrossOrigin
 	public String createPartner(@RequestParam("scenestr") String scenestr) {
 		String ret = wechatService.createPartner(scenestr);
 		return ret;
 	}
 	
-	@PostMapping(value = "/update_user")
+	@PostMapping(value = "/user")
 	@CrossOrigin
 	public String updateUser(@RequestParam("openid") String openid) {
 		String ret = wechatService.updateUser(openid);
