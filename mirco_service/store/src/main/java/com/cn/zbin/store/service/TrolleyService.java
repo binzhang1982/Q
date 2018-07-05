@@ -1,15 +1,21 @@
 package com.cn.zbin.store.service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.cn.zbin.store.bto.ShoppingTrolleyOverView;
 import com.cn.zbin.store.dto.ProductInfo;
 import com.cn.zbin.store.dto.ShoppingTrolleyInfo;
+import com.cn.zbin.store.dto.ShoppingTrolleyInfoExample;
 import com.cn.zbin.store.mapper.ProductInfoMapper;
 import com.cn.zbin.store.mapper.ShoppingTrolleyInfoMapper;
 import com.cn.zbin.store.utils.StoreConstants;
+import com.cn.zbin.store.utils.Utils;
 
 @Service
 public class TrolleyService {
@@ -19,8 +25,31 @@ public class TrolleyService {
 	@Autowired
 	private ShoppingTrolleyInfoMapper shoppingTrolleyInfoMapper;
 	
+	public ShoppingTrolleyOverView getTrolleyList(String custid, String strScope) {
+		ShoppingTrolleyOverView ret = new ShoppingTrolleyOverView();
+		ret.setLeaseTrolley(new ArrayList<ShoppingTrolleyInfo>());
+		ret.setSellTrolley(new ArrayList<ShoppingTrolleyInfo>());
+		ShoppingTrolleyInfoExample exam_trolley;
+		if (StringUtils.isBlank(strScope) || StoreConstants.PRODUCT_SCOPE_SELL.equals(strScope)) {
+			exam_trolley = new ShoppingTrolleyInfoExample();
+			exam_trolley.createCriteria().andIsDeleteEqualTo(Boolean.FALSE)
+										.andCustomerIdEqualTo(custid)
+										.andLeaseFlagEqualTo(Boolean.FALSE);
+			List<ShoppingTrolleyInfo> trolleyList = shoppingTrolleyInfoMapper.selectByExample(exam_trolley);
+			if (Utils.listNotNull(trolleyList)) ret.setSellTrolley(trolleyList);
+		}
+		if (StringUtils.isBlank(strScope) || StoreConstants.PRODUCT_SCOPE_LEASE.equals(strScope)) {
+			exam_trolley = new ShoppingTrolleyInfoExample();
+			exam_trolley.createCriteria().andIsDeleteEqualTo(Boolean.FALSE)
+										.andCustomerIdEqualTo(custid)
+										.andLeaseFlagEqualTo(Boolean.TRUE);
+			List<ShoppingTrolleyInfo> trolleyList = shoppingTrolleyInfoMapper.selectByExample(exam_trolley);
+			if (Utils.listNotNull(trolleyList)) ret.setLeaseTrolley(trolleyList);
+		}
+		return ret;
+	}
+	
 	public String add2Trolley(ShoppingTrolleyInfo trolleyBean) {
-
 		if (trolleyBean.getSaleCount() == null) return StoreConstants.CHK_ERR_90003;
 		else if (trolleyBean.getSaleCount() == 0) return StoreConstants.CHK_ERR_90003;
 		

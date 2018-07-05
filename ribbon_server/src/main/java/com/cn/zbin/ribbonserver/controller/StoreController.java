@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -58,4 +60,19 @@ public class StoreController {
 			@RequestParam(value = "limit", required = false) Integer limit) {
     	return storeService.getProductComment(prodID, offset, limit);
     }
+
+    @GetMapping(value = "/trolley/list")
+    @CrossOrigin
+    public String getTrolleyList(
+			@RequestParam(value = "customerid", required = true) String custid,
+			@RequestParam(value = "scope", required = false) String strScope) {
+    	return storeService.getTrolleyList(custid, strScope);
+    }
+
+    @PostMapping(value = "/trolley")
+    @CrossOrigin
+    public String add2Trolley(@RequestBody String bean) {
+    	return storeService.add2Trolley(bean);
+    }
+    
 }

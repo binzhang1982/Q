@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.cn.zbin.store.bto.MsgData;
+import com.cn.zbin.store.bto.ShoppingTrolleyOverView;
 import com.cn.zbin.store.dto.ShoppingTrolleyInfo;
 import com.cn.zbin.store.service.TrolleyService;
 
@@ -34,9 +35,9 @@ public class TrolleyController {
 	
 	@RequestMapping(value = "/list", produces = {"application/json;charset=UTF-8"}, 
 			method = { RequestMethod.GET })
-	public List<ShoppingTrolleyInfo> getTrolleyList(
+	public ShoppingTrolleyOverView getTrolleyList(
 			@RequestParam(value = "customerid", required = true) String custid,
 			@RequestParam(value = "scope", required = false) String strScope) {
-		return null;
+		return trolleyService.getTrolleyList(custid, strScope);
 	}
 }

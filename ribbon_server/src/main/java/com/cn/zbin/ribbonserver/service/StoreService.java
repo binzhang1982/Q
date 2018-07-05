@@ -1,9 +1,9 @@
 package com.cn.zbin.ribbonserver.service;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -64,10 +64,10 @@ public class StoreService {
     @HystrixCommand(fallbackMethod = "getProductFavoriteError")
     public String getProductFavorite(String customerid, Integer limit) {
     	String url = "http://SERVICE-STORE/prod/favorite";
-    	url = url + "?customerid=" + customerid;   	
-    	Map<String, Object> urlVariables = new HashMap<String, Object>();
-    	if (limit != null) urlVariables.put("limit", limit);
-    	return restTemplate.getForObject(url, String.class, urlVariables);
+    	url = url + "?customerid=" + customerid;
+    	url = url + "&limit=";
+    	if (limit != null) url = url + limit;
+    	return restTemplate.getForObject(url, String.class);
     }
     public String getProductFavoriteError(String openid, Integer limit) {
     	return "failed";
@@ -76,13 +76,38 @@ public class StoreService {
     @HystrixCommand(fallbackMethod = "getProductCommentError")
     public String getProductComment(String prodID, Integer offset, Integer limit) {
     	String url = "http://SERVICE-STORE/prod/comment";
-    	url = url + "?prodid=" + prodID;   	
-    	Map<String, Object> urlVariables = new HashMap<String, Object>();
-    	if (offset != null) urlVariables.put("offset", offset);
-    	if (limit != null) urlVariables.put("limit", limit);
-    	return restTemplate.getForObject(url, String.class, urlVariables);
+    	url = url + "?prodid=" + prodID;
+    	url = url + "&offset=";
+    	if (limit != null) url = url + offset;
+    	url = url + "&limit=";
+    	if (limit != null) url = url + limit;
+    	return restTemplate.getForObject(url, String.class);
     }
     public String getProductCommentError(String prodID, Integer offset, Integer limit) {
+    	return "failed";
+    }
+
+    @HystrixCommand(fallbackMethod = "getTrolleyListError")
+    public String getTrolleyList(String custid, String strScope) {
+    	String url = "http://SERVICE-STORE/trolley/list";
+    	url = url + "?customerid=" + custid;
+    	url = url + "&scope=";
+    	if (strScope != null) url = url + strScope;
+    	return restTemplate.getForObject(url, String.class);
+    }
+    public String getTrolleyListError(String custid, String strScope) {
+    	return "failed";
+    }
+
+    @HystrixCommand(fallbackMethod = "add2TrolleyError")
+    public String add2Trolley(String bean) {
+    	String url = "http://SERVICE-STORE/trolley";
+        HttpHeaders headers =new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> request = new HttpEntity<String>(bean, headers);
+    	return restTemplate.postForObject(url, request, String.class);
+    }
+    public String add2TrolleyError(String bean) {
     	return "failed";
     }
 }
