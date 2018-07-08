@@ -1,7 +1,5 @@
 package com.cn.zbin.store.controller;
 
-import java.util.List;
-
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;

@@ -58,6 +58,7 @@ public class TrolleyService {
 			if (prod == null) return StoreConstants.CHK_ERR_90001; 
 			else if (prod.getLeaseFlag() && trolleyBean.getSaleCount() > 1) return StoreConstants.CHK_ERR_90005;
 			else if (prod.getLeaseFlag() && trolleyBean.getPendingCount() <= 0) return StoreConstants.CHK_ERR_90007;
+			else if (prod.getLeaseFlag() && trolleyBean.getPendingCount() < prod.getLeaseMinDays()) return StoreConstants.CHK_ERR_90008;
 			else if (prod.getLeaseFlag() && trolleyBean.getReservePendingDate() == null) return StoreConstants.CHK_ERR_90006;
 
 			trolleyBean.setLeaseFlag(prod.getLeaseFlag());
@@ -66,9 +67,17 @@ public class TrolleyService {
 		}
 		if (trolleyBean.getCustomerId() == null) return StoreConstants.CHK_ERR_90004;
 
-		trolleyBean.setIsDelete(Boolean.FALSE);
-		trolleyBean.setTrolleyId(UUID.randomUUID().toString());
-		shoppingTrolleyInfoMapper.insertSelective(trolleyBean);
+		if (trolleyBean.getTrolleyId() != null ) {
+			ShoppingTrolleyInfoExample exam_trolley = new ShoppingTrolleyInfoExample();
+			exam_trolley.createCriteria().andTrolleyIdEqualTo(trolleyBean.getTrolleyId())
+										.andCustomerIdEqualTo(trolleyBean.getCustomerId())
+										.andProductIdEqualTo(trolleyBean.getProductId());
+			shoppingTrolleyInfoMapper.updateByExampleSelective(trolleyBean, exam_trolley);
+		} else {
+			trolleyBean.setIsDelete(Boolean.FALSE);
+			trolleyBean.setTrolleyId(UUID.randomUUID().toString());
+			shoppingTrolleyInfoMapper.insertSelective(trolleyBean);
+		}
 		
 		return "";
 	}
