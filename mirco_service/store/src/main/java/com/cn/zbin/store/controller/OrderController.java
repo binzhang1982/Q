@@ -25,6 +25,6 @@ public class OrderController {
 			@RequestParam(value = "type", required = true) String type,
 			@RequestParam(value = "customerid", required = true) String custid,
 			@RequestBody List<ShoppingTrolleyInfo> trolleyList) {
-		return null;
+		return orderService.createGuestOrder(type, custid, trolleyList);
 	}
 }

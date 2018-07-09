@@ -1,5 +1,6 @@
 package com.cn.zbin.store.bto;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import com.cn.zbin.store.dto.GuestOrderInfo;
@@ -19,6 +20,5 @@ public class GuestOrderOverView extends MsgData {
 	}
 	public void setOrderProductList(List<OrderProductOverView> orderProductList) {
 		this.orderProductList = orderProductList;
-	}
-	
+	}	
 }

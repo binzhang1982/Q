@@ -526,6 +526,66 @@ public class GuestOrderInfoExample {
             return (Criteria) this;
         }
 
+        public Criteria andTotalAmountIsNull() {
+            addCriterion("total_amount is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalAmountIsNotNull() {
+            addCriterion("total_amount is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalAmountEqualTo(BigDecimal value) {
+            addCriterion("total_amount =", value, "totalAmount");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalAmountNotEqualTo(BigDecimal value) {
+            addCriterion("total_amount <>", value, "totalAmount");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalAmountGreaterThan(BigDecimal value) {
+            addCriterion("total_amount >", value, "totalAmount");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalAmountGreaterThanOrEqualTo(BigDecimal value) {
+            addCriterion("total_amount >=", value, "totalAmount");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalAmountLessThan(BigDecimal value) {
+            addCriterion("total_amount <", value, "totalAmount");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalAmountLessThanOrEqualTo(BigDecimal value) {
+            addCriterion("total_amount <=", value, "totalAmount");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalAmountIn(List<BigDecimal> values) {
+            addCriterion("total_amount in", values, "totalAmount");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalAmountNotIn(List<BigDecimal> values) {
+            addCriterion("total_amount not in", values, "totalAmount");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalAmountBetween(BigDecimal value1, BigDecimal value2) {
+            addCriterion("total_amount between", value1, value2, "totalAmount");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalAmountNotBetween(BigDecimal value1, BigDecimal value2) {
+            addCriterion("total_amount not between", value1, value2, "totalAmount");
+            return (Criteria) this;
+        }
+
         public Criteria andPaymentCodeIsNull() {
             addCriterion("payment_code is null");
             return (Criteria) this;
