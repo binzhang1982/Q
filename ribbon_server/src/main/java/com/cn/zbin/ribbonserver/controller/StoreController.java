@@ -75,4 +75,13 @@ public class StoreController {
     	return storeService.add2Trolley(bean);
     }
     
+    @PostMapping(value = "/order/init")
+    @CrossOrigin
+    public String initOrder(
+    		@RequestParam(value = "customerid", required = true) String custid,
+			@RequestParam(value = "type", required = true) String type,
+			@RequestBody String bean) {
+    	return storeService.initOrder(custid, type, bean);
+    }
+    
 }

@@ -19,12 +19,12 @@ public class OrderController {
 	@Autowired
 	private OrderService orderService;
 
-	@RequestMapping(value = "/create", consumes = {"application/json;charset=UTF-8"}, 
+	@RequestMapping(value = "/init", consumes = {"application/json;charset=UTF-8"}, 
 			produces = {"application/json;charset=UTF-8"}, method = { RequestMethod.POST })
-	public GuestOrderOverView createGuestOrder(
+	public GuestOrderOverView initGuestOrder(
 			@RequestParam(value = "type", required = true) String type,
 			@RequestParam(value = "customerid", required = true) String custid,
 			@RequestBody List<ShoppingTrolleyInfo> trolleyList) {
-		return orderService.createGuestOrder(type, custid, trolleyList);
+		return orderService.initGuestOrder(type, custid, trolleyList);
 	}
 }

@@ -72,6 +72,12 @@ public class WeChatMessage implements Serializable {
 	@JacksonXmlProperty(localName = "MediaId")
 	private String mediaId;
 
+	@JacksonXmlProperty(localName = "ArticleCount")
+	private Integer articleCount;
+
+	@JacksonXmlProperty(localName = "Articles")
+	private String articles;
+
 	
 	public String toTextString() {
 		String xml = new String();
@@ -82,6 +88,8 @@ public class WeChatMessage implements Serializable {
 			"<MsgType><![CDATA[" + this.msgType + "]]></MsgType>" + 
 			"<Content><![CDATA[" + this.content + "]]></Content>" +
 			"<FuncFlag>0</FuncFlag>" + 
+			"<ArticleCount>" + this.articleCount + "</ArticleCount>" +
+			"<Articles>" + this.articles + "</Articles>" +
 			"</xml>";
 		return xml;
 	}
@@ -196,6 +204,22 @@ public class WeChatMessage implements Serializable {
 
 	public void setMediaId(String mediaId) {
 		this.mediaId = mediaId;
+	}
+
+	public Integer getArticleCount() {
+		return articleCount;
+	}
+
+	public void setArticleCount(Integer articleCount) {
+		this.articleCount = articleCount;
+	}
+
+	public String getArticles() {
+		return articles;
+	}
+
+	public void setArticles(String articles) {
+		this.articles = articles;
 	}
     
 }

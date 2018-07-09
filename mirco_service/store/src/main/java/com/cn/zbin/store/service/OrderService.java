@@ -39,7 +39,7 @@ public class OrderService {
 	@Autowired
 	private OrderProductMapper orderProductMapper;
 	
-	public GuestOrderOverView createGuestOrder(String type, String custid,
+	public GuestOrderOverView initGuestOrder(String type, String custid,
 			List<ShoppingTrolleyInfo> trolleyList) {
 		if (StoreConstants.ORDER_TYPE_GUEST.equals(type)) {
 			return createGuestOrderByGuest(trolleyList, custid);
@@ -75,10 +75,12 @@ public class OrderService {
 			}
 		}
 		
-		if (ret.getGuestOrderInfo().getService() != null) ret.getGuestOrderInfo().setCarriage(new BigDecimal(0));
-		totalPayAmount = totalPayAmount.add(ret.getGuestOrderInfo().getCarriage())
-					.add(ret.getGuestOrderInfo().getService());
-		ret.getGuestOrderInfo().setTotalAmount(totalPayAmount);		
+		if (ret.getStatus() != MsgData.status_ng) {
+			if (ret.getGuestOrderInfo().getService() != null) ret.getGuestOrderInfo().setCarriage(new BigDecimal(0));
+			totalPayAmount = totalPayAmount.add(ret.getGuestOrderInfo().getCarriage())
+						.add(ret.getGuestOrderInfo().getService());
+			ret.getGuestOrderInfo().setTotalAmount(totalPayAmount);	
+		}	
 		return ret;
 	}
 	

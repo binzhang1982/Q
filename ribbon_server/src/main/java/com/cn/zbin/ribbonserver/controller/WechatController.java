@@ -27,11 +27,12 @@ public class WechatController {
 	public String getHi(@RequestParam("signature") String signature, @RequestParam("timestamp") String timestamp,
 			@RequestParam("nonce") String nonce, @RequestParam("echostr") String echostr) {
 		// 如果检验成功原样返回echostr，微信服务器接收到此输出，才会确认检验完成。
-		if (wechatService.getHiCheckService(signature, timestamp, nonce)) {
-	        return echostr;
-		} else {
-			return "failed";
-		}
+		return echostr;
+//		if (wechatService.getHiCheckService(signature, timestamp, nonce)) {
+//	        return echostr;
+//		} else {
+//			return "failed";
+//		}
 	}
 	
 	@PostMapping(value = "/hi")
@@ -45,28 +46,30 @@ public class WechatController {
 	@PutMapping(value = "/partner")
 	@CrossOrigin
 	public String createPartner(@RequestParam("scenestr") String scenestr) {
-		String ret = wechatService.createPartner(scenestr);
-		return ret;
+		return wechatService.createPartner(scenestr);
 	}
 	
 	@PostMapping(value = "/user")
 	@CrossOrigin
 	public String updateUser(@RequestParam("openid") String openid) {
-		String ret = wechatService.updateUser(openid);
-		return ret;
+		return wechatService.updateUser(openid);
 	}
 	
 	@GetMapping(value = "/user_db")
 	@CrossOrigin
 	public String getOneUserFromDB(@RequestParam("openid") String openid) {
-		String ret = wechatService.oneUserDB(openid);
-		return ret;
+		return wechatService.oneUserDB(openid);
 	}
 	
 	@GetMapping(value = "/user_wx")
 	@CrossOrigin
 	public String getOneUserFromWX(@RequestParam("openid") String openid) {
-		String ret = wechatService.oneUserWX(openid);
-		return ret;
+		return wechatService.oneUserWX(openid);
+	}
+	
+	@GetMapping(value = "/menu")
+	@CrossOrigin
+	public String getMenu() {
+		return wechatService.getMenu();
 	}
 }

@@ -110,4 +110,18 @@ public class StoreService {
     public String add2TrolleyError(String bean) {
     	return "failed";
     }
+
+    @HystrixCommand(fallbackMethod = "initOrderError")
+    public String initOrder(String custid, String type, String bean) {
+    	String url = "http://SERVICE-STORE/order/init";
+    	url = url + "?customerid=" + custid;
+    	url = url + "&type=" + type;
+        HttpHeaders headers =new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> request = new HttpEntity<String>(bean, headers);
+    	return restTemplate.postForObject(url, request, String.class);
+    }
+    public String initOrderError(String custid, String type, String bean) {
+    	return "failed";
+    }
 }
