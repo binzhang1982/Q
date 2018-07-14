@@ -111,6 +111,7 @@ public class ProductService {
 			
 			ProductImageExample exam_pi = new ProductImageExample();
 			exam_pi.createCriteria().andProductIdEqualTo(prodID);
+			exam_pi.setOrderByClause("seq_no asc");
 			List<ProductImage> imageList = productImageMapper.selectByExample(exam_pi);
 			if (Utils.listNotNull(imageList)) {
 				ret.setImageList(imageList);
@@ -189,7 +190,7 @@ public class ProductService {
 						prodList = new ArrayList<ProductOutline>();
 					}
 					prodOutLine = new ProductOutline();
-					pi = pi_list.get(0);
+					pi = pi_list.get(i);
 					prodOutLine.setProdInfo(pi);
 					prodOutLine.setMinProdPrice(getMinProductPrice(pi.getProductId()));
 					prodOutLine.setFrontCoverImage(getFrontCoverImage(pi.getProductId()));

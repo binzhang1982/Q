@@ -39,8 +39,44 @@ public class OrderService {
 	@Autowired
 	private OrderProductMapper orderProductMapper;
 	
-	public String savaGuestOrder(GuestOrderOverView order) {
-		return "";
+	public String savaGuestOrder(GuestOrderOverView orderView) {
+		String ret = "";
+		ret = checkGuestOrder(orderView);
+		if (StringUtils.isNotBlank(ret)) return ret;
+		
+		saveGuestOrder(orderView);
+		
+		return ret;
+	}
+	
+	private void saveGuestOrder(GuestOrderOverView orderView) {
+		
+	}
+	
+	
+	private String checkGuestOrder(GuestOrderOverView orderView) {
+		String ret = "";
+		GuestOrderInfo order = orderView.getGuestOrderInfo();
+		BigDecimal totalAmount = order.getTotalAmount();
+		BigDecimal carriage = order.getCarriage();
+		BigDecimal service = order.getService();
+		
+		ret = checkRecieverInfo(order);
+		if (StringUtils.isNotBlank(ret)) return ret;
+		
+		//TODO 价格check
+		
+		return ret;
+	}
+	
+	private String checkRecieverInfo(GuestOrderInfo order) {
+		String ret = "";
+		if (StringUtils.isBlank(order.getRecieverAddress()) || 
+				StringUtils.isBlank(order.getRecieverTelphone()) ||
+				StringUtils.isBlank(order.getRecieverName()))
+			//TODO 常量化
+			ret = "收货信息不能为空";
+		return ret;
 	}
 	
 	public GuestOrderOverView initGuestOrder(String type, String custid,
