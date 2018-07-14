@@ -30,7 +30,7 @@ public class OrderController {
 		return orderService.initGuestOrder(type, custid, trolleyList);
 	}
 
-	@RequestMapping(value = "/init", consumes = {"application/json;charset=UTF-8"}, 
+	@RequestMapping(value = "/save", consumes = {"application/json;charset=UTF-8"}, 
 			produces = {"application/json;charset=UTF-8"}, method = { RequestMethod.POST })
 	public MsgData saveGuestOrder(@RequestBody GuestOrderOverView order) {
 		MsgData ret = new MsgData();

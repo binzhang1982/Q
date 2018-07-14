@@ -9,10 +9,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cn.zbin.store.bto.FavoriteProduct;
+import com.cn.zbin.store.bto.ProductCommentOverView;
 import com.cn.zbin.store.bto.ProductDetail;
 import com.cn.zbin.store.bto.ProductOverView;
 import com.cn.zbin.store.dto.ProductComment;
-import com.cn.zbin.store.dto.ProductViewHistory;
 import com.cn.zbin.store.service.ProductService;
 
 @RestController
@@ -42,14 +43,14 @@ public class ProductController {
 	}
 
 	@RequestMapping(value = "/favorite", produces = {"application/json;charset=UTF-8"}, method = { RequestMethod.GET })
-	public List<ProductViewHistory> getViewHistoryFavorite(
+	public List<FavoriteProduct> getViewHistoryFavorite(
 			@RequestParam(value = "customerid", required = true) String customerid,
 			@RequestParam(value = "limit", required = false) Integer limit) {
 		return productService.getViewHistoryFavorite(customerid, limit);
 	}
 
 	@RequestMapping(value = "/comment", produces = {"application/json;charset=UTF-8"}, method = { RequestMethod.GET })
-	public List<ProductComment> getProductComment(
+	public ProductCommentOverView getProductComment(
 			@RequestParam(value = "prodid", required = true) String prodID,
 			@RequestParam(value = "offset", required = false) Integer offset, 
 			@RequestParam(value = "limit", required = false) Integer limit) {

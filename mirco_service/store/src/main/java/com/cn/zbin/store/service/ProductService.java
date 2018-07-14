@@ -1,5 +1,7 @@
 package com.cn.zbin.store.service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -10,7 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.cn.zbin.store.bto.FavoriteProduct;
 import com.cn.zbin.store.bto.ProductCategory;
+import com.cn.zbin.store.bto.ProductCommentDetail;
+import com.cn.zbin.store.bto.ProductCommentOverView;
 import com.cn.zbin.store.bto.ProductDetail;
 import com.cn.zbin.store.bto.ProductOutline;
 import com.cn.zbin.store.bto.ProductOverView;
@@ -28,6 +33,7 @@ import com.cn.zbin.store.dto.ProductPrice;
 import com.cn.zbin.store.dto.ProductPriceExample;
 import com.cn.zbin.store.dto.ProductViewHistory;
 import com.cn.zbin.store.mapper.CodeDictInfoMapper;
+import com.cn.zbin.store.mapper.GuestOrderInfoMapper;
 import com.cn.zbin.store.mapper.ProductCommentMapper;
 import com.cn.zbin.store.mapper.ProductExtendMapper;
 import com.cn.zbin.store.mapper.ProductImageMapper;
@@ -57,20 +63,44 @@ public class ProductService {
 	private ProductViewHistoryMapper productViewHistoryMapper;
 	@Autowired
 	private CodeDictInfoMapper codeDictInfoMapper;
+	@Autowired
+	private GuestOrderInfoMapper guestOrderInfoMapper;
 	
-	public List<ProductComment> getProductCommentList(String prodID,
+	public ProductCommentOverView getProductCommentList(String prodID,
 			Integer offset, Integer limit) {
+		ProductCommentOverView ret = new ProductCommentOverView();
 		ProductCommentExample exam_pc = new ProductCommentExample();
 		exam_pc.createCriteria().andProductIdEqualTo(prodID);
-		List<ProductComment> ret = productCommentMapper.selectOnePageByExample(
+		List<ProductComment> commentList = productCommentMapper.selectOnePageByExample(
 				 exam_pc, offset, limit, "update_time desc");
-		if (!Utils.listNotNull(ret)) ret = new ArrayList<ProductComment>();
+		if (Utils.listNotNull(commentList)) {
+			ret.setCommentList(commentList);
+			ret.setCommentCount(commentList.size());
+			BigDecimal sumCommentLevel = new BigDecimal(0);
+			for(ProductComment comment : commentList) {
+				sumCommentLevel = sumCommentLevel.add(comment.getCommentLevel());
+			}
+			ret.setAvgCommentLevel(sumCommentLevel.divide(new BigDecimal(commentList.size()),2,RoundingMode.HALF_UP));
+		} else {
+			ret.setAvgCommentLevel(new BigDecimal(0));
+			ret.setCommentCount(0);
+			ret.setCommentList(new ArrayList<ProductComment>());
+		}
 		return ret;
 	}
 	
-	public List<ProductViewHistory> getViewHistoryFavorite(String customerId, Integer limit) {
-		List<ProductViewHistory> ret = productViewHistoryMapper.selectOnePageFavorite(customerId, limit);
-		if (!Utils.listNotNull(ret)) ret = new ArrayList<ProductViewHistory>();
+	public List<FavoriteProduct> getViewHistoryFavorite(String customerId, Integer limit) {
+		List<FavoriteProduct> ret = new ArrayList<FavoriteProduct>();
+		List<ProductViewHistory> viewList = productViewHistoryMapper.selectOnePageFavorite(customerId, limit);
+		if (Utils.listNotNull(viewList)) {
+			for (ProductViewHistory view : viewList) {
+				FavoriteProduct favorite = new FavoriteProduct();
+				favorite.setProdInfo(productInfoMapper.selectByPrimaryKey(view.getProductId()));
+				favorite.setMinProdPrice(getMinProductPrice(view.getProductId()));
+				favorite.setFrontCoverImage(getFrontCoverImage(view.getProductId()));
+				ret.add(favorite);
+			}
+		}
 		return ret;
 	}
 	
@@ -97,6 +127,8 @@ public class ProductService {
 			exam_pc.setOrderByClause("update_time desc");
 			List<ProductComment> commentList = productCommentMapper.selectByExample(exam_pc);
 			if (Utils.listNotNull(commentList)) {
+//				ret.setLastestComment(new ProductCommentDetail());
+//				ret.getLastestComment().setComment(commentList.get(0)); 
 				ret.setLastestComment(commentList.get(0));
 			}
 			
@@ -195,7 +227,7 @@ public class ProductService {
 					prodOutLine.setMinProdPrice(getMinProductPrice(pi.getProductId()));
 					prodOutLine.setFrontCoverImage(getFrontCoverImage(pi.getProductId()));
 					prodList.add(prodOutLine);
-					if (i%2 != 0) {
+					if (i%2 != 0 ||	i == pi_list.size() - 1) {
 						prodCate.getProdList2().add(prodList);
 					}
 				}

@@ -11,6 +11,7 @@ import com.cn.zbin.store.dto.ProductPrice;
 public class ProductDetail {
 	private ProductInfo productInfo;
 	private Integer commentCount;
+//	private ProductCommentDetail lastestComment;
 	private ProductComment lastestComment;
 	private List<ProductExtend> extendList;
 	private List<ProductImage> imageList;
@@ -33,6 +34,12 @@ public class ProductDetail {
 	public void setLastestComment(ProductComment lastestComment) {
 		this.lastestComment = lastestComment;
 	}
+//	public ProductCommentDetail getLastestComment() {
+//		return lastestComment;
+//	}
+//	public void setLastestComment(ProductCommentDetail lastestComment) {
+//		this.lastestComment = lastestComment;
+//	}
 	public List<ProductExtend> getExtendList() {
 		return extendList;
 	}
