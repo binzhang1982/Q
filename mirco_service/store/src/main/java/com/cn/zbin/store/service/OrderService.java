@@ -39,6 +39,10 @@ public class OrderService {
 	@Autowired
 	private OrderProductMapper orderProductMapper;
 	
+	public String savaGuestOrder(GuestOrderOverView order) {
+		return "";
+	}
+	
 	public GuestOrderOverView initGuestOrder(String type, String custid,
 			List<ShoppingTrolleyInfo> trolleyList) {
 		if (StoreConstants.ORDER_TYPE_GUEST.equals(type)) {
