@@ -406,6 +406,136 @@ public class GuestOrderInfoExample {
             return (Criteria) this;
         }
 
+        public Criteria andCustInvoiceIdIsNull() {
+            addCriterion("cust_invoice_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustInvoiceIdIsNotNull() {
+            addCriterion("cust_invoice_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustInvoiceIdEqualTo(String value) {
+            addCriterion("cust_invoice_id =", value, "custInvoiceId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustInvoiceIdNotEqualTo(String value) {
+            addCriterion("cust_invoice_id <>", value, "custInvoiceId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustInvoiceIdGreaterThan(String value) {
+            addCriterion("cust_invoice_id >", value, "custInvoiceId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustInvoiceIdGreaterThanOrEqualTo(String value) {
+            addCriterion("cust_invoice_id >=", value, "custInvoiceId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustInvoiceIdLessThan(String value) {
+            addCriterion("cust_invoice_id <", value, "custInvoiceId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustInvoiceIdLessThanOrEqualTo(String value) {
+            addCriterion("cust_invoice_id <=", value, "custInvoiceId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustInvoiceIdLike(String value) {
+            addCriterion("cust_invoice_id like", value, "custInvoiceId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustInvoiceIdNotLike(String value) {
+            addCriterion("cust_invoice_id not like", value, "custInvoiceId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustInvoiceIdIn(List<String> values) {
+            addCriterion("cust_invoice_id in", values, "custInvoiceId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustInvoiceIdNotIn(List<String> values) {
+            addCriterion("cust_invoice_id not in", values, "custInvoiceId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustInvoiceIdBetween(String value1, String value2) {
+            addCriterion("cust_invoice_id between", value1, value2, "custInvoiceId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustInvoiceIdNotBetween(String value1, String value2) {
+            addCriterion("cust_invoice_id not between", value1, value2, "custInvoiceId");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsOfferedIsNull() {
+            addCriterion("is_offered is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsOfferedIsNotNull() {
+            addCriterion("is_offered is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsOfferedEqualTo(Boolean value) {
+            addCriterion("is_offered =", value, "isOffered");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsOfferedNotEqualTo(Boolean value) {
+            addCriterion("is_offered <>", value, "isOffered");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsOfferedGreaterThan(Boolean value) {
+            addCriterion("is_offered >", value, "isOffered");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsOfferedGreaterThanOrEqualTo(Boolean value) {
+            addCriterion("is_offered >=", value, "isOffered");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsOfferedLessThan(Boolean value) {
+            addCriterion("is_offered <", value, "isOffered");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsOfferedLessThanOrEqualTo(Boolean value) {
+            addCriterion("is_offered <=", value, "isOffered");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsOfferedIn(List<Boolean> values) {
+            addCriterion("is_offered in", values, "isOffered");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsOfferedNotIn(List<Boolean> values) {
+            addCriterion("is_offered not in", values, "isOffered");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsOfferedBetween(Boolean value1, Boolean value2) {
+            addCriterion("is_offered between", value1, value2, "isOffered");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsOfferedNotBetween(Boolean value1, Boolean value2) {
+            addCriterion("is_offered not between", value1, value2, "isOffered");
+            return (Criteria) this;
+        }
+
         public Criteria andCarriageIsNull() {
             addCriterion("carriage is null");
             return (Criteria) this;
@@ -1003,6 +1133,76 @@ public class GuestOrderInfoExample {
 
         public Criteria andRecieverTelphoneNotBetween(String value1, String value2) {
             addCriterion("reciever_telphone not between", value1, value2, "recieverTelphone");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustMessageIsNull() {
+            addCriterion("cust_message is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustMessageIsNotNull() {
+            addCriterion("cust_message is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustMessageEqualTo(String value) {
+            addCriterion("cust_message =", value, "custMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustMessageNotEqualTo(String value) {
+            addCriterion("cust_message <>", value, "custMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustMessageGreaterThan(String value) {
+            addCriterion("cust_message >", value, "custMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustMessageGreaterThanOrEqualTo(String value) {
+            addCriterion("cust_message >=", value, "custMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustMessageLessThan(String value) {
+            addCriterion("cust_message <", value, "custMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustMessageLessThanOrEqualTo(String value) {
+            addCriterion("cust_message <=", value, "custMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustMessageLike(String value) {
+            addCriterion("cust_message like", value, "custMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustMessageNotLike(String value) {
+            addCriterion("cust_message not like", value, "custMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustMessageIn(List<String> values) {
+            addCriterion("cust_message in", values, "custMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustMessageNotIn(List<String> values) {
+            addCriterion("cust_message not in", values, "custMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustMessageBetween(String value1, String value2) {
+            addCriterion("cust_message between", value1, value2, "custMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustMessageNotBetween(String value1, String value2) {
+            addCriterion("cust_message not between", value1, value2, "custMessage");
             return (Criteria) this;
         }
 

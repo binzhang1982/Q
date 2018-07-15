@@ -17,10 +17,13 @@ import com.cn.zbin.store.bto.ProductCategory;
 import com.cn.zbin.store.bto.ProductCommentDetail;
 import com.cn.zbin.store.bto.ProductCommentOverView;
 import com.cn.zbin.store.bto.ProductDetail;
+import com.cn.zbin.store.bto.ProductExtendDetail;
 import com.cn.zbin.store.bto.ProductOutline;
 import com.cn.zbin.store.bto.ProductOverView;
 import com.cn.zbin.store.dto.CodeDictInfo;
 import com.cn.zbin.store.dto.CodeDictInfoExample;
+import com.cn.zbin.store.dto.CustomerInfo;
+import com.cn.zbin.store.dto.GuestOrderInfo;
 import com.cn.zbin.store.dto.ProductComment;
 import com.cn.zbin.store.dto.ProductCommentExample;
 import com.cn.zbin.store.dto.ProductExtend;
@@ -32,7 +35,9 @@ import com.cn.zbin.store.dto.ProductInfoExample;
 import com.cn.zbin.store.dto.ProductPrice;
 import com.cn.zbin.store.dto.ProductPriceExample;
 import com.cn.zbin.store.dto.ProductViewHistory;
+import com.cn.zbin.store.dto.WeChatUserInfo;
 import com.cn.zbin.store.mapper.CodeDictInfoMapper;
+import com.cn.zbin.store.mapper.CustomerInfoMapper;
 import com.cn.zbin.store.mapper.GuestOrderInfoMapper;
 import com.cn.zbin.store.mapper.ProductCommentMapper;
 import com.cn.zbin.store.mapper.ProductExtendMapper;
@@ -41,6 +46,7 @@ import com.cn.zbin.store.mapper.ProductInfoMapper;
 import com.cn.zbin.store.mapper.ProductPriceMapper;
 import com.cn.zbin.store.mapper.ProductServiceAreaMapper;
 import com.cn.zbin.store.mapper.ProductViewHistoryMapper;
+import com.cn.zbin.store.mapper.WeChatUserInfoMapper;
 import com.cn.zbin.store.utils.StoreConstants;
 import com.cn.zbin.store.utils.Utils;
 
@@ -65,6 +71,11 @@ public class ProductService {
 	private CodeDictInfoMapper codeDictInfoMapper;
 	@Autowired
 	private GuestOrderInfoMapper guestOrderInfoMapper;
+	@Autowired
+	private CustomerInfoMapper customerInfoMapper;
+	@Autowired
+	private WeChatUserInfoMapper weChatUserInfoMapper;
+	
 	
 	public ProductCommentOverView getProductCommentList(String prodID,
 			Integer offset, Integer limit) {
@@ -74,17 +85,31 @@ public class ProductService {
 		List<ProductComment> commentList = productCommentMapper.selectOnePageByExample(
 				 exam_pc, offset, limit, "update_time desc");
 		if (Utils.listNotNull(commentList)) {
-			ret.setCommentList(commentList);
+			ret.setCommentList(new ArrayList<ProductCommentDetail>());
 			ret.setCommentCount(commentList.size());
 			BigDecimal sumCommentLevel = new BigDecimal(0);
 			for(ProductComment comment : commentList) {
+				ProductCommentDetail detail = new ProductCommentDetail();
+				detail.setComment(comment);
+				GuestOrderInfo order = guestOrderInfoMapper.selectByPrimaryKey(comment.getOrderId());
+				if (order != null) {
+					CustomerInfo cust = customerInfoMapper.selectByPrimaryKey(order.getCustomerId());
+					if (cust != null) {
+						WeChatUserInfo user = weChatUserInfoMapper.selectByPrimaryKey(cust.getRegisterId());
+						if (user != null) {
+							detail.setHeadImgurl(user.getHeadImgurl());
+							detail.setNickName(user.getNickName());
+						}
+					}
+				}
+				ret.getCommentList().add(detail);
 				sumCommentLevel = sumCommentLevel.add(comment.getCommentLevel());
 			}
 			ret.setAvgCommentLevel(sumCommentLevel.divide(new BigDecimal(commentList.size()),2,RoundingMode.HALF_UP));
 		} else {
 			ret.setAvgCommentLevel(new BigDecimal(0));
 			ret.setCommentCount(0);
-			ret.setCommentList(new ArrayList<ProductComment>());
+			ret.setCommentList(new ArrayList<ProductCommentDetail>());
 		}
 		return ret;
 	}
@@ -126,10 +151,21 @@ public class ProductService {
 			ret.setCommentCount(productCommentMapper.countByExample(exam_pc));
 			exam_pc.setOrderByClause("update_time desc");
 			List<ProductComment> commentList = productCommentMapper.selectByExample(exam_pc);
+			ret.setLastestComment(new ProductCommentDetail());
 			if (Utils.listNotNull(commentList)) {
-//				ret.setLastestComment(new ProductCommentDetail());
-//				ret.getLastestComment().setComment(commentList.get(0)); 
-				ret.setLastestComment(commentList.get(0));
+				ret.getLastestComment().setComment(commentList.get(0)); 
+				GuestOrderInfo order = guestOrderInfoMapper.selectByPrimaryKey(commentList.get(0).getOrderId());
+				if (order != null) {
+					CustomerInfo cust = customerInfoMapper.selectByPrimaryKey(order.getCustomerId());
+					if (cust != null) {
+						WeChatUserInfo user = weChatUserInfoMapper.selectByPrimaryKey(cust.getRegisterId());
+						if (user != null) {
+							ret.getLastestComment().setHeadImgurl(user.getHeadImgurl());
+							ret.getLastestComment().setNickName(user.getNickName());
+						}
+					}
+				}
+//				ret.setLastestComment(commentList.get(0));
 			}
 			
 			ProductPriceExample exam_pp = new ProductPriceExample();
@@ -154,10 +190,24 @@ public class ProductService {
 			ProductExtendExample exam_pe = new ProductExtendExample();
 			exam_pe.createCriteria().andProductIdEqualTo(prodID);
 			List<ProductExtend> extendList = productExtendMapper.selectByExample(exam_pe);
+			ret.setExtendList(new ArrayList<ProductExtendDetail>());
 			if (Utils.listNotNull(extendList)) {
-				ret.setExtendList(extendList);
-			} else {
-				ret.setExtendList(new ArrayList<ProductExtend>());
+				ProductPriceExample exam_epp = null;
+				for (ProductExtend extend : extendList) {
+					ProductExtendDetail extendDetail = new ProductExtendDetail();
+					extendDetail.setProdInfo(
+							productInfoMapper.selectByPrimaryKey(extend.getPartId()));
+					exam_epp = new ProductPriceExample();
+					exam_epp.createCriteria().andProductIdEqualTo(extend.getPartId());
+					List<ProductPrice> exPriceList = productPriceMapper.selectByExample(exam_epp);
+					if (Utils.listNotNull(exPriceList)) {
+						extendDetail.setProdPrice(exPriceList);
+					} else {
+						extendDetail.setProdPrice(new ArrayList<ProductPrice>());
+					}
+					extendDetail.setFrontCoverImage(getFrontCoverImage(extend.getPartId()));
+					ret.getExtendList().add(extendDetail);
+				}
 			}
 		} else {
 			

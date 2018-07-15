@@ -189,9 +189,9 @@ public class OrderService {
 			ProductPriceExample exam_pp = new ProductPriceExample();
 			BigDecimal realUnitPrice = new BigDecimal(0);
 			if (prod.getLeaseFlag()) {
-				exam_pp.createCriteria().andDaysGreaterThanOrEqualTo(shoppingTrolley.getPendingCount())
+				exam_pp.createCriteria().andDaysLessThanOrEqualTo(shoppingTrolley.getPendingCount())
 										.andProductIdEqualTo(prod.getProductId());
-				exam_pp.setOrderByClause("days asc");
+				exam_pp.setOrderByClause("days desc");
 				List<ProductPrice> prodPriceLst = productPriceMapper.selectByExample(exam_pp);
 				if (Utils.listNotNull(prodPriceLst)) {
 					realUnitPrice = prodPriceLst.get(0).getRealPrice();

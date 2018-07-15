@@ -703,52 +703,52 @@ public class OrderProductExample {
             return (Criteria) this;
         }
 
-        public Criteria andPendingCountEqualTo(Integer value) {
+        public Criteria andPendingCountEqualTo(Long value) {
             addCriterion("pending_count =", value, "pendingCount");
             return (Criteria) this;
         }
 
-        public Criteria andPendingCountNotEqualTo(Integer value) {
+        public Criteria andPendingCountNotEqualTo(Long value) {
             addCriterion("pending_count <>", value, "pendingCount");
             return (Criteria) this;
         }
 
-        public Criteria andPendingCountGreaterThan(Integer value) {
+        public Criteria andPendingCountGreaterThan(Long value) {
             addCriterion("pending_count >", value, "pendingCount");
             return (Criteria) this;
         }
 
-        public Criteria andPendingCountGreaterThanOrEqualTo(Integer value) {
+        public Criteria andPendingCountGreaterThanOrEqualTo(Long value) {
             addCriterion("pending_count >=", value, "pendingCount");
             return (Criteria) this;
         }
 
-        public Criteria andPendingCountLessThan(Integer value) {
+        public Criteria andPendingCountLessThan(Long value) {
             addCriterion("pending_count <", value, "pendingCount");
             return (Criteria) this;
         }
 
-        public Criteria andPendingCountLessThanOrEqualTo(Integer value) {
+        public Criteria andPendingCountLessThanOrEqualTo(Long value) {
             addCriterion("pending_count <=", value, "pendingCount");
             return (Criteria) this;
         }
 
-        public Criteria andPendingCountIn(List<Integer> values) {
+        public Criteria andPendingCountIn(List<Long> values) {
             addCriterion("pending_count in", values, "pendingCount");
             return (Criteria) this;
         }
 
-        public Criteria andPendingCountNotIn(List<Integer> values) {
+        public Criteria andPendingCountNotIn(List<Long> values) {
             addCriterion("pending_count not in", values, "pendingCount");
             return (Criteria) this;
         }
 
-        public Criteria andPendingCountBetween(Integer value1, Integer value2) {
+        public Criteria andPendingCountBetween(Long value1, Long value2) {
             addCriterion("pending_count between", value1, value2, "pendingCount");
             return (Criteria) this;
         }
 
-        public Criteria andPendingCountNotBetween(Integer value1, Integer value2) {
+        public Criteria andPendingCountNotBetween(Long value1, Long value2) {
             addCriterion("pending_count not between", value1, value2, "pendingCount");
             return (Criteria) this;
         }
@@ -813,6 +813,66 @@ public class OrderProductExample {
             return (Criteria) this;
         }
 
+        public Criteria andReservePendingEndDateIsNull() {
+            addCriterion("reserve_pending_end_date is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReservePendingEndDateIsNotNull() {
+            addCriterion("reserve_pending_end_date is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReservePendingEndDateEqualTo(Date value) {
+            addCriterionForJDBCDate("reserve_pending_end_date =", value, "reservePendingEndDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReservePendingEndDateNotEqualTo(Date value) {
+            addCriterionForJDBCDate("reserve_pending_end_date <>", value, "reservePendingEndDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReservePendingEndDateGreaterThan(Date value) {
+            addCriterionForJDBCDate("reserve_pending_end_date >", value, "reservePendingEndDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReservePendingEndDateGreaterThanOrEqualTo(Date value) {
+            addCriterionForJDBCDate("reserve_pending_end_date >=", value, "reservePendingEndDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReservePendingEndDateLessThan(Date value) {
+            addCriterionForJDBCDate("reserve_pending_end_date <", value, "reservePendingEndDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReservePendingEndDateLessThanOrEqualTo(Date value) {
+            addCriterionForJDBCDate("reserve_pending_end_date <=", value, "reservePendingEndDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReservePendingEndDateIn(List<Date> values) {
+            addCriterionForJDBCDate("reserve_pending_end_date in", values, "reservePendingEndDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReservePendingEndDateNotIn(List<Date> values) {
+            addCriterionForJDBCDate("reserve_pending_end_date not in", values, "reservePendingEndDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReservePendingEndDateBetween(Date value1, Date value2) {
+            addCriterionForJDBCDate("reserve_pending_end_date between", value1, value2, "reservePendingEndDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReservePendingEndDateNotBetween(Date value1, Date value2) {
+            addCriterionForJDBCDate("reserve_pending_end_date not between", value1, value2, "reservePendingEndDate");
+            return (Criteria) this;
+        }
+
         public Criteria andActualPendingDateIsNull() {
             addCriterion("actual_pending_date is null");
             return (Criteria) this;
@@ -870,6 +930,66 @@ public class OrderProductExample {
 
         public Criteria andActualPendingDateNotBetween(Date value1, Date value2) {
             addCriterionForJDBCDate("actual_pending_date not between", value1, value2, "actualPendingDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualPendingEndDateIsNull() {
+            addCriterion("actual_pending_end_date is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualPendingEndDateIsNotNull() {
+            addCriterion("actual_pending_end_date is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualPendingEndDateEqualTo(Date value) {
+            addCriterionForJDBCDate("actual_pending_end_date =", value, "actualPendingEndDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualPendingEndDateNotEqualTo(Date value) {
+            addCriterionForJDBCDate("actual_pending_end_date <>", value, "actualPendingEndDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualPendingEndDateGreaterThan(Date value) {
+            addCriterionForJDBCDate("actual_pending_end_date >", value, "actualPendingEndDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualPendingEndDateGreaterThanOrEqualTo(Date value) {
+            addCriterionForJDBCDate("actual_pending_end_date >=", value, "actualPendingEndDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualPendingEndDateLessThan(Date value) {
+            addCriterionForJDBCDate("actual_pending_end_date <", value, "actualPendingEndDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualPendingEndDateLessThanOrEqualTo(Date value) {
+            addCriterionForJDBCDate("actual_pending_end_date <=", value, "actualPendingEndDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualPendingEndDateIn(List<Date> values) {
+            addCriterionForJDBCDate("actual_pending_end_date in", values, "actualPendingEndDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualPendingEndDateNotIn(List<Date> values) {
+            addCriterionForJDBCDate("actual_pending_end_date not in", values, "actualPendingEndDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualPendingEndDateBetween(Date value1, Date value2) {
+            addCriterionForJDBCDate("actual_pending_end_date between", value1, value2, "actualPendingEndDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualPendingEndDateNotBetween(Date value1, Date value2) {
+            addCriterionForJDBCDate("actual_pending_end_date not between", value1, value2, "actualPendingEndDate");
             return (Criteria) this;
         }
 
