@@ -2,7 +2,7 @@ package com.cn.zbin.store.bto;
 
 import java.util.List;
 
-public class ShoppingTrolleyOverView {
+public class ShoppingTrolleyOverView extends MsgData {
 	private List<ShoppingProductDetail> leaseTrolley;
 	private List<ShoppingProductDetail> sellTrolley;
 	public List<ShoppingProductDetail> getLeaseTrolley() {

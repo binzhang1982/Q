@@ -9,6 +9,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.cn.zbin.store.bto.MsgData;
 import com.cn.zbin.store.bto.ShoppingProductDetail;
 import com.cn.zbin.store.bto.ShoppingTrolleyOverView;
 import com.cn.zbin.store.dto.ProductImage;
@@ -100,6 +101,43 @@ public class TrolleyService {
 			}
 		}
 		return null;
+	}
+	
+	public String updateTrolley(ShoppingTrolleyInfo trolley) {
+		Integer saleCnt = trolley.getSaleCount();
+		String prodID = trolley.getProductId();
+		String trolleyID = trolley.getTrolleyId();
+		String errMsg = "";
+		if (shoppingTrolleyInfoMapper.selectByPrimaryKey(trolleyID) == null) {
+			errMsg = StoreConstants.CHK_ERR_90010;
+		}
+		ProductInfo product = productInfoMapper.selectByPrimaryKey(prodID);
+		ShoppingTrolleyInfo record = new ShoppingTrolleyInfo();
+		if (product != null) {
+			if (saleCnt == null || saleCnt <= 0) {
+				record.setTrolleyId(trolleyID);
+				record.setSaleCount(0);
+				record.setIsDelete(Boolean.TRUE);
+				record.setDeleteCode(StoreConstants.TROLLEY_DEL_REASON_GUEST);
+				shoppingTrolleyInfoMapper.updateByPrimaryKeySelective(record);
+				errMsg = StoreConstants.CHK_ERR_90011;
+			} else if (saleCnt > product.getStock()) {
+				errMsg = StoreConstants.CHK_ERR_90002;
+			} else {
+				record = new ShoppingTrolleyInfo();
+				record.setTrolleyId(trolleyID);
+				record.setSaleCount(saleCnt);
+				shoppingTrolleyInfoMapper.updateByPrimaryKeySelective(record);
+			}
+		} else {
+			record = new ShoppingTrolleyInfo();
+			record.setTrolleyId(trolleyID);
+			record.setIsDelete(Boolean.TRUE);
+			record.setDeleteCode(StoreConstants.TROLLEY_DEL_REASON_PROD);
+			shoppingTrolleyInfoMapper.updateByPrimaryKeySelective(record);
+			errMsg = StoreConstants.CHK_ERR_90001;
+		}
+		return errMsg;
 	}
 	
 	public String add2Trolley(List<ShoppingTrolleyInfo> trolleyList) {

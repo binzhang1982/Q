@@ -1,8 +1,9 @@
-package com.cn.zbin.store.service;
+	package com.cn.zbin.store.service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,9 +72,7 @@ public class OrderService {
 	
 	private String checkRecieverInfo(GuestOrderInfo order) {
 		String ret = "";
-		if (StringUtils.isBlank(order.getRecieverAddress()) || 
-				StringUtils.isBlank(order.getRecieverTelphone()) ||
-				StringUtils.isBlank(order.getRecieverName()))
+		if (StringUtils.isBlank(order.getCustAddressId()))
 			//TODO 常量化
 			ret = "收货信息不能为空";
 		return ret;
@@ -101,8 +100,15 @@ public class OrderService {
 		
 		BigDecimal totalPayAmount = new BigDecimal(0);
 		for (ShoppingTrolleyInfo shoppingTrolley : trolleyList) {
-			//需要check
 			shoppingTrolley.setCustomerId(custid);
+			if (shoppingTrolley.getReservePendingDate() != null && shoppingTrolley.getReservePendingEndDate() != null) {
+				shoppingTrolley.setPendingCount(
+						TimeUnit.MILLISECONDS.toDays(
+								shoppingTrolley.getReservePendingEndDate().getTime() - 
+								shoppingTrolley.getReservePendingDate().getTime())); 
+			} else {
+				shoppingTrolley.setPendingCount(new Long(0));
+			}
 			String msg = checkTrolley(shoppingTrolley);
 			if (!StringUtils.isBlank(msg)) {
 				ret.setStatus(MsgData.status_ng);
@@ -164,9 +170,10 @@ public class OrderService {
 			ProductInfo prod = productInfoMapper.selectByPrimaryKey(trolleyBean.getProductId());
 			if (prod == null) return StoreConstants.CHK_ERR_90001; 
 			else if (prod.getLeaseFlag() && trolleyBean.getSaleCount() > 1) return StoreConstants.CHK_ERR_90005;
-			else if (prod.getLeaseFlag() && trolleyBean.getPendingCount() <= 0) return StoreConstants.CHK_ERR_90007;
 			else if (prod.getLeaseFlag() && trolleyBean.getPendingCount() < prod.getLeaseMinDays()) return StoreConstants.CHK_ERR_90008;
 			else if (prod.getLeaseFlag() && trolleyBean.getReservePendingDate() == null) return StoreConstants.CHK_ERR_90006;
+			else if (prod.getLeaseFlag() && trolleyBean.getReservePendingEndDate() == null) return StoreConstants.CHK_ERR_90007;
+			else if (prod.getLeaseFlag() && trolleyBean.getPendingCount() <= 0) return StoreConstants.CHK_ERR_90009;
 
 			trolleyBean.setLeaseFlag(prod.getLeaseFlag());
 		} else {
@@ -220,6 +227,7 @@ public class OrderService {
 				orderProductOV.getOrderProduct().setRefundAmount(new BigDecimal(0));
 				orderProductOV.getOrderProduct().setProductId(shoppingTrolley.getProductId());
 				orderProductOV.getOrderProduct().setReservePendingDate(shoppingTrolley.getReservePendingDate());
+				orderProductOV.getOrderProduct().setReservePendingEndDate(shoppingTrolley.getReservePendingEndDate());
 				orderProductOV.getOrderProduct().setPendingCount(shoppingTrolley.getPendingCount());
 				orderProductOV.getOrderProduct().setSaleCount(shoppingTrolley.getSaleCount());
 				if (ov.getGuestOrderInfo().getService().compareTo(prod.getService()) < 0) 

@@ -33,17 +33,16 @@ public class TrolleyController {
 		return ret;
 	}
 
-	@RequestMapping(value = "/update", consumes = {"application/json;charset=UTF-8"}, 
+	@RequestMapping(value = "/salecount", consumes = {"application/json;charset=UTF-8"}, 
 			produces = {"application/json;charset=UTF-8"}, method = { RequestMethod.POST })
 	public MsgData updateTrolley(@RequestBody ShoppingTrolleyInfo trolley) {
-//		MsgData ret = new MsgData();
-//		String msg = trolleyService.add2Trolley(trolleyList);
-//		if (StringUtils.isNotBlank(msg)) {
-//			ret.setMessage(msg);
-//			ret.setStatus(MsgData.status_ng);
-//		}
-//		return ret;
-		return new MsgData();
+		MsgData ret = new MsgData();
+		String errMsg = trolleyService.updateTrolley(trolley);
+		if (StringUtils.isNotBlank(errMsg)) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(errMsg);
+		}
+		return ret;
 	}
 	
 	@RequestMapping(value = "/list", produces = {"application/json;charset=UTF-8"}, 
