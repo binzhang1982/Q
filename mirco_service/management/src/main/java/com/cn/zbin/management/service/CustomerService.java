@@ -1,5 +1,6 @@
 package com.cn.zbin.management.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -7,15 +8,232 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.cn.zbin.management.bto.CustomerAddressMsgData;
+import com.cn.zbin.management.bto.CustomerAddressOverView;
+import com.cn.zbin.management.bto.CustomerInvoiceMsgData;
+import com.cn.zbin.management.bto.MsgData;
+import com.cn.zbin.management.dto.CustomerAddress;
+import com.cn.zbin.management.dto.CustomerAddressExample;
 import com.cn.zbin.management.dto.CustomerInfo;
 import com.cn.zbin.management.dto.CustomerInfoExample;
+import com.cn.zbin.management.dto.CustomerInvoice;
+import com.cn.zbin.management.dto.CustomerInvoiceExample;
+import com.cn.zbin.management.dto.MasterCity;
+import com.cn.zbin.management.dto.MasterProvince;
+import com.cn.zbin.management.mapper.CustomerAddressMapper;
 import com.cn.zbin.management.mapper.CustomerInfoMapper;
+import com.cn.zbin.management.mapper.CustomerInvoiceMapper;
+import com.cn.zbin.management.mapper.MasterCityMapper;
+import com.cn.zbin.management.mapper.MasterProvinceMapper;
+import com.cn.zbin.management.utils.MgmtConstants;
 import com.cn.zbin.management.utils.Utils;
 
 @Service
 public class CustomerService {
 	@Autowired
+	private MasterProvinceMapper masterProvinceMapper;
+	@Autowired
+	private MasterCityMapper masterCityMapper;
+	@Autowired
 	private CustomerInfoMapper customerInfoMapper;
+	@Autowired
+	private CustomerAddressMapper customerAddressMapper;
+	@Autowired
+	private CustomerInvoiceMapper customerInvoiceMapper;
+	
+	public CustomerInvoiceMsgData updateCustomerInvoice(CustomerInvoice invoice) {
+		CustomerInvoiceMsgData ret = new CustomerInvoiceMsgData();
+		if (invoice.getDeleteFlag()) {
+			//删除
+			CustomerInvoice record = new CustomerInvoice();
+			record.setCustInvoiceId(invoice.getCustInvoiceId());
+			record.setSeqNo(-1);
+			record.setDeleteFlag(invoice.getDeleteFlag());
+			customerInvoiceMapper.updateByPrimaryKeySelective(record);
+		} else {
+			if (invoice.getCustInvoiceId() != null) {
+				//更新
+				CustomerInvoice record = new CustomerInvoice();
+				record.setCustInvoiceId(invoice.getCustInvoiceId());
+				record.setSeqNo(-1);
+				record.setDeleteFlag(Boolean.TRUE);
+				customerInvoiceMapper.updateByPrimaryKeySelective(record);
+				
+				if (invoice.getDefaultFlag()) {
+					CustomerInvoiceExample exam_ci = new CustomerInvoiceExample();
+					exam_ci.createCriteria().andDeleteFlagEqualTo(Boolean.FALSE)
+											.andCustomerIdEqualTo(invoice.getCustomerId())
+											.andDefaultFlagEqualTo(Boolean.TRUE);
+					if (customerInvoiceMapper.countByExample(exam_ci) > 0) {
+						ret.setMessage(MgmtConstants.CHK_ERR_80004);
+						ret.setStatus(MsgData.status_ng);
+						return ret;
+					}
+				}
+				
+				invoice.setCustInvoiceId(UUID.randomUUID().toString());
+				customerInvoiceMapper.insert(invoice);
+				ret.setInvoice(invoice);
+			} else {
+				CustomerInvoiceExample exam_ci = new CustomerInvoiceExample();
+				exam_ci.createCriteria().andDeleteFlagEqualTo(Boolean.FALSE)
+										.andCustomerIdEqualTo(invoice.getCustomerId());
+				exam_ci.setOrderByClause("seq_no desc");
+				List<CustomerInvoice> invoiceList = customerInvoiceMapper.selectByExample(exam_ci);
+				
+				Integer seqNo = 1;
+				if (Utils.listNotNull(invoiceList)) {
+					if (invoiceList.size() >= MgmtConstants.INVOICE_MAX) {
+						ret.setMessage(MgmtConstants.CHK_ERR_80003);
+						ret.setStatus(MsgData.status_ng);
+						return ret;
+					}
+					seqNo = invoiceList.get(0).getSeqNo() + 1;
+				}
+
+				if (invoice.getDefaultFlag()) {
+					exam_ci.getOredCriteria().get(0)
+											.andDefaultFlagEqualTo(Boolean.TRUE);
+					if (customerInvoiceMapper.countByExample(exam_ci) > 0) {
+						ret.setMessage(MgmtConstants.CHK_ERR_80004);
+						ret.setStatus(MsgData.status_ng);
+						return ret;
+					}
+				}
+				//新增
+				invoice.setCustInvoiceId(UUID.randomUUID().toString());
+				invoice.setSeqNo(seqNo);
+				customerInvoiceMapper.insert(invoice);
+				ret.setInvoice(invoice);
+			}
+		}
+		return ret;
+	}
+	
+	public CustomerAddressMsgData updateCustomerAddress(CustomerAddress address) {
+		CustomerAddressMsgData ret = new CustomerAddressMsgData();
+		if (address.getDeleteFlag()) {
+			//删除
+			CustomerAddress record = new CustomerAddress();
+			record.setCustAddressId(address.getCustAddressId());
+			record.setSeqNo(-1);
+			record.setDeleteFlag(address.getDeleteFlag());
+			customerAddressMapper.updateByPrimaryKeySelective(record);
+		} else {
+			if (address.getCustAddressId() != null) {
+				//更新
+				CustomerAddress record = new CustomerAddress();
+				record.setCustAddressId(address.getCustAddressId());
+				record.setSeqNo(-1);
+				record.setDeleteFlag(Boolean.TRUE);
+				customerAddressMapper.updateByPrimaryKeySelective(record);
+				
+				if (address.getDefaultFlag()) {
+					CustomerAddressExample exam_ca = new CustomerAddressExample();
+					exam_ca.createCriteria().andDeleteFlagEqualTo(Boolean.FALSE)
+											.andCustomerIdEqualTo(address.getCustomerId())
+											.andDefaultFlagEqualTo(Boolean.TRUE);
+					if (customerAddressMapper.countByExample(exam_ca) > 0) {
+						ret.setMessage(MgmtConstants.CHK_ERR_80002);
+						ret.setStatus(MsgData.status_ng);
+						return ret;
+					}
+				}
+				
+				address.setCustAddressId(UUID.randomUUID().toString());
+				customerAddressMapper.insert(address);
+				CustomerAddressOverView addrOV = new CustomerAddressOverView();
+				MasterCity city = masterCityMapper.selectByPrimaryKey(
+						address.getCityCode());
+				MasterProvince province = masterProvinceMapper.selectByPrimaryKey(
+						address.getProvinceCode());
+				addrOV.setAddr(address);
+				if (city != null) addrOV.setCityName(city.getCityName());
+				if (province != null) addrOV.setProvinceName(province.getProvinceName());
+				ret.setAddr(addrOV);
+			} else {
+				CustomerAddressExample exam_ca = new CustomerAddressExample();
+				exam_ca.createCriteria().andDeleteFlagEqualTo(Boolean.FALSE)
+										.andCustomerIdEqualTo(address.getCustomerId());
+				exam_ca.setOrderByClause("seq_no desc");
+				List<CustomerAddress> addrList = customerAddressMapper.selectByExample(exam_ca);
+				
+				Integer seqNo = 1;
+				if (Utils.listNotNull(addrList)) {
+					if (addrList.size() >= MgmtConstants.ADDR_MAX) {
+						ret.setMessage(MgmtConstants.CHK_ERR_80001);
+						ret.setStatus(MsgData.status_ng);
+						return ret;
+					}
+					seqNo = addrList.get(0).getSeqNo() + 1;
+				}
+
+				if (address.getDefaultFlag()) {
+					exam_ca.getOredCriteria().get(0)
+											.andDefaultFlagEqualTo(Boolean.TRUE);
+					if (customerAddressMapper.countByExample(exam_ca) > 0) {
+						ret.setMessage(MgmtConstants.CHK_ERR_80002);
+						ret.setStatus(MsgData.status_ng);
+						return ret;
+					}
+				}
+				//新增
+				address.setCustAddressId(UUID.randomUUID().toString());
+				address.setSeqNo(seqNo);
+				customerAddressMapper.insert(address);
+				CustomerAddressOverView addrOV = new CustomerAddressOverView();
+				MasterCity city = masterCityMapper.selectByPrimaryKey(
+						address.getCityCode());
+				MasterProvince province = masterProvinceMapper.selectByPrimaryKey(
+						address.getProvinceCode());
+				addrOV.setAddr(address);
+				if (city != null) addrOV.setCityName(city.getCityName());
+				if (province != null) addrOV.setProvinceName(province.getProvinceName());
+				ret.setAddr(addrOV);
+			}
+		}
+		return ret;
+	}
+	
+	public List<CustomerInvoice> getCustomerInvoiceList(String customerid,
+			Boolean defaultflag) {
+		CustomerInvoiceExample exam_ci = new CustomerInvoiceExample();
+		exam_ci.createCriteria().andCustomerIdEqualTo(customerid)
+								.andDeleteFlagEqualTo(Boolean.FALSE);
+		exam_ci.setOrderByClause("seq_no asc");
+		if (defaultflag != null) 
+			exam_ci.getOredCriteria().get(0).andDefaultFlagEqualTo(defaultflag);
+		List<CustomerInvoice> ret = customerInvoiceMapper.selectByExample(exam_ci);
+		if (!Utils.listNotNull(ret)) ret = new ArrayList<CustomerInvoice>();
+		return ret;
+	}
+
+	public List<CustomerAddressOverView> getCustomerAddressList(String customerid,
+			Boolean defaultflag) {
+		List<CustomerAddressOverView> ret = new ArrayList<CustomerAddressOverView>();
+		
+		CustomerAddressExample exam_ca = new CustomerAddressExample();
+		exam_ca.createCriteria().andCustomerIdEqualTo(customerid)
+								.andDeleteFlagEqualTo(Boolean.FALSE);
+		exam_ca.setOrderByClause("seq_no asc");
+		if (defaultflag != null) 
+			exam_ca.getOredCriteria().get(0).andDefaultFlagEqualTo(defaultflag);
+		List<CustomerAddress> addrList = customerAddressMapper.selectByExample(exam_ca);
+		if (Utils.listNotNull(addrList)) {
+			for (CustomerAddress addr : addrList) {
+				CustomerAddressOverView addrOV = new CustomerAddressOverView();
+				MasterCity city = masterCityMapper.selectByPrimaryKey(
+						addr.getCityCode());
+				MasterProvince province = masterProvinceMapper.selectByPrimaryKey(
+						addr.getProvinceCode());
+				addrOV.setAddr(addr);
+				if (city != null) addrOV.setCityName(city.getCityName());
+				if (province != null) addrOV.setProvinceName(province.getProvinceName());
+				ret.add(addrOV);
+			}
+		}
+		return ret;
+	}
 	
 	public CustomerInfo getRefIdByCustId(String customerid) {
 		return customerInfoMapper.selectByPrimaryKey(customerid);
@@ -50,6 +268,5 @@ public class CustomerService {
 		ret.setRegisterId(openid);
 		ret.setRegisterType(registerType);
 		return ret;
-		
 	}
 }
