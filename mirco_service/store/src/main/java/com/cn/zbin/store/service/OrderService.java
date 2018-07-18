@@ -14,6 +14,8 @@ import com.cn.zbin.store.bto.MsgData;
 import com.cn.zbin.store.bto.OrderProductOverView;
 import com.cn.zbin.store.dto.GuestOrderInfo;
 import com.cn.zbin.store.dto.OrderProduct;
+import com.cn.zbin.store.dto.ProductImage;
+import com.cn.zbin.store.dto.ProductImageExample;
 import com.cn.zbin.store.dto.ProductInfo;
 import com.cn.zbin.store.dto.ProductPrice;
 import com.cn.zbin.store.dto.ProductPriceExample;
@@ -21,6 +23,7 @@ import com.cn.zbin.store.dto.ShoppingTrolleyInfo;
 import com.cn.zbin.store.dto.ShoppingTrolleyInfoExample;
 import com.cn.zbin.store.mapper.GuestOrderInfoMapper;
 import com.cn.zbin.store.mapper.OrderProductMapper;
+import com.cn.zbin.store.mapper.ProductImageMapper;
 import com.cn.zbin.store.mapper.ProductInfoMapper;
 import com.cn.zbin.store.mapper.ProductPriceMapper;
 import com.cn.zbin.store.mapper.ShoppingTrolleyInfoMapper;
@@ -39,6 +42,8 @@ public class OrderService {
 	private GuestOrderInfoMapper guestOrderInfoMapper;
 	@Autowired
 	private OrderProductMapper orderProductMapper;
+	@Autowired
+	private ProductImageMapper productImageMapper;
 	
 	public String savaGuestOrder(GuestOrderOverView orderView) {
 		String ret = "";
@@ -213,6 +218,8 @@ public class OrderService {
 			
 			if (realUnitPrice.compareTo(new BigDecimal(0)) > 0) {
 				OrderProductOverView orderProductOV = new OrderProductOverView();
+				orderProductOV.setProdInfo(prod);
+				orderProductOV.setFrontCoverImage(getFrontCoverImage(prod.getProductId()));
 				orderProductOV.setOrderProduct(new OrderProduct());
 				orderProductOV.getOrderProduct().setBail(prod.getBail()==null?new BigDecimal(0):prod.getBail());
 				orderProductOV.getOrderProduct().setRefundBail(new BigDecimal(0));
@@ -248,4 +255,15 @@ public class OrderService {
 		return ret;
 	}
 	
+	private ProductImage getFrontCoverImage(String prodID) {
+		ProductImageExample exam_pi = new ProductImageExample();
+		exam_pi.createCriteria().andFrontCoverFlagEqualTo(Boolean.TRUE)
+								.andProductIdEqualTo(prodID);
+		List<ProductImage> imageList = productImageMapper.selectByExample(exam_pi);
+		if (Utils.listNotNull(imageList)) {
+			return imageList.get(0);
+		} else {
+			return new ProductImage();
+		}
+	}
 }
