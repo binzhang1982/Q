@@ -128,4 +128,17 @@ public class ManagementService {
 			String strProvinceCode, Integer offset, Integer limit) {
 		return "failed";
 	}
+	
+	@HystrixCommand(fallbackMethod = "updateCustomerInfoError")
+	public String updateCustomerInfo(String bean) {
+    	String url = "http://SERVICE-MGMT/customer/info";
+        HttpHeaders headers =new HttpHeaders();
+        MediaType type = MediaType.parseMediaType("application/json; charset=UTF-8");
+        headers.setContentType(type);
+        HttpEntity<String> request = new HttpEntity<String>(bean, headers);
+    	return restTemplate.postForObject(url, request, String.class);
+	}
+	public String updateCustomerInfoError(String bean) {
+		return "failed";
+	}
 }

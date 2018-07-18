@@ -87,4 +87,10 @@ public class ManagementController {
 			@RequestParam(value = "limit", required = false) Integer limit) {
 		return managementService.getCityList(strSearch, strProvinceCode, strCityCode, offset, limit);
 	}
+
+    @PostMapping(value = "/cust/info")
+    @CrossOrigin
+    public String updateCustomerInfo(@RequestBody String bean) {
+    	return managementService.updateCustomerInfo(bean);
+    }
 }
