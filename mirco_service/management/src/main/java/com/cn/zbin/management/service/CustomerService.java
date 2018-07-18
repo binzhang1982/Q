@@ -4,12 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.cn.zbin.management.bto.CustomerAddressMsgData;
 import com.cn.zbin.management.bto.CustomerAddressOverView;
+import com.cn.zbin.management.bto.CustomerInfoMsgData;
 import com.cn.zbin.management.bto.CustomerInvoiceMsgData;
 import com.cn.zbin.management.bto.MsgData;
 import com.cn.zbin.management.dto.CustomerAddress;
@@ -40,6 +42,35 @@ public class CustomerService {
 	private CustomerAddressMapper customerAddressMapper;
 	@Autowired
 	private CustomerInvoiceMapper customerInvoiceMapper;
+	
+	public CustomerInfoMsgData updateCustomerInfo(CustomerInfo customer) {
+		CustomerInfoMsgData ret = new CustomerInfoMsgData();
+		
+		if (StringUtils.isBlank(customer.getCustomerId())) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(MgmtConstants.CHK_ERR_80005);
+			return ret;
+		}
+		
+		customer.setExpriedTime(null);
+		customer.setCreateTime(null);
+		customer.setRegisterId(null);
+		customer.setRegisterType(null);
+		customer.setToken(null);
+		customer.setUpdateTime(null);
+		customer.setValidCode(null);
+		customer.setValidFlag(null);
+		
+		if (customerInfoMapper.updateByPrimaryKeySelective(customer) == 0) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(MgmtConstants.CHK_ERR_80005);
+			return ret;
+		}
+		CustomerInfo cust = customerInfoMapper.selectByPrimaryKey(customer.getCustomerId());
+		if (cust != null) cust.setValidCode(null);
+		ret.setCustomer(cust);
+		return ret;
+	}
 	
 	public CustomerInvoiceMsgData updateCustomerInvoice(CustomerInvoice invoice) {
 		CustomerInvoiceMsgData ret = new CustomerInvoiceMsgData();
@@ -236,7 +267,9 @@ public class CustomerService {
 	}
 	
 	public CustomerInfo getRefIdByCustId(String customerid) {
-		return customerInfoMapper.selectByPrimaryKey(customerid);
+		CustomerInfo ret = customerInfoMapper.selectByPrimaryKey(customerid);
+		if (ret != null) ret.setValidCode(null);
+		return ret;
 	}
 	
 	public CustomerInfo getCustomerByRefID(String refid, Integer registerType) {
@@ -247,6 +280,7 @@ public class CustomerService {
 		List<CustomerInfo> custList = customerInfoMapper.selectByExample(example);
 		if (Utils.listNotNull(custList)) {
 			ret = custList.get(0);
+			ret.setValidCode(null);
 		}
 		return ret;
 	}

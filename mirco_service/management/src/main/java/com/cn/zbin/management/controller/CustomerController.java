@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.cn.zbin.management.bto.CustomerAddressMsgData;
 import com.cn.zbin.management.bto.CustomerAddressOverView;
+import com.cn.zbin.management.bto.CustomerInfoMsgData;
 import com.cn.zbin.management.bto.CustomerInvoiceMsgData;
 import com.cn.zbin.management.dto.CustomerAddress;
 import com.cn.zbin.management.dto.CustomerInfo;
@@ -81,5 +82,14 @@ public class CustomerController {
 	public CustomerInvoiceMsgData updateCustomerInvoice(
 			@RequestBody CustomerInvoice invoice) {
 		return customerService.updateCustomerInvoice(invoice);
+	}
+
+	@RequestMapping(value = "/info", 
+			consumes = {"application/json;charset=UTF-8"}, 
+			produces = {"application/json;charset=UTF-8"}, 
+			method = { RequestMethod.POST})
+	public CustomerInfoMsgData updateCustomerInfo(
+			@RequestBody CustomerInfo customer) {
+		return customerService.updateCustomerInfo(customer);
 	}
 }
