@@ -103,7 +103,8 @@ public class StoreService {
     public String add2Trolley(String bean) {
     	String url = "http://SERVICE-STORE/trolley";
         HttpHeaders headers =new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        MediaType type = MediaType.parseMediaType("application/json; charset=UTF-8");
+        headers.setContentType(type);
         HttpEntity<String> request = new HttpEntity<String>(bean, headers);
     	return restTemplate.postForObject(url, request, String.class);
     }
@@ -117,7 +118,8 @@ public class StoreService {
     	url = url + "?customerid=" + custid;
     	url = url + "&type=" + type;
         HttpHeaders headers =new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        MediaType mtype = MediaType.parseMediaType("application/json; charset=UTF-8");
+        headers.setContentType(mtype);
         HttpEntity<String> request = new HttpEntity<String>(bean, headers);
     	return restTemplate.postForObject(url, request, String.class);
     }

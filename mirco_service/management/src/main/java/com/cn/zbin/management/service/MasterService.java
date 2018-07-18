@@ -3,6 +3,7 @@ package com.cn.zbin.management.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,10 +27,10 @@ public class MasterService {
 			Integer offset, Integer limit) {
 		MasterCityExample exam_mc = new MasterCityExample();
 		exam_mc.createCriteria();
-		if (strSearch != null) exam_mc.getOredCriteria().get(0).andCityNameLike(strSearch);
-		if (strProvinceCode != null) exam_mc.getOredCriteria().get(0)
+		if (StringUtils.isNotBlank(strSearch)) exam_mc.getOredCriteria().get(0).andCityNameLike("%" + strSearch + "%");
+		if (StringUtils.isNotBlank(strProvinceCode)) exam_mc.getOredCriteria().get(0)
 										.andProvinceCodeEqualTo(strProvinceCode);
-		if (strCityCode != null) exam_mc.getOredCriteria().get(0).andCityCodeEqualTo(strCityCode);
+		if (StringUtils.isNotBlank(strCityCode)) exam_mc.getOredCriteria().get(0).andCityCodeEqualTo(strCityCode);
 		
 		List<MasterCity> ret = masterCityMapper.selectOnePageByExample(
 				exam_mc, offset, limit, "city_code asc");
@@ -42,8 +43,8 @@ public class MasterService {
 			String strProvinceCode, Integer offset, Integer limit) {
 		MasterProvinceExample exam_mp = new MasterProvinceExample();
 		exam_mp.createCriteria();
-		if (strSearch != null) exam_mp.getOredCriteria().get(0).andProvinceNameLike(strSearch);
-		if (strProvinceCode != null) exam_mp.getOredCriteria().get(0)
+		if (StringUtils.isNotBlank(strSearch)) exam_mp.getOredCriteria().get(0).andProvinceNameLike(strSearch);
+		if (StringUtils.isNotBlank(strProvinceCode)) exam_mp.getOredCriteria().get(0)
 										.andProvinceCodeEqualTo(strProvinceCode);
 		
 		List<MasterProvince> ret = masterProvinceMapper.selectOnePageByExample(
