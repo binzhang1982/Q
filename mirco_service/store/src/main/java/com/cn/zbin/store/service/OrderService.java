@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.cn.zbin.store.bto.GuestOrderOverView;
 import com.cn.zbin.store.bto.MsgData;
@@ -46,12 +47,27 @@ public class OrderService {
 	@Autowired
 	private ProductImageMapper productImageMapper;
 	
+	public List<GuestOrderOverView> getGuestOrderList(String customerid,
+			String status, Integer offset, Integer limit) {
+		return null;
+	}
+	
+	public GuestOrderOverView getGuestOrder(String customerid, String orderid) {
+		return null;
+	}
+	
+	@Transactional
 	public String insertGuestOrder(GuestOrderOverView orderView) {
 		String ret = "";
-		ret = checkGuestOrder(orderView);
-		if (StringUtils.isNotBlank(ret)) return ret;
 		
+		BigDecimal actualAmount = new BigDecimal(0);
 		GuestOrderInfo order = orderView.getGuestOrderInfo();
+		if (StringUtils.isBlank(order.getCustAddressId()))
+			return StoreConstants.CHK_ERR_90012;
+		
+		BigDecimal totalAmount = order.getTotalAmount();
+		actualAmount = actualAmount.add(order.getCarriage())
+									.add(order.getService());
 		order.setOrderId(UUID.randomUUID().toString());
 		order.setStatusCode(StoreConstants.ORDER_STATUS_UNPAID);
 		order.setCreateEmpId(StoreConstants.SYSTEM_EMP_ID);
@@ -61,6 +77,22 @@ public class OrderService {
 		List<OrderProductOverView> orderProductList = orderView.getOrderProductList();
 		for (OrderProductOverView orderProduct : orderProductList) {
 			OrderProduct orderProd = orderProduct.getOrderProduct();
+			actualAmount = actualAmount.add(orderProd.getBail())
+					.add(orderProd.getPaidAmount())
+					.subtract(orderProd.getPrePayAmount());
+			ProductInfo prod = productInfoMapper.selectByPrimaryKey(orderProd.getProductId());
+			if (prod != null) {
+				ProductPrice unitPrice = getUnitPrice(prod.getLeaseFlag(), 
+						orderProd.getPendingCount(), orderProd.getProductId());
+				if (prod.getLeaseFlag() && orderProd.getPaidAmount().compareTo
+						(unitPrice.getRealPrice().multiply(new BigDecimal(orderProd.getPendingCount()))) != 0) {
+					return StoreConstants.CHK_ERR_90013;
+				} else if (!prod.getLeaseFlag() &&  orderProd.getPaidAmount().compareTo
+						(unitPrice.getRealPrice().multiply(new BigDecimal(orderProd.getSaleCount()))) != 0) {
+					return StoreConstants.CHK_ERR_90013;
+				}
+			}
+			
 			orderProd.setIsDelete(Boolean.FALSE);
 			orderProd.setOrderId(order.getOrderId());
 			orderProd.setOrderProductId(UUID.randomUUID().toString());
@@ -69,21 +101,7 @@ public class OrderService {
 			orderProductMapper.insert(orderProd);
 		}
 		
-		return ret;
-	}
-	
-	private String checkGuestOrder(GuestOrderOverView orderView) {
-		String ret = "";
-		GuestOrderInfo order = orderView.getGuestOrderInfo();
-		BigDecimal totalAmount = order.getTotalAmount();
-		BigDecimal carriage = order.getCarriage();
-		BigDecimal service = order.getService();
-
-		if (StringUtils.isBlank(order.getCustAddressId()))
-			return StoreConstants.CHK_ERR_90012;
-		if (StringUtils.isNotBlank(ret)) return ret;
-		
-		//TODO 价格check
+		if (totalAmount.compareTo(actualAmount) != 0) return StoreConstants.CHK_ERR_90014;
 		
 		return ret;
 	}
@@ -270,5 +288,25 @@ public class OrderService {
 		} else {
 			return new ProductImage();
 		}
+	}	
+	
+	private ProductPrice getUnitPrice(Boolean leaseFlag, Long pendingCount, String prodID) {
+		ProductPriceExample exam_pp = new ProductPriceExample();
+		if (leaseFlag) {
+			exam_pp.createCriteria().andDaysLessThanOrEqualTo(pendingCount)
+									.andProductIdEqualTo(prodID);
+			exam_pp.setOrderByClause("days desc");
+			List<ProductPrice> prodPriceLst = productPriceMapper.selectByExample(exam_pp);
+			if (Utils.listNotNull(prodPriceLst)) {
+				return prodPriceLst.get(0);
+			}
+		} else {
+			exam_pp.createCriteria().andProductIdEqualTo(prodID);
+			List<ProductPrice> prodPriceLst = productPriceMapper.selectByExample(exam_pp);
+			if (Utils.listNotNull(prodPriceLst)) {
+				return prodPriceLst.get(0);
+			}
+		}
+		return null;
 	}
 }

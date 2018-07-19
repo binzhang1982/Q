@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.cn.zbin.store.bto.MsgData;
 import com.cn.zbin.store.bto.ShoppingProductDetail;
@@ -103,6 +104,7 @@ public class TrolleyService {
 		return null;
 	}
 	
+	@Transactional
 	public String updateTrolley(ShoppingTrolleyInfo trolley) {
 		Integer saleCnt = trolley.getSaleCount();
 		String prodID = trolley.getProductId();
@@ -140,6 +142,7 @@ public class TrolleyService {
 		return errMsg;
 	}
 	
+	@Transactional
 	public String add2Trolley(List<ShoppingTrolleyInfo> trolleyList) {
 		if (Utils.listNotNull(trolleyList)) {
 			for (ShoppingTrolleyInfo trolleyBean : trolleyList) {

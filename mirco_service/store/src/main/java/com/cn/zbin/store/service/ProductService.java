@@ -258,7 +258,7 @@ public class ProductService {
 					.andSaleEndTimeGreaterThanOrEqualTo(new Date())
 					.andListingFlagEqualTo(Boolean.TRUE);
 		if (strSearch != null) exam_pi.getOredCriteria().get(0)
-					.andProductNameLike(strSearch);
+					.andProductNameLike("%" + strSearch + "%");
 		List<ProductInfo> pi_list = productInfoMapper.selectOnePageByExample(
 					exam_pi, offset, limit, "sale_start_time desc");
 		if (leaseFlag) {

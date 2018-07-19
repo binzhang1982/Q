@@ -41,4 +41,19 @@ public class OrderController {
 		}
 		return ret;
 	}
+	
+	@RequestMapping(value = "/list", produces = {"application/json;charset=UTF-8"}, method = { RequestMethod.GET })
+	public List<GuestOrderOverView> getGuestOrderList(
+			@RequestParam(value = "customerid", required = true) String customerid,
+			@RequestParam(value = "status", required = false) String status,
+			@RequestParam(value = "offset", required = false) Integer offset, 
+			@RequestParam(value = "limit", required = false) Integer limit) {
+		return orderService.getGuestOrderList(customerid, status, offset, limit);
+	}
+	
+	@RequestMapping(value = "", produces = {"application/json;charset=UTF-8"}, method = { RequestMethod.GET })
+	public GuestOrderOverView getGuestOrder(@RequestParam("customerid") String customerid,
+			@RequestParam("orderid") String orderid) {
+		return orderService.getGuestOrder(customerid, orderid);
+	}
 }
