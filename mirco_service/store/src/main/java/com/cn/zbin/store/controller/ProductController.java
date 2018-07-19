@@ -13,7 +13,6 @@ import com.cn.zbin.store.bto.FavoriteProduct;
 import com.cn.zbin.store.bto.ProductCommentOverView;
 import com.cn.zbin.store.bto.ProductDetail;
 import com.cn.zbin.store.bto.ProductOverView;
-import com.cn.zbin.store.dto.ProductComment;
 import com.cn.zbin.store.service.ProductService;
 
 @RestController

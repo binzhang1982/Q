@@ -112,6 +112,19 @@ public class StoreService {
     	return "failed";
     }
 
+    @HystrixCommand(fallbackMethod = "updateTrolleyError")
+    public String updateTrolley(String bean) {
+    	String url = "http://SERVICE-STORE/trolley/salecount";
+        HttpHeaders headers =new HttpHeaders();
+        MediaType type = MediaType.parseMediaType("application/json; charset=UTF-8");
+        headers.setContentType(type);
+        HttpEntity<String> request = new HttpEntity<String>(bean, headers);
+    	return restTemplate.postForObject(url, request, String.class);
+    }
+    public String updateTrolleyError(String bean) {
+    	return "failed";
+    }
+
     @HystrixCommand(fallbackMethod = "initOrderError")
     public String initOrder(String custid, String type, String bean) {
     	String url = "http://SERVICE-STORE/order/init";
@@ -124,6 +137,19 @@ public class StoreService {
     	return restTemplate.postForObject(url, request, String.class);
     }
     public String initOrderError(String custid, String type, String bean) {
+    	return "failed";
+    }
+
+    @HystrixCommand(fallbackMethod = "insertOrderError")
+    public String insertOrder(String bean) {
+    	String url = "http://SERVICE-STORE/order/create";
+        HttpHeaders headers =new HttpHeaders();
+        MediaType mtype = MediaType.parseMediaType("application/json; charset=UTF-8");
+        headers.setContentType(mtype);
+        HttpEntity<String> request = new HttpEntity<String>(bean, headers);
+    	return restTemplate.postForObject(url, request, String.class);
+    }
+    public String insertOrderError(String bean) {
     	return "failed";
     }
 }

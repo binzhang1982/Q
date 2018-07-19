@@ -1,8 +1,9 @@
-	package com.cn.zbin.store.service;
+package com.cn.zbin.store.service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
@@ -45,20 +46,31 @@ public class OrderService {
 	@Autowired
 	private ProductImageMapper productImageMapper;
 	
-	public String savaGuestOrder(GuestOrderOverView orderView) {
+	public String insertGuestOrder(GuestOrderOverView orderView) {
 		String ret = "";
 		ret = checkGuestOrder(orderView);
 		if (StringUtils.isNotBlank(ret)) return ret;
 		
-		saveGuestOrder(orderView);
+		GuestOrderInfo order = orderView.getGuestOrderInfo();
+		order.setOrderId(UUID.randomUUID().toString());
+		order.setStatusCode(StoreConstants.ORDER_STATUS_UNPAID);
+		order.setCreateEmpId(StoreConstants.SYSTEM_EMP_ID);
+		order.setUpdateEmpId(StoreConstants.SYSTEM_EMP_ID);
+		order.setIsOffered(Boolean.FALSE);
+		guestOrderInfoMapper.insert(order);
+		List<OrderProductOverView> orderProductList = orderView.getOrderProductList();
+		for (OrderProductOverView orderProduct : orderProductList) {
+			OrderProduct orderProd = orderProduct.getOrderProduct();
+			orderProd.setIsDelete(Boolean.FALSE);
+			orderProd.setOrderId(order.getOrderId());
+			orderProd.setOrderProductId(UUID.randomUUID().toString());
+			orderProd.setCreateEmpId(StoreConstants.SYSTEM_EMP_ID);
+			orderProd.setUpdateEmpId(StoreConstants.SYSTEM_EMP_ID);
+			orderProductMapper.insert(orderProd);
+		}
 		
 		return ret;
 	}
-	
-	private void saveGuestOrder(GuestOrderOverView orderView) {
-		
-	}
-	
 	
 	private String checkGuestOrder(GuestOrderOverView orderView) {
 		String ret = "";
@@ -66,8 +78,9 @@ public class OrderService {
 		BigDecimal totalAmount = order.getTotalAmount();
 		BigDecimal carriage = order.getCarriage();
 		BigDecimal service = order.getService();
-		
-		ret = checkRecieverInfo(order);
+
+		if (StringUtils.isBlank(order.getCustAddressId()))
+			return StoreConstants.CHK_ERR_90012;
 		if (StringUtils.isNotBlank(ret)) return ret;
 		
 		//TODO 价格check
@@ -75,26 +88,18 @@ public class OrderService {
 		return ret;
 	}
 	
-	private String checkRecieverInfo(GuestOrderInfo order) {
-		String ret = "";
-		if (StringUtils.isBlank(order.getCustAddressId()))
-			//TODO 常量化
-			ret = "收货信息不能为空";
-		return ret;
-	}
-	
 	public GuestOrderOverView initGuestOrder(String type, String custid,
 			List<ShoppingTrolleyInfo> trolleyList) {
 		if (StoreConstants.ORDER_TYPE_GUEST.equals(type)) {
-			return createGuestOrderByGuest(trolleyList, custid);
+			return initGuestOrderByGuest(trolleyList, custid);
 		} else if (StoreConstants.ORDER_TYPE_TROLLEY.equals(type)) {
-			return createGuestOrderByTrolley(trolleyList, custid);
+			return initGuestOrderByTrolley(trolleyList, custid);
 		} else {
 			return new GuestOrderOverView();
 		}
 	}
 	
-	private GuestOrderOverView createGuestOrderByGuest(
+	private GuestOrderOverView initGuestOrderByGuest(
 			List<ShoppingTrolleyInfo> trolleyList, String custid) {
 		GuestOrderOverView ret = new GuestOrderOverView();
 		ret.setGuestOrderInfo(new GuestOrderInfo());
@@ -135,7 +140,7 @@ public class OrderService {
 		return ret;
 	}
 	
-	private GuestOrderOverView createGuestOrderByTrolley(
+	private GuestOrderOverView initGuestOrderByTrolley(
 			List<ShoppingTrolleyInfo> trolleyList, String custid) {
 		GuestOrderOverView ret = new GuestOrderOverView();
 		ret.setGuestOrderInfo(new GuestOrderInfo());

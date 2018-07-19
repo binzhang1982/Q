@@ -75,6 +75,13 @@ public class StoreController {
     	return storeService.add2Trolley(bean);
     }
     
+    @PostMapping(value = "/trolley/salecount")
+    @CrossOrigin
+    public String updateTrolley(@RequestBody String bean) {
+    	return storeService.updateTrolley(bean);
+    }
+    
+    
     @PostMapping(value = "/order/init")
     @CrossOrigin
     public String initOrder(
@@ -83,5 +90,10 @@ public class StoreController {
 			@RequestBody String bean) {
     	return storeService.initOrder(custid, type, bean);
     }
-    
+
+    @PostMapping(value = "/order/create")
+    @CrossOrigin
+    public String insertOrder(@RequestBody String bean) {
+    	return storeService.insertOrder(bean);
+    }
 }

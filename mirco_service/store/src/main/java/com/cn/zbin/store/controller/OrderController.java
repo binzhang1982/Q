@@ -30,11 +30,11 @@ public class OrderController {
 		return orderService.initGuestOrder(type, custid, trolleyList);
 	}
 
-	@RequestMapping(value = "/save", consumes = {"application/json;charset=UTF-8"}, 
+	@RequestMapping(value = "/create", consumes = {"application/json;charset=UTF-8"}, 
 			produces = {"application/json;charset=UTF-8"}, method = { RequestMethod.POST })
-	public MsgData saveGuestOrder(@RequestBody GuestOrderOverView order) {
+	public MsgData insertGuestOrder(@RequestBody GuestOrderOverView order) {
 		MsgData ret = new MsgData();
-		String msg = orderService.savaGuestOrder(order);
+		String msg = orderService.insertGuestOrder(order);
 		if (StringUtils.isNotBlank(msg)) {
 			ret.setStatus(MsgData.status_ng);
 			ret.setMessage(msg);
