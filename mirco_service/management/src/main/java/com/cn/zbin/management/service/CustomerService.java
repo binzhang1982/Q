@@ -79,6 +79,7 @@ public class CustomerService {
 			CustomerInvoice record = new CustomerInvoice();
 			record.setCustInvoiceId(invoice.getCustInvoiceId());
 			record.setSeqNo(-1);
+			record.setDefaultFlag(Boolean.FALSE);
 			record.setDeleteFlag(invoice.getDeleteFlag());
 			customerInvoiceMapper.updateByPrimaryKeySelective(record);
 		} else {
@@ -87,6 +88,7 @@ public class CustomerService {
 				CustomerInvoice record = new CustomerInvoice();
 				record.setCustInvoiceId(invoice.getCustInvoiceId());
 				record.setSeqNo(-1);
+				record.setDefaultFlag(Boolean.FALSE);
 				record.setDeleteFlag(Boolean.TRUE);
 				customerInvoiceMapper.updateByPrimaryKeySelective(record);
 				
@@ -95,10 +97,15 @@ public class CustomerService {
 					exam_ci.createCriteria().andDeleteFlagEqualTo(Boolean.FALSE)
 											.andCustomerIdEqualTo(invoice.getCustomerId())
 											.andDefaultFlagEqualTo(Boolean.TRUE);
-					if (customerInvoiceMapper.countByExample(exam_ci) > 0) {
-						ret.setMessage(MgmtConstants.CHK_ERR_80004);
-						ret.setStatus(MsgData.status_ng);
-						return ret;
+					List<CustomerInvoice> defaultInvoiceList = 
+							customerInvoiceMapper.selectByExample(exam_ci);
+					if (Utils.listNotNull(defaultInvoiceList)) {
+						for (CustomerInvoice defaultInvoice : defaultInvoiceList) {
+							CustomerInvoice invoiceRec = new CustomerInvoice();
+							invoiceRec.setCustInvoiceId(defaultInvoice.getCustInvoiceId());
+							invoiceRec.setDefaultFlag(Boolean.FALSE);
+							customerInvoiceMapper.updateByPrimaryKeySelective(invoiceRec);
+						}
 					}
 				}
 				
@@ -106,6 +113,7 @@ public class CustomerService {
 				customerInvoiceMapper.insert(invoice);
 				ret.setInvoice(invoice);
 			} else {
+				//新增
 				CustomerInvoiceExample exam_ci = new CustomerInvoiceExample();
 				exam_ci.createCriteria().andDeleteFlagEqualTo(Boolean.FALSE)
 										.andCustomerIdEqualTo(invoice.getCustomerId());
@@ -125,13 +133,17 @@ public class CustomerService {
 				if (invoice.getDefaultFlag()) {
 					exam_ci.getOredCriteria().get(0)
 											.andDefaultFlagEqualTo(Boolean.TRUE);
-					if (customerInvoiceMapper.countByExample(exam_ci) > 0) {
-						ret.setMessage(MgmtConstants.CHK_ERR_80004);
-						ret.setStatus(MsgData.status_ng);
-						return ret;
+					List<CustomerInvoice> defaultInvoiceList = 
+							customerInvoiceMapper.selectByExample(exam_ci);
+					if (Utils.listNotNull(defaultInvoiceList)) {
+						for (CustomerInvoice defaultInvoice : defaultInvoiceList) {
+							CustomerInvoice invoiceRec = new CustomerInvoice();
+							invoiceRec.setCustInvoiceId(defaultInvoice.getCustInvoiceId());
+							invoiceRec.setDefaultFlag(Boolean.FALSE);
+							customerInvoiceMapper.updateByPrimaryKeySelective(invoiceRec);
+						}
 					}
 				}
-				//新增
 				invoice.setCustInvoiceId(UUID.randomUUID().toString());
 				invoice.setSeqNo(seqNo);
 				customerInvoiceMapper.insert(invoice);
@@ -148,6 +160,7 @@ public class CustomerService {
 			CustomerAddress record = new CustomerAddress();
 			record.setCustAddressId(address.getCustAddressId());
 			record.setSeqNo(-1);
+			record.setDefaultFlag(Boolean.FALSE);
 			record.setDeleteFlag(address.getDeleteFlag());
 			customerAddressMapper.updateByPrimaryKeySelective(record);
 		} else {
@@ -156,6 +169,7 @@ public class CustomerService {
 				CustomerAddress record = new CustomerAddress();
 				record.setCustAddressId(address.getCustAddressId());
 				record.setSeqNo(-1);
+				record.setDefaultFlag(Boolean.FALSE);
 				record.setDeleteFlag(Boolean.TRUE);
 				customerAddressMapper.updateByPrimaryKeySelective(record);
 				
@@ -164,6 +178,17 @@ public class CustomerService {
 					exam_ca.createCriteria().andDeleteFlagEqualTo(Boolean.FALSE)
 											.andCustomerIdEqualTo(address.getCustomerId())
 											.andDefaultFlagEqualTo(Boolean.TRUE);
+					List<CustomerAddress> defaultAddressList = 
+							customerAddressMapper.selectByExample(exam_ca);
+					if (Utils.listNotNull(defaultAddressList)) {
+						for (CustomerAddress defaultAddress : defaultAddressList) {
+							CustomerAddress addressRec = new CustomerAddress();
+							addressRec.setCustAddressId(defaultAddress.getCustAddressId());
+							addressRec.setDefaultFlag(Boolean.FALSE);
+							customerAddressMapper.updateByPrimaryKeySelective(addressRec);
+						}
+					}
+					
 					if (customerAddressMapper.countByExample(exam_ca) > 0) {
 						ret.setMessage(MgmtConstants.CHK_ERR_80002);
 						ret.setStatus(MsgData.status_ng);
@@ -202,10 +227,15 @@ public class CustomerService {
 				if (address.getDefaultFlag()) {
 					exam_ca.getOredCriteria().get(0)
 											.andDefaultFlagEqualTo(Boolean.TRUE);
-					if (customerAddressMapper.countByExample(exam_ca) > 0) {
-						ret.setMessage(MgmtConstants.CHK_ERR_80002);
-						ret.setStatus(MsgData.status_ng);
-						return ret;
+					List<CustomerAddress> defaultAddressList = 
+							customerAddressMapper.selectByExample(exam_ca);
+					if (Utils.listNotNull(defaultAddressList)) {
+						for (CustomerAddress defaultAddress : defaultAddressList) {
+							CustomerAddress addressRec = new CustomerAddress();
+							addressRec.setCustAddressId(defaultAddress.getCustAddressId());
+							addressRec.setDefaultFlag(Boolean.FALSE);
+							customerAddressMapper.updateByPrimaryKeySelective(addressRec);
+						}
 					}
 				}
 				//新增

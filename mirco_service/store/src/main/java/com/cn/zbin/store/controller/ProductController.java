@@ -1,5 +1,6 @@
 package com.cn.zbin.store.controller;
 
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.cn.zbin.store.bto.FavoriteProduct;
+import com.cn.zbin.store.bto.PendingDate;
 import com.cn.zbin.store.bto.ProductCommentOverView;
 import com.cn.zbin.store.bto.ProductDetail;
 import com.cn.zbin.store.bto.ProductOverView;
@@ -54,5 +56,10 @@ public class ProductController {
 			@RequestParam(value = "offset", required = false) Integer offset, 
 			@RequestParam(value = "limit", required = false) Integer limit) {
 		return productService.getProductCommentList(prodID, offset, limit);
+	}
+	
+	@RequestMapping(value = "/lease/calc", produces = {"application/json;charset=UTF-8"}, method = { RequestMethod.GET })	
+	public PendingDate calcPendingCount(Date pendingStartDate, Date pendingEndDate) {
+		return productService.calcPendingCount(pendingStartDate, pendingEndDate);
 	}
 }

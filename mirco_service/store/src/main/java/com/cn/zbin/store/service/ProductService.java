@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.cn.zbin.store.bto.FavoriteProduct;
+import com.cn.zbin.store.bto.PendingDate;
 import com.cn.zbin.store.bto.ProductCategory;
 import com.cn.zbin.store.bto.ProductCommentDetail;
 import com.cn.zbin.store.bto.ProductCommentOverView;
@@ -76,6 +78,14 @@ public class ProductService {
 	@Autowired
 	private WeChatUserInfoMapper weChatUserInfoMapper;
 	
+	public PendingDate calcPendingCount(Date pendingStartDate, Date pendingEndDate) {
+		PendingDate ret = new PendingDate();
+		ret.setPendingStartDate(pendingStartDate);
+		ret.setPendingEndDate(pendingEndDate);
+		ret.setPendingCount(TimeUnit.MILLISECONDS.toDays(
+				pendingStartDate.getTime() - pendingEndDate.getTime()));
+		return ret;
+	}
 	
 	public ProductCommentOverView getProductCommentList(String prodID,
 			Integer offset, Integer limit) {
