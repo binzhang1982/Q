@@ -2,6 +2,7 @@ package com.cn.zbin.store.mapper;
 
 import com.cn.zbin.store.dto.GuestOrderInfo;
 import com.cn.zbin.store.dto.GuestOrderInfoExample;
+
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
@@ -93,4 +94,9 @@ public interface GuestOrderInfoMapper {
      * @mbggenerated
      */
     int updateByPrimaryKey(GuestOrderInfo record);
+    
+    
+    List<GuestOrderInfo> selectOnePageByExample(@Param("example") GuestOrderInfoExample example,
+    		@Param("offset") Integer offset, @Param("limit") Integer limit, 
+    		@Param("orderByClause") String orderByClause);
 }

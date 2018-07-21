@@ -96,4 +96,20 @@ public class StoreController {
     public String insertOrder(@RequestBody String bean) {
     	return storeService.insertOrder(bean);
     }
+	
+    @GetMapping(value = "/order/list")
+    @CrossOrigin
+	public String getGuestOrderList(
+			@RequestParam(value = "customerid", required = true) String customerid,
+			@RequestParam(value = "status", required = false) String status,
+			@RequestParam(value = "offset", required = false) Integer offset, 
+			@RequestParam(value = "limit", required = false) Integer limit) {
+		return storeService.getGuestOrderList(customerid, status, offset, limit);
+	}
+	
+    @GetMapping(value = "/order")
+	public String getGuestOrder(@RequestParam("customerid") String customerid,
+			@RequestParam("orderid") String orderid) {
+		return storeService.getGuestOrder(customerid, orderid);
+	}
 }

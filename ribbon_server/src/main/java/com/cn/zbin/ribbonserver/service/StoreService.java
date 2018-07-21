@@ -152,4 +152,33 @@ public class StoreService {
     public String insertOrderError(String bean) {
     	return "failed";
     }
+
+    @HystrixCommand(fallbackMethod = "getGuestOrderListError")
+    public String getGuestOrderList(String customerid,
+			String status, Integer offset, Integer limit) {
+    	String url = "http://SERVICE-STORE/order/list";
+    	url = url + "?customerid=" + customerid;
+    	url = url + "&status=";
+    	if (status != null) url = url + status;
+    	url = url + "&offset=";
+    	if (offset != null) url = url + offset;
+    	url = url + "&limit=";
+    	if (limit != null) url = url + limit;
+    	return restTemplate.getForObject(url, String.class);
+    }
+    public String getGuestOrderListError(String customerid,
+			String status, Integer offset, Integer limit) {
+    	return "failed";
+    }
+
+    @HystrixCommand(fallbackMethod = "getGuestOrderError")
+    public String getGuestOrder(String customerid, String orderid) {
+    	String url = "http://SERVICE-STORE/order";
+    	url = url + "?customerid=" + customerid;
+    	url = url + "&orderid=" + orderid;
+    	return restTemplate.getForObject(url, String.class);
+    }
+    public String getGuestOrderError(String customerid, String orderid) {
+    	return "failed";
+    }
 }

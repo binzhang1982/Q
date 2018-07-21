@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.cn.zbin.store.bto.MsgData;
 import com.cn.zbin.store.bto.ShoppingProductDetail;
 import com.cn.zbin.store.bto.ShoppingTrolleyOverView;
 import com.cn.zbin.store.dto.ProductImage;

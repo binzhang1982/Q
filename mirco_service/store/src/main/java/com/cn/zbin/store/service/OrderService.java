@@ -11,11 +11,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.cn.zbin.store.bto.CustomerAddressOverView;
+import com.cn.zbin.store.bto.CustomerInvoiceOverView;
 import com.cn.zbin.store.bto.GuestOrderOverView;
 import com.cn.zbin.store.bto.MsgData;
 import com.cn.zbin.store.bto.OrderProductOverView;
+import com.cn.zbin.store.dto.CustomerAddress;
+import com.cn.zbin.store.dto.CustomerInvoice;
 import com.cn.zbin.store.dto.GuestOrderInfo;
+import com.cn.zbin.store.dto.GuestOrderInfoExample;
+import com.cn.zbin.store.dto.MasterCity;
+import com.cn.zbin.store.dto.MasterProvince;
 import com.cn.zbin.store.dto.OrderProduct;
+import com.cn.zbin.store.dto.OrderProductExample;
 import com.cn.zbin.store.dto.ProductImage;
 import com.cn.zbin.store.dto.ProductImageExample;
 import com.cn.zbin.store.dto.ProductInfo;
@@ -23,7 +31,11 @@ import com.cn.zbin.store.dto.ProductPrice;
 import com.cn.zbin.store.dto.ProductPriceExample;
 import com.cn.zbin.store.dto.ShoppingTrolleyInfo;
 import com.cn.zbin.store.dto.ShoppingTrolleyInfoExample;
+import com.cn.zbin.store.mapper.CustomerAddressMapper;
+import com.cn.zbin.store.mapper.CustomerInvoiceMapper;
 import com.cn.zbin.store.mapper.GuestOrderInfoMapper;
+import com.cn.zbin.store.mapper.MasterCityMapper;
+import com.cn.zbin.store.mapper.MasterProvinceMapper;
 import com.cn.zbin.store.mapper.OrderProductMapper;
 import com.cn.zbin.store.mapper.ProductImageMapper;
 import com.cn.zbin.store.mapper.ProductInfoMapper;
@@ -46,14 +58,83 @@ public class OrderService {
 	private OrderProductMapper orderProductMapper;
 	@Autowired
 	private ProductImageMapper productImageMapper;
+	@Autowired
+	private CustomerAddressMapper customerAddressMapper;
+	@Autowired
+	private CustomerInvoiceMapper customerInvoiceMapper;
+	@Autowired
+	private MasterProvinceMapper masterProvinceMapper;
+	@Autowired
+	private MasterCityMapper masterCityMapper;
 	
 	public List<GuestOrderOverView> getGuestOrderList(String customerid,
 			String status, Integer offset, Integer limit) {
-		return null;
+		List<GuestOrderOverView> ret = new ArrayList<GuestOrderOverView>();
+		GuestOrderInfoExample exam_go = new GuestOrderInfoExample();
+		exam_go.createCriteria().andCustomerIdEqualTo(customerid);
+		if (StringUtils.isNotBlank(status)) 
+			exam_go.getOredCriteria().get(0).andStatusCodeEqualTo(status);
+		List<GuestOrderInfo> guestOrderList = guestOrderInfoMapper.selectOnePageByExample(
+				exam_go, offset, limit, "update_time desc");
+		if (Utils.listNotNull(guestOrderList)) {
+			for (GuestOrderInfo guestOrder : guestOrderList) {
+				ret.add(getGuestOrderOverView(guestOrder));
+			}
+		}
+		
+		return ret;
+	}
+	
+	private GuestOrderOverView getGuestOrderOverView(GuestOrderInfo guestOrder) {
+		GuestOrderOverView orderOV = new GuestOrderOverView();
+		orderOV.setGuestOrderInfo(guestOrder);
+		CustomerAddress addr = customerAddressMapper.selectByPrimaryKey(
+				guestOrder.getCustAddressId());
+		CustomerAddressOverView addrOV = new CustomerAddressOverView();
+		addrOV.setAddress(addr);
+		MasterProvince province = masterProvinceMapper.selectByPrimaryKey(addr.getProvinceCode());
+		if (province != null) addrOV.setProvinceName(province.getProvinceName());
+		MasterCity city = masterCityMapper.selectByPrimaryKey(addr.getCityCode());
+		if (city != null) addrOV.setCityName(city.getCityName());
+		orderOV.setCustomerAddress(addrOV);
+		
+		CustomerInvoice invoice = customerInvoiceMapper.selectByPrimaryKey(
+				guestOrder.getCustInvoiceId());
+		CustomerInvoiceOverView invoiceOV = new CustomerInvoiceOverView();
+		invoiceOV.setInvoice(invoice);
+		if (invoice.getInvoiceType().equals(StoreConstants.INVOICE_TYPE_PER))
+			invoiceOV.setInvoiceTypeName(StoreConstants.INVOICE_TYPE_NM_PER);
+		else
+			invoiceOV.setInvoiceTypeName(StoreConstants.INVOICE_TYPE_NM_CORP);
+		orderOV.setCustomerInvoice(invoiceOV);
+		
+		orderOV.setOrderProductList(new ArrayList<OrderProductOverView>());
+		OrderProductExample exam_op = new OrderProductExample();
+		exam_op.createCriteria().andOrderIdEqualTo(guestOrder.getOrderId());
+		List<OrderProduct> orderProdList = orderProductMapper.selectByExample(exam_op);
+		if (Utils.listNotNull(orderProdList)) {
+			for (OrderProduct orderProd : orderProdList) {
+				OrderProductOverView orderProdOV = new OrderProductOverView();
+				orderProdOV.setOrderProduct(orderProd);
+				ProductInfo prod = productInfoMapper.selectByPrimaryKey(orderProd.getProductId());
+				if (prod != null) {
+					orderProdOV.setProdInfo(prod);
+					orderProdOV.setIsLease(prod.getLeaseFlag());
+					ProductPrice unitPrice = getUnitPrice(prod.getLeaseFlag(), 
+							orderProd.getPendingCount(), orderProd.getProductId());
+					orderProdOV.setRealUnitPrice(unitPrice.getRealPrice());
+					orderProdOV.setFrontCoverImage(getFrontCoverImage(orderProd.getProductId()));
+				}
+				orderOV.getOrderProductList().add(orderProdOV);
+			}
+		}
+		
+		return orderOV;
 	}
 	
 	public GuestOrderOverView getGuestOrder(String customerid, String orderid) {
-		return null;
+		GuestOrderInfo guestOrder = guestOrderInfoMapper.selectByPrimaryKey(orderid);
+		return getGuestOrderOverView(guestOrder);
 	}
 	
 	@Transactional
@@ -221,23 +302,10 @@ public class OrderService {
 		BigDecimal ret = new BigDecimal(0);
 		ProductInfo prod = productInfoMapper.selectByPrimaryKey(shoppingTrolley.getProductId());
 		if (prod != null) {
-			ProductPriceExample exam_pp = new ProductPriceExample();
-			BigDecimal realUnitPrice = new BigDecimal(0);
-			if (prod.getLeaseFlag()) {
-				exam_pp.createCriteria().andDaysLessThanOrEqualTo(shoppingTrolley.getPendingCount())
-										.andProductIdEqualTo(prod.getProductId());
-				exam_pp.setOrderByClause("days desc");
-				List<ProductPrice> prodPriceLst = productPriceMapper.selectByExample(exam_pp);
-				if (Utils.listNotNull(prodPriceLst)) {
-					realUnitPrice = prodPriceLst.get(0).getRealPrice();
-				}
-			} else {
-				exam_pp.createCriteria().andProductIdEqualTo(prod.getProductId());
-				List<ProductPrice> prodPriceLst = productPriceMapper.selectByExample(exam_pp);
-				if (Utils.listNotNull(prodPriceLst)) {
-					realUnitPrice = prodPriceLst.get(0).getRealPrice();
-				}
-			}
+			ProductPrice unitPrice = getUnitPrice(
+					prod.getLeaseFlag(), shoppingTrolley.getPendingCount(), 
+					prod.getProductId());
+			BigDecimal realUnitPrice = unitPrice.getRealPrice();
 			
 			if (realUnitPrice.compareTo(new BigDecimal(0)) > 0) {
 				OrderProductOverView orderProductOV = new OrderProductOverView();
