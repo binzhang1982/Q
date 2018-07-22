@@ -14,16 +14,21 @@ import com.cn.zbin.management.bto.CustomerAddressMsgData;
 import com.cn.zbin.management.bto.CustomerAddressOverView;
 import com.cn.zbin.management.bto.CustomerInfoMsgData;
 import com.cn.zbin.management.bto.CustomerInvoiceMsgData;
+import com.cn.zbin.management.bto.MsgData;
 import com.cn.zbin.management.dto.CustomerAddress;
 import com.cn.zbin.management.dto.CustomerInfo;
 import com.cn.zbin.management.dto.CustomerInvoice;
 import com.cn.zbin.management.service.CustomerService;
+import com.cn.zbin.management.service.SmsService;
+import com.cn.zbin.management.utils.MgmtConstants;
 
 @RestController
 @RequestMapping("customer")
 public class CustomerController {
 	@Autowired
 	private CustomerService customerService;
+	@Autowired
+	private SmsService smsService;
 	
 	@RequestMapping(value = "", method = { RequestMethod.POST })
 	public String addWechatUser(@RequestParam("openid") String openid,
@@ -92,4 +97,12 @@ public class CustomerController {
 			@RequestBody CustomerInfo customer) {
 		return customerService.updateCustomerInfo(customer);
 	}
+	
+	@RequestMapping(value = "/new/phone/{customerid}/{phonenumber}", method = { RequestMethod.POST })
+    public MsgData addPhoneNum(@PathVariable("customerid") String customerid, 
+    		@PathVariable("phonenumber") String phonenumber) {
+		MsgData msg = new MsgData();
+		smsService.sendSms(customerid, phonenumber, MgmtConstants.PHONENUM_ADD_TYPE);
+    	return msg;
+    }
 }

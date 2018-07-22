@@ -92,20 +92,24 @@ public class OrderService {
 				guestOrder.getCustAddressId());
 		CustomerAddressOverView addrOV = new CustomerAddressOverView();
 		addrOV.setAddress(addr);
-		MasterProvince province = masterProvinceMapper.selectByPrimaryKey(addr.getProvinceCode());
-		if (province != null) addrOV.setProvinceName(province.getProvinceName());
-		MasterCity city = masterCityMapper.selectByPrimaryKey(addr.getCityCode());
-		if (city != null) addrOV.setCityName(city.getCityName());
+		if (addr != null) {
+			MasterProvince province = masterProvinceMapper.selectByPrimaryKey(addr.getProvinceCode());
+			if (province != null) addrOV.setProvinceName(province.getProvinceName());
+			MasterCity city = masterCityMapper.selectByPrimaryKey(addr.getCityCode());
+			if (city != null) addrOV.setCityName(city.getCityName());
+		}
 		orderOV.setCustomerAddress(addrOV);
 		
 		CustomerInvoice invoice = customerInvoiceMapper.selectByPrimaryKey(
 				guestOrder.getCustInvoiceId());
 		CustomerInvoiceOverView invoiceOV = new CustomerInvoiceOverView();
 		invoiceOV.setInvoice(invoice);
-		if (invoice.getInvoiceType().equals(StoreConstants.INVOICE_TYPE_PER))
-			invoiceOV.setInvoiceTypeName(StoreConstants.INVOICE_TYPE_NM_PER);
-		else
-			invoiceOV.setInvoiceTypeName(StoreConstants.INVOICE_TYPE_NM_CORP);
+		if (invoice != null) {
+			if (invoice.getInvoiceType().equals(StoreConstants.INVOICE_TYPE_PER))
+				invoiceOV.setInvoiceTypeName(StoreConstants.INVOICE_TYPE_NM_PER);
+			else
+				invoiceOV.setInvoiceTypeName(StoreConstants.INVOICE_TYPE_NM_CORP);
+		}
 		orderOV.setCustomerInvoice(invoiceOV);
 		
 		orderOV.setOrderProductList(new ArrayList<OrderProductOverView>());

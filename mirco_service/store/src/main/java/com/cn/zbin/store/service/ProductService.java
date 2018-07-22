@@ -12,7 +12,6 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.impl.cookie.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -191,6 +190,7 @@ public class ProductService {
 			
 			ProductPriceExample exam_pp = new ProductPriceExample();
 			exam_pp.createCriteria().andProductIdEqualTo(prodID);
+			exam_pp.setOrderByClause("gear asc");
 			List<ProductPrice> priceList = productPriceMapper.selectByExample(exam_pp);
 			if (Utils.listNotNull(priceList)) {
 				ret.setPriceList(priceList);

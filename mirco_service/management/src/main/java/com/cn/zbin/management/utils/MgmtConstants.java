@@ -8,4 +8,7 @@ public class MgmtConstants {
 	public final static String CHK_ERR_80003 = "80003:发票信息个数超出限制啦!";
 	public final static String CHK_ERR_80004 = "80004:已经有默认发票信息啦!";
 	public final static String CHK_ERR_80005 = "80005:你的信息不见了,联系管理员吧!";
+	
+	public final static Integer PHONENUM_ADD_TYPE = 1;
+	public final static Integer PHONENUM_UPD_TYPE = 2;
 }

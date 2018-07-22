@@ -93,4 +93,12 @@ public class ManagementController {
     public String updateCustomerInfo(@RequestBody String bean) {
     	return managementService.updateCustomerInfo(bean);
     }
+    
+    public String addPhoneNum(String customerid, String phonenumber) {
+    	return null;
+    }
+    
+    public String updatePhoneNum() {
+    	return null;
+    }
 }
