@@ -1,5 +1,7 @@
 package com.cn.zbin.ribbonserver.service;
 
+import java.util.Date;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -179,6 +181,16 @@ public class StoreService {
     	return restTemplate.getForObject(url, String.class);
     }
     public String getGuestOrderError(String customerid, String orderid) {
+    	return "failed";
+    }
+
+    @HystrixCommand(fallbackMethod = "calcPendingCountError")
+    public String calcPendingCount(String pendingStartDate, String pendingEndDate) {
+    	String url = "http://SERVICE-STORE/prod/lease/calc?startdate=" + pendingStartDate +
+    					"&enddate=" + pendingEndDate;
+    	return restTemplate.getForObject(url, String.class);
+    }
+    public String calcPendingCountError(String pendingStartDate, String pendingEndDate) {
     	return "failed";
     }
 }

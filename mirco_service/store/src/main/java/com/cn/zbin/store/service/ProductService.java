@@ -2,6 +2,9 @@ package com.cn.zbin.store.service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -9,11 +12,13 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.impl.cookie.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.cn.zbin.store.bto.FavoriteProduct;
+import com.cn.zbin.store.bto.MsgData;
 import com.cn.zbin.store.bto.PendingDate;
 import com.cn.zbin.store.bto.ProductCategory;
 import com.cn.zbin.store.bto.ProductCommentDetail;
@@ -78,12 +83,18 @@ public class ProductService {
 	@Autowired
 	private WeChatUserInfoMapper weChatUserInfoMapper;
 	
-	public PendingDate calcPendingCount(Date pendingStartDate, Date pendingEndDate) {
+	public PendingDate calcPendingCount(String pendingStartDate, String pendingEndDate) {
 		PendingDate ret = new PendingDate();
-		ret.setPendingStartDate(pendingStartDate);
-		ret.setPendingEndDate(pendingEndDate);
-		ret.setPendingCount(TimeUnit.MILLISECONDS.toDays(
-				pendingStartDate.getTime() - pendingEndDate.getTime()));
+		DateFormat dayfm = new SimpleDateFormat("yyyy-MM-dd");
+		try {
+			ret.setPendingStartDate(dayfm.parse(pendingStartDate));
+			ret.setPendingEndDate(dayfm.parse(pendingEndDate));
+			ret.setPendingCount(TimeUnit.MILLISECONDS.toDays(
+					ret.getPendingEndDate().getTime() - ret.getPendingStartDate().getTime()));
+		} catch(ParseException pe) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(StoreConstants.CHK_ERR_90015);
+		}
 		return ret;
 	}
 	

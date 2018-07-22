@@ -112,4 +112,10 @@ public class StoreController {
 			@RequestParam("orderid") String orderid) {
 		return storeService.getGuestOrder(customerid, orderid);
 	}
+    
+    @GetMapping(value = "/prod/lease/calc")
+    public String calcPendingCount(@RequestParam("startdate") String pendingStartDate, 
+    		@RequestParam("enddate") String pendingEndDate) {
+    	return storeService.calcPendingCount(pendingStartDate, pendingEndDate);
+    }
 }

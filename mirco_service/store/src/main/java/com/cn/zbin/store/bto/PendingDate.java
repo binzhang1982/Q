@@ -4,7 +4,7 @@ import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-public class PendingDate {
+public class PendingDate extends MsgData {
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd")
 	private Date pendingStartDate;
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd")

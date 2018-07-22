@@ -59,7 +59,8 @@ public class ProductController {
 	}
 	
 	@RequestMapping(value = "/lease/calc", produces = {"application/json;charset=UTF-8"}, method = { RequestMethod.GET })	
-	public PendingDate calcPendingCount(Date pendingStartDate, Date pendingEndDate) {
+	public PendingDate calcPendingCount(@RequestParam("startdate") String pendingStartDate, 
+			@RequestParam("enddate") String pendingEndDate) {
 		return productService.calcPendingCount(pendingStartDate, pendingEndDate);
 	}
 }
