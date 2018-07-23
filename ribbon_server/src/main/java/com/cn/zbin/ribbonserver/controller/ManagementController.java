@@ -93,12 +93,20 @@ public class ManagementController {
     public String updateCustomerInfo(@RequestBody String bean) {
     	return managementService.updateCustomerInfo(bean);
     }
-    
-    public String addPhoneNum(String customerid, String phonenumber) {
-    	return null;
+
+    @GetMapping(value = "/cust/phone/{customerid}/{phonenumber}")
+    @CrossOrigin
+    public String addPhoneNum(
+    		@PathVariable("customerid") String customerid, 
+    		@PathVariable("phonenumber") String phonenumber) {
+    	return managementService.addPhoneNum(customerid, phonenumber);
     }
     
-    public String updatePhoneNum() {
-    	return null;
+    @GetMapping(value = "/cust/valid/{customerid}/{validcode}")
+    @CrossOrigin
+	public String comfirmValidCode(
+			@PathVariable("customerid") String customerid, 
+			@PathVariable("validcode") String validcode) {
+    	return managementService.comfirmValidCode(customerid, validcode);
     }
 }

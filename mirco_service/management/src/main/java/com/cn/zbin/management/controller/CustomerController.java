@@ -14,13 +14,13 @@ import com.cn.zbin.management.bto.CustomerAddressMsgData;
 import com.cn.zbin.management.bto.CustomerAddressOverView;
 import com.cn.zbin.management.bto.CustomerInfoMsgData;
 import com.cn.zbin.management.bto.CustomerInvoiceMsgData;
+import com.cn.zbin.management.bto.MessageHistoryMsgData;
 import com.cn.zbin.management.bto.MsgData;
 import com.cn.zbin.management.dto.CustomerAddress;
 import com.cn.zbin.management.dto.CustomerInfo;
 import com.cn.zbin.management.dto.CustomerInvoice;
 import com.cn.zbin.management.service.CustomerService;
 import com.cn.zbin.management.service.SmsService;
-import com.cn.zbin.management.utils.MgmtConstants;
 
 @RestController
 @RequestMapping("customer")
@@ -98,11 +98,25 @@ public class CustomerController {
 		return customerService.updateCustomerInfo(customer);
 	}
 	
-	@RequestMapping(value = "/new/phone/{customerid}/{phonenumber}", method = { RequestMethod.POST })
+	@RequestMapping(value = "/phone/{customerid}/{phonenumber}", 
+			produces = {"application/json;charset=UTF-8"}, 
+			method = { RequestMethod.GET })
     public MsgData addPhoneNum(@PathVariable("customerid") String customerid, 
     		@PathVariable("phonenumber") String phonenumber) {
 		MsgData msg = new MsgData();
-		smsService.sendSms(customerid, phonenumber, MgmtConstants.PHONENUM_ADD_TYPE);
+		MessageHistoryMsgData smsMsgData = smsService.addMessageHistory(customerid, phonenumber);
+		msg.setMessage(smsMsgData.getMessage());
+		msg.setStatus(smsMsgData.getStatus());
+		smsService.sendSms(customerid, smsMsgData.getSms());
     	return msg;
     }
+
+	@RequestMapping(value = "/valid/{customerid}/{validcode}", 
+			produces = {"application/json;charset=UTF-8"}, 
+			method = { RequestMethod.GET })
+	public MsgData comfirmValidCode(
+			@PathVariable("customerid") String customerid, 
+			@PathVariable("validcode") String validcode) {
+		return customerService.comfirmValidCode(customerid, validcode);
+	}
 }

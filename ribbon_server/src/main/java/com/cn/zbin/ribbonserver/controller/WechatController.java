@@ -1,9 +1,9 @@
 package com.cn.zbin.ribbonserver.controller;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -72,5 +72,12 @@ public class WechatController {
 	@CrossOrigin
 	public String getMenu() {
 		return wechatService.getMenu();
+	}
+
+	@GetMapping(value = "/oauth2/{code}")
+	@CrossOrigin
+	public String getOpenIdByCode(@PathVariable("code") String code) {
+		String ret = wechatService.getOpenIdByCode(code);
+		return ret;
 	}
 }

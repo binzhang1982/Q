@@ -115,4 +115,18 @@ public class WeChatService {
     public String getMenuError() {
     	return "failed";
     }
+
+    @HystrixCommand(fallbackMethod = "getOpenIdByCodeError")
+    public String getOpenIdByCode(String code) {
+    	RestTemplate rest = new RestTemplate();
+        String url = "https://api.weixin.qq.com/sns/oauth2/access_token" + 
+        				"?appid=" + RibbonConstants.APPID + 
+        				"&secret=" + RibbonConstants.APPSECRET +
+        				"&code=" + code +
+        				"&grant_type=authorization_code";
+        return rest.getForObject(url, String.class);
+    }
+    public String getOpenIdByCodeError(String code) {
+    	return "failed";
+    }
 }

@@ -1,7 +1,9 @@
 package com.cn.zbin.management.service;
 
+import java.util.Date;
 import java.util.UUID;
 
+import org.apache.commons.lang.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -15,8 +17,12 @@ import com.aliyuncs.exceptions.ClientException;
 import com.aliyuncs.http.MethodType;
 import com.aliyuncs.profile.DefaultProfile;
 import com.aliyuncs.profile.IClientProfile;
+import com.cn.zbin.management.bto.MessageHistoryMsgData;
+import com.cn.zbin.management.bto.MsgData;
 import com.cn.zbin.management.dto.CustomerInfo;
+import com.cn.zbin.management.dto.CustomerInfoExample;
 import com.cn.zbin.management.dto.MessageHistory;
+import com.cn.zbin.management.dto.MessageHistoryExample;
 import com.cn.zbin.management.mapper.CustomerInfoMapper;
 import com.cn.zbin.management.mapper.MessageHistoryMapper;
 import com.cn.zbin.management.utils.MgmtConstants;
@@ -28,25 +34,44 @@ public class SmsService {
 	private CustomerInfoMapper customerInfoMapper;
 	@Autowired
 	private MessageHistoryMapper messageHistoryMapper;
-	
-	@Async
+
 	@Transactional
-	public void sendSms(String customerid, String phonenumber, Integer type) {
-        MessageHistory sms = addMessageHistory(
-        		customerid, phonenumber, MgmtConstants.PHONENUM_ADD_TYPE);
-        if (sms != null) {
-            sms.setReturnCode(sendShortMessage(sms));
-            updateMessageHistory(sms);
-        }
-	}
-	
-	private MessageHistory addMessageHistory(String customerid, String phonenumber, Integer type) {
-		MessageHistory sms = new MessageHistory();
-		CustomerInfo record = new CustomerInfo();
-		record.setCustomerId(customerid);
-		record.setTelephone(phonenumber);
-		record.setValidCode(String.valueOf((int)(Math.random()*9+1)*1000));
-		if (customerInfoMapper.updateByPrimaryKeySelective(record) > 0) {
+	public MessageHistoryMsgData addMessageHistory(String customerid, String phonenumber) {
+        Date d_now = new Date();
+        Date d_yesterday = DateUtils.addDays(d_now, -1);
+		MessageHistoryMsgData smsMsgData = new MessageHistoryMsgData();
+		CustomerInfo cust = customerInfoMapper.selectByPrimaryKey(customerid);
+		if (cust != null) {
+			CustomerInfoExample exam_ci = new CustomerInfoExample();
+			exam_ci.createCriteria().andTelephoneEqualTo(phonenumber)
+									.andCustomerIdNotEqualTo(customerid)
+									.andValidFlagEqualTo(Boolean.TRUE);
+			if (customerInfoMapper.countByExample(exam_ci)>0) {
+				smsMsgData.setStatus(MsgData.status_ng);
+				smsMsgData.setMessage(MgmtConstants.CHK_ERR_80007);
+				return smsMsgData;
+			}
+			MessageHistoryExample exam_mh = new MessageHistoryExample();
+			exam_mh.createCriteria().andCreateTimeBetween(d_yesterday, d_now)
+									.andPhoneNumberEqualTo(phonenumber);
+			if (messageHistoryMapper.countByExample(exam_mh) >= MgmtConstants.SMS_MAX) {
+				smsMsgData.setStatus(MsgData.status_ng);
+				smsMsgData.setMessage(MgmtConstants.CHK_ERR_80006);
+				return smsMsgData;
+			}
+
+			CustomerInfo record = new CustomerInfo();
+			record.setCustomerId(customerid);
+			record.setTelephone(phonenumber);
+			Integer type = MgmtConstants.PHONENUM_ADD_TYPE;
+			if (cust.getValidFlag()) {
+				type = MgmtConstants.PHONENUM_UPD_TYPE;
+				record.setValidFlag(Boolean.FALSE);
+			}
+			record.setValidCode(String.valueOf((int)((Math.random()*9+1)*1000)));
+			customerInfoMapper.updateByPrimaryKeySelective(record);
+
+			MessageHistory sms = new MessageHistory();
 			sms.setMessageId(UUID.randomUUID().toString());
 			sms.setSignName(MgmtKeyConstants.SMS_SIGN_NAME);
 			sms.setPhoneNumber(phonenumber);
@@ -58,17 +83,31 @@ public class SmsService {
 				sms.setTemplateParams("{\"code\":\"" + record.getValidCode() + "\"}");
 			}
 			messageHistoryMapper.insert(sms);
+			
+			smsMsgData.setSms(sms);
+			return smsMsgData;
 		} else {
-			return null;
+			smsMsgData.setStatus(MsgData.status_ng);
+			smsMsgData.setMessage(MgmtConstants.CHK_ERR_80005);
+			return smsMsgData;
 		}
-		
-		return sms;
+	}
+	
+	@Async
+	@Transactional
+	public void sendSms(String customerid, MessageHistory sms) {
+        if (sms != null) {
+            sms.setReturnCode(sendShortMessage(sms));
+            updateMessageHistory(customerid, sms);
+        }
 	}
 
-	private void updateMessageHistory(MessageHistory sms) {
+	private void updateMessageHistory(String customerid, MessageHistory sms) {
 		MessageHistory record = new MessageHistory();
 		record.setMessageId(sms.getMessageId());
 		record.setReturnCode(sms.getReturnCode());
+		if ("OK".equals(record.getReturnCode()))
+			record.setSentTime(new Date());
 		messageHistoryMapper.updateByPrimaryKeySelective(record);
 	}
 

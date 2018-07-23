@@ -141,4 +141,24 @@ public class ManagementService {
 	public String updateCustomerInfoError(String bean) {
 		return "failed";
 	}
+
+	@HystrixCommand(fallbackMethod = "addPhoneNumError")
+	public String addPhoneNum(String customerid, String phonenumber) {
+    	String url = "http://SERVICE-MGMT/customer/phone/"
+    			+ customerid + "/" + phonenumber;
+    	return restTemplate.getForObject(url, String.class);
+	}
+	public String addPhoneNumError(String customerid, String phonenumber) {
+		return "failed";
+	}
+
+	@HystrixCommand(fallbackMethod = "comfirmValidCodeError")
+	public String comfirmValidCode(String customerid, String validcode) {
+    	String url = "http://SERVICE-MGMT/customer/valid/"
+    			+ customerid + "/" + validcode;
+    	return restTemplate.getForObject(url, String.class);
+	}
+	public String comfirmValidCodeError(String customerid, String validcode) {
+		return "failed";
+	}
 }

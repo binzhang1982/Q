@@ -1,7 +1,5 @@
 package com.cn.zbin.ribbonserver.service;
 
-import java.util.Date;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;

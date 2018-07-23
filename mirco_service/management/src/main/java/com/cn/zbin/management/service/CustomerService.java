@@ -43,6 +43,33 @@ public class CustomerService {
 	@Autowired
 	private CustomerInvoiceMapper customerInvoiceMapper;
 	
+	@Transactional
+	public MsgData comfirmValidCode(String customerid, String validcode) {
+		MsgData msg = new MsgData();
+		CustomerInfo cust = customerInfoMapper.selectByPrimaryKey(customerid);
+		if (cust != null) {
+			if (cust.getValidCode() != null) {
+				if (validcode.equals(cust.getValidCode())) {
+					CustomerInfo record = new CustomerInfo();
+					record.setCustomerId(customerid);
+					record.setValidFlag(Boolean.TRUE);
+					customerInfoMapper.updateByPrimaryKeySelective(record);
+				} else {
+					msg.setStatus(MsgData.status_ng);
+					msg.setMessage(MgmtConstants.CHK_ERR_80008);
+				}
+			} else {
+				msg.setStatus(MsgData.status_ng);
+				msg.setMessage(MgmtConstants.CHK_ERR_80008);
+			}
+		} else {
+			msg.setStatus(MsgData.status_ng);
+			msg.setMessage(MgmtConstants.CHK_ERR_80005);
+		}
+		
+		return msg;
+	}
+	
 	public CustomerInfoMsgData updateCustomerInfo(CustomerInfo customer) {
 		CustomerInfoMsgData ret = new CustomerInfoMsgData();
 		
@@ -331,6 +358,7 @@ public class CustomerService {
 		CustomerInfo ret = new CustomerInfo();
 		ret.setRegisterId(openid);
 		ret.setRegisterType(registerType);
+		ret.setValidFlag(Boolean.FALSE);
 		return ret;
 	}
 }
