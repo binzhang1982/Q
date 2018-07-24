@@ -1,20 +1,36 @@
 package com.cn.zbin.wechat.service;
 
+import java.util.List;
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.cn.zbin.wechat.bto.WeChatUserBaseInfo;
+import com.cn.zbin.wechat.dto.PromotionPartnerInfo;
+import com.cn.zbin.wechat.dto.PromotionPartnerInfoExample;
 import com.cn.zbin.wechat.dto.WeChatUserInfo;
 import com.cn.zbin.wechat.dto.WeChatUserInfoExample;
+import com.cn.zbin.wechat.mapper.PromotionPartnerInfoMapper;
 import com.cn.zbin.wechat.mapper.WeChatUserInfoMapper;
-import com.github.binarywang.java.emoji.EmojiConverter;
 
 @Service
 public class WechatUserService {
 	@Autowired
 	private WeChatUserInfoMapper wechatUserInfoMapper;
-//	private EmojiConverter emojiConverter = EmojiConverter.getInstance();
+	@Autowired
+	private PromotionPartnerInfoMapper promotionPartnerInfoMapper;
+	
+	@Transactional
+	public void createPartner(PromotionPartnerInfo partner) {
+		PromotionPartnerInfoExample exam_pp = new PromotionPartnerInfoExample();
+		exam_pp.createCriteria().andSceneStrEqualTo(partner.getSceneStr());
+		if (promotionPartnerInfoMapper.countByExample(exam_pp) == 0) {
+			partner.setPartnerId(UUID.randomUUID().toString());
+			promotionPartnerInfoMapper.insertSelective(partner);
+		}
+	}
 	
 	@Transactional
 	public void postUser(WeChatUserBaseInfo userBaseInfo) {
@@ -64,13 +80,6 @@ public class WechatUserService {
 		ret.setHeadImgurl(base.getHeadimgurl());
 		ret.setLanguage(base.getLanguage());
 		ret.setNickName(base.getNickname());
-//		ret.setNickName(emojiConverter.toHtml(base.getNickname()));
-//		try {
-//			ret.setNickName(EmojiUtil.emojiConvert(base.getNickname()));
-//		} catch (UnsupportedEncodingException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
 		ret.setOpenId(base.getOpenid());
 		ret.setProvince(base.getProvince());
 		ret.setQrScene(base.getQr_scene());

@@ -161,4 +161,17 @@ public class ManagementService {
 	public String comfirmValidCodeError(String customerid, String validcode) {
 		return "failed";
 	}
+
+	@HystrixCommand(fallbackMethod = "updateTokenError")
+	public String updateToken(String bean) {
+    	String url = "http://SERVICE-MGMT/customer/oauthatk";
+        HttpHeaders headers =new HttpHeaders();
+        MediaType type = MediaType.parseMediaType("application/json; charset=UTF-8");
+        headers.setContentType(type);
+        HttpEntity<String> request = new HttpEntity<String>(bean, headers);
+    	return restTemplate.postForObject(url, request, String.class);
+	}
+	public String updateTokenError(String bean) {
+		return "failed";
+	}
 }

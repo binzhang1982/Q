@@ -9,6 +9,8 @@ import java.net.URLEncoder;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -127,6 +129,27 @@ public class WeChatService {
         return rest.getForObject(url, String.class);
     }
     public String getOpenIdByCodeError(String code) {
+    	return "failed";
+    }
+
+    @HystrixCommand(fallbackMethod = "authWechatUserError")
+    public String authWechatUser(String bean) {
+    	String ret = "";
+		try {
+			String url = "http://SERVICE-WECHAT/user/oauthatk?atk=" 
+					+ URLEncoder.encode(RibbonConstants.APPTOKEN, "UTF-8");
+	        HttpHeaders headers =new HttpHeaders();
+	        MediaType type = MediaType.parseMediaType("application/json; charset=UTF-8");
+	        headers.setContentType(type);
+	        HttpEntity<String> request = new HttpEntity<String>(bean, headers);
+    		ret = restTemplate.postForObject(url, request, String.class);
+		} catch (RestClientException | UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        return ret;
+    }
+    public String authWechatUserError(String bean) {
     	return "failed";
     }
 }

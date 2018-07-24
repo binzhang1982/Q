@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.cn.zbin.ribbonserver.bto.wechat.WeChatMessage;
+import com.cn.zbin.ribbonserver.service.ManagementService;
 import com.cn.zbin.ribbonserver.service.WeChatService;
 
 @RestController
@@ -21,19 +22,21 @@ import com.cn.zbin.ribbonserver.service.WeChatService;
 public class WechatController {
     @Autowired
     WeChatService wechatService;
+    @Autowired
+    ManagementService managementService;
     
 	@GetMapping(value = "/hi")
 	@CrossOrigin
 	public String getHi(@RequestParam("signature") String signature, @RequestParam("timestamp") String timestamp,
 			@RequestParam("nonce") String nonce, @RequestParam("echostr") String echostr) {
 		// 如果检验成功原样返回echostr，微信服务器接收到此输出，才会确认检验完成。
-		System.out.println(echostr);
-		return echostr;
-//		if (wechatService.getHiCheckService(signature, timestamp, nonce)) {
-//	        return echostr;
-//		} else {
-//			return "failed";
-//		}
+//		System.out.println(echostr);
+//		return echostr;
+		if (wechatService.getHiCheckService(signature, timestamp, nonce)) {
+	        return echostr;
+		} else {
+			return "failed";
+		}
 	}
 	
 	@PostMapping(value = "/hi")
@@ -78,6 +81,10 @@ public class WechatController {
 	@CrossOrigin
 	public String getOpenIdByCode(@PathVariable("code") String code) {
 		String ret = wechatService.getOpenIdByCode(code);
+		if (ret.indexOf("errcode") < 0) {
+			wechatService.authWechatUser(ret);
+			managementService.updateToken(ret);
+		}
 		return ret;
 	}
 }

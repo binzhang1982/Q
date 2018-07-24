@@ -16,6 +16,7 @@ import com.cn.zbin.management.bto.CustomerInfoMsgData;
 import com.cn.zbin.management.bto.CustomerInvoiceMsgData;
 import com.cn.zbin.management.bto.MessageHistoryMsgData;
 import com.cn.zbin.management.bto.MsgData;
+import com.cn.zbin.management.bto.OauthAccessToken;
 import com.cn.zbin.management.dto.CustomerAddress;
 import com.cn.zbin.management.dto.CustomerInfo;
 import com.cn.zbin.management.dto.CustomerInvoice;
@@ -118,5 +119,15 @@ public class CustomerController {
 			@PathVariable("customerid") String customerid, 
 			@PathVariable("validcode") String validcode) {
 		return customerService.comfirmValidCode(customerid, validcode);
+	}
+	
+	@RequestMapping(value = "/oauthatk", 
+			consumes = {"application/json;charset=UTF-8"}, 
+			produces = {"application/json;charset=UTF-8"}, 
+			method = { RequestMethod.POST})
+	public MsgData updateToken(@RequestBody OauthAccessToken oatk) {
+		MsgData msg = new MsgData();
+		customerService.updateToken(oatk);
+		return msg;
 	}
 }

@@ -14,6 +14,7 @@ import com.cn.zbin.management.bto.CustomerAddressOverView;
 import com.cn.zbin.management.bto.CustomerInfoMsgData;
 import com.cn.zbin.management.bto.CustomerInvoiceMsgData;
 import com.cn.zbin.management.bto.MsgData;
+import com.cn.zbin.management.bto.OauthAccessToken;
 import com.cn.zbin.management.dto.CustomerAddress;
 import com.cn.zbin.management.dto.CustomerAddressExample;
 import com.cn.zbin.management.dto.CustomerInfo;
@@ -42,6 +43,29 @@ public class CustomerService {
 	private CustomerAddressMapper customerAddressMapper;
 	@Autowired
 	private CustomerInvoiceMapper customerInvoiceMapper;
+
+	@Transactional
+	public void updateToken(OauthAccessToken oatk) {
+		CustomerInfoExample exam_ci = new CustomerInfoExample();
+		exam_ci.createCriteria().andRegisterIdEqualTo(oatk.getOpenid())
+								.andRegisterTypeEqualTo(1);
+		List<CustomerInfo> custList = customerInfoMapper.selectByExample(exam_ci);
+		if (Utils.listNotNull(custList)) {
+			CustomerInfo cust = custList.get(0);
+			CustomerInfo record = new CustomerInfo();
+			record.setCustomerId(cust.getCustomerId());
+			record.setToken(oatk.getAccess_token());
+			customerInfoMapper.updateByPrimaryKeySelective(record);
+		} else {
+			CustomerInfo record = new CustomerInfo();
+			record.setCustomerId(UUID.randomUUID().toString());
+			record.setRegisterId(oatk.getOpenid());
+			record.setRegisterType(1);
+			record.setValidFlag(Boolean.FALSE);
+			record.setToken(oatk.getAccess_token());
+			customerInfoMapper.insertSelective(record);
+		}
+	}
 	
 	@Transactional
 	public MsgData comfirmValidCode(String customerid, String validcode) {
