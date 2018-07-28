@@ -163,16 +163,16 @@ public class OrderService {
 		for (OrderProductOverView orderProduct : orderProductList) {
 			OrderProduct orderProd = orderProduct.getOrderProduct();
 			actualAmount = actualAmount.add(orderProd.getBail())
-					.add(orderProd.getPaidAmount())
-					.subtract(orderProd.getPrePayAmount());
+					.add(orderProd.getPrePayAmount())
+					.subtract(orderProd.getPaidAmount());
 			ProductInfo prod = productInfoMapper.selectByPrimaryKey(orderProd.getProductId());
 			if (prod != null) {
 				ProductPrice unitPrice = getUnitPrice(prod.getLeaseFlag(), 
 						orderProd.getPendingCount(), orderProd.getProductId());
-				if (prod.getLeaseFlag() && orderProd.getPaidAmount().compareTo
+				if (prod.getLeaseFlag() && orderProd.getPrePayAmount().compareTo
 						(unitPrice.getRealPrice().multiply(new BigDecimal(orderProd.getPendingCount()))) != 0) {
 					return StoreConstants.CHK_ERR_90013;
-				} else if (!prod.getLeaseFlag() &&  orderProd.getPaidAmount().compareTo
+				} else if (!prod.getLeaseFlag() &&  orderProd.getPrePayAmount().compareTo
 						(unitPrice.getRealPrice().multiply(new BigDecimal(orderProd.getSaleCount()))) != 0) {
 					return StoreConstants.CHK_ERR_90013;
 				}
