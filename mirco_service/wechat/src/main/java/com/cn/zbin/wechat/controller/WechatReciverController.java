@@ -33,17 +33,17 @@ public class WechatReciverController {
 	public String subscribe(@RequestParam("signature") String signature, @RequestParam("timestamp") String timestamp,
 			@RequestParam("nonce") String nonce,@RequestBody WeChatMessage msg) {
 		if (WechatConstants.MSG_TYPE_EVENT.equals(msg.getMsgType())) {
-			if (WechatConstants.EVENT_CLICK.equals(msg.getEvent())) {
-				if (WechatConstants.EVENT_CLICK_KEY_CUSTOMER_SERVICE.equals(msg.getEventKey())) {
-					WeChatMessage cust = new WeChatMessage();
-					cust.setToUserName(msg.getFromUserName());
-					cust.setFromUserName(msg.getToUserName());
-					cust.setCreateTime(msg.getCreateTime());
-					cust.setMsgType(WechatConstants.MSG_TYPE_TEXT);
-					cust.setContent(WechatConstants.EVENT_CLICK_MSGTXT_CUSTOMER_SERVICE);
-					return cust.toTextString();
-				}
-			}
+//			if (WechatConstants.EVENT_CLICK.equals(msg.getEvent())) {
+//				if (WechatConstants.EVENT_CLICK_KEY_CUSTOMER_SERVICE.equals(msg.getEventKey())) {
+//					WeChatMessage cust = new WeChatMessage();
+//					cust.setToUserName(msg.getFromUserName());
+//					cust.setFromUserName(msg.getToUserName());
+//					cust.setCreateTime(msg.getCreateTime());
+//					cust.setMsgType(WechatConstants.MSG_TYPE_TEXT);
+//					cust.setContent(WechatConstants.EVENT_CLICK_MSGTXT_CUSTOMER_SERVICE);
+//					return cust.toTextString();
+//				}
+//			}
 			if (WechatConstants.EVENT_SUBSCRIBE.equals(msg.getEvent())) {
 				createUser(msg.getFromUserName());
 				WeChatMessage cust = new WeChatMessage();
@@ -56,26 +56,26 @@ public class WechatReciverController {
 			}
 		}
 
-		if (WechatConstants.MSG_TYPE_TEXT.equals(msg.getMsgType())) {
-			if (StringUtils.upperCase(msg.getContent()).contains(WechatConstants.MSG_TEXT_CONTENT_RLP)) {
-				WeChatMessage cust = new WeChatMessage();
-				cust.setToUserName(msg.getFromUserName());
-				cust.setFromUserName(msg.getToUserName());
-				cust.setCreateTime(msg.getCreateTime());
-				cust.setMsgType(WechatConstants.MSG_TYPE_NEWS);
-				cust.setArticleCount(1);
-				cust.setArticles(WechatConstants.REPLY_MEDIAID_SENDMSG_RLP);
-				return cust.toTextString();
-			} else {
-				WeChatMessage cust = new WeChatMessage();
-				cust.setToUserName(msg.getFromUserName());
-				cust.setFromUserName(msg.getToUserName());
-				cust.setCreateTime(msg.getCreateTime());
-				cust.setMsgType(WechatConstants.MSG_TYPE_TEXT);
-				cust.setContent(WechatConstants.REPLY_MSGTXT_SENDMSG_EXCEPT_RLP);
-				return cust.toTextString();
-			}
-		}
+//		if (WechatConstants.MSG_TYPE_TEXT.equals(msg.getMsgType())) {
+//			if (StringUtils.upperCase(msg.getContent()).contains(WechatConstants.MSG_TEXT_CONTENT_RLP)) {
+//				WeChatMessage cust = new WeChatMessage();
+//				cust.setToUserName(msg.getFromUserName());
+//				cust.setFromUserName(msg.getToUserName());
+//				cust.setCreateTime(msg.getCreateTime());
+//				cust.setMsgType(WechatConstants.MSG_TYPE_NEWS);
+//				cust.setArticleCount(1);
+//				cust.setArticles(WechatConstants.REPLY_MEDIAID_SENDMSG_RLP);
+//				return cust.toTextString();
+//			} else {
+//				WeChatMessage cust = new WeChatMessage();
+//				cust.setToUserName(msg.getFromUserName());
+//				cust.setFromUserName(msg.getToUserName());
+//				cust.setCreateTime(msg.getCreateTime());
+//				cust.setMsgType(WechatConstants.MSG_TYPE_TEXT);
+//				cust.setContent(WechatConstants.REPLY_MSGTXT_SENDMSG_EXCEPT_RLP);
+//				return cust.toTextString();
+//			}
+//		}
 		return null;
 	}
 	

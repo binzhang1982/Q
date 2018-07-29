@@ -11,9 +11,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+import com.cn.zbin.wechat.bto.OAuthUserBaseInfo;
 import com.cn.zbin.wechat.bto.OauthAccessToken;
 import com.cn.zbin.wechat.bto.WeChatUserBaseInfo;
 import com.cn.zbin.wechat.service.WechatUserService;
+import com.google.gson.Gson;
 
 @RestController
 @RequestMapping("user")
@@ -57,12 +59,27 @@ public class WechatUserController {
 	public String authWechatUser(@RequestParam("atk") String atk,
 			@RequestBody OauthAccessToken oatk) throws UnsupportedEncodingException {
 		String ret = "";
-//		https://api.weixin.qq.com/sns/userinfo?access_token=ACCESS_TOKEN&openid=OPENID&lang=zh_CN
-		String url = "https://api.weixin.qq.com/cgi-bin/user/info?access_token="
-//				 + URLEncoder.encode(atk, "UTF-8")
+		String url = "https://api.weixin.qq.com/sns/userinfo?access_token="
 				 + URLEncoder.encode(oatk.getAccess_token(), "UTF-8")
 				 + "&openid=" + oatk.getOpenid() + "&lang=zh_CN";
-		WeChatUserBaseInfo userBaseInfo = restTemplate.getForObject(url, WeChatUserBaseInfo.class);
+		String strUser = restTemplate.getForObject(url, String.class);
+		Gson gson = new Gson();
+		OAuthUserBaseInfo oauthUser = gson.fromJson(strUser, OAuthUserBaseInfo.class);
+		WeChatUserBaseInfo userBaseInfo = new WeChatUserBaseInfo();
+		userBaseInfo.setOpenid(oauthUser.getOpenid());
+		userBaseInfo.setNickname(oauthUser.getNickname());
+		userBaseInfo.setSex(oauthUser.getSex());
+		userBaseInfo.setLanguage(oauthUser.getLanguage());
+		userBaseInfo.setCity(oauthUser.getCity());
+		userBaseInfo.setProvince(oauthUser.getProvince());
+		userBaseInfo.setCountry(oauthUser.getCountry());;
+		userBaseInfo.setHeadimgurl(oauthUser.getHeadimgurl());
+
+//		String url = "https://api.weixin.qq.com/cgi-bin/user/info?access_token="
+//				 + URLEncoder.encode(atk, "UTF-8")
+//				 + "&openid=" + oatk.getOpenid() + "&lang=zh_CN";
+//		WeChatUserBaseInfo userBaseInfo = restTemplate.getForObject(url, WeChatUserBaseInfo.class);
+		
 		wechatUserService.postUser(userBaseInfo);
 		return ret;
 	}

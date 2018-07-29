@@ -1,6 +1,5 @@
 package com.cn.zbin.wechat.bto;
 
-import java.util.Date;
 import java.util.List;
 
 public class WeChatUserBaseInfo {
