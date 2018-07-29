@@ -716,6 +716,126 @@ public class GuestOrderInfoExample {
             return (Criteria) this;
         }
 
+        public Criteria andTotalLeaseAmountIsNull() {
+            addCriterion("total_lease_amount is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalLeaseAmountIsNotNull() {
+            addCriterion("total_lease_amount is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalLeaseAmountEqualTo(BigDecimal value) {
+            addCriterion("total_lease_amount =", value, "totalLeaseAmount");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalLeaseAmountNotEqualTo(BigDecimal value) {
+            addCriterion("total_lease_amount <>", value, "totalLeaseAmount");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalLeaseAmountGreaterThan(BigDecimal value) {
+            addCriterion("total_lease_amount >", value, "totalLeaseAmount");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalLeaseAmountGreaterThanOrEqualTo(BigDecimal value) {
+            addCriterion("total_lease_amount >=", value, "totalLeaseAmount");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalLeaseAmountLessThan(BigDecimal value) {
+            addCriterion("total_lease_amount <", value, "totalLeaseAmount");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalLeaseAmountLessThanOrEqualTo(BigDecimal value) {
+            addCriterion("total_lease_amount <=", value, "totalLeaseAmount");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalLeaseAmountIn(List<BigDecimal> values) {
+            addCriterion("total_lease_amount in", values, "totalLeaseAmount");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalLeaseAmountNotIn(List<BigDecimal> values) {
+            addCriterion("total_lease_amount not in", values, "totalLeaseAmount");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalLeaseAmountBetween(BigDecimal value1, BigDecimal value2) {
+            addCriterion("total_lease_amount between", value1, value2, "totalLeaseAmount");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalLeaseAmountNotBetween(BigDecimal value1, BigDecimal value2) {
+            addCriterion("total_lease_amount not between", value1, value2, "totalLeaseAmount");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalBailIsNull() {
+            addCriterion("total_bail is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalBailIsNotNull() {
+            addCriterion("total_bail is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalBailEqualTo(BigDecimal value) {
+            addCriterion("total_bail =", value, "totalBail");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalBailNotEqualTo(BigDecimal value) {
+            addCriterion("total_bail <>", value, "totalBail");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalBailGreaterThan(BigDecimal value) {
+            addCriterion("total_bail >", value, "totalBail");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalBailGreaterThanOrEqualTo(BigDecimal value) {
+            addCriterion("total_bail >=", value, "totalBail");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalBailLessThan(BigDecimal value) {
+            addCriterion("total_bail <", value, "totalBail");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalBailLessThanOrEqualTo(BigDecimal value) {
+            addCriterion("total_bail <=", value, "totalBail");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalBailIn(List<BigDecimal> values) {
+            addCriterion("total_bail in", values, "totalBail");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalBailNotIn(List<BigDecimal> values) {
+            addCriterion("total_bail not in", values, "totalBail");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalBailBetween(BigDecimal value1, BigDecimal value2) {
+            addCriterion("total_bail between", value1, value2, "totalBail");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalBailNotBetween(BigDecimal value1, BigDecimal value2) {
+            addCriterion("total_bail not between", value1, value2, "totalBail");
+            return (Criteria) this;
+        }
+
         public Criteria andPaymentCodeIsNull() {
             addCriterion("payment_code is null");
             return (Criteria) this;

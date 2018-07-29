@@ -209,9 +209,11 @@ public class OrderService {
 		ret.getGuestOrderInfo().setCustomerId(custid);
 		ret.getGuestOrderInfo().setCarriage(new BigDecimal(0));
 		ret.getGuestOrderInfo().setService(new BigDecimal(0));
+		ret.getGuestOrderInfo().setTotalAmount(new BigDecimal(0));
+		ret.getGuestOrderInfo().setTotalLeaseAmount(new BigDecimal(0));
+		ret.getGuestOrderInfo().setTotalBail(new BigDecimal(0));
 		ret.setOrderProductList(new ArrayList<OrderProductOverView>());
 		
-		BigDecimal totalPayAmount = new BigDecimal(0);
 		for (ShoppingTrolleyInfo shoppingTrolley : trolleyList) {
 			shoppingTrolley.setCustomerId(custid);
 			if (shoppingTrolley.getReservePendingDate() != null && shoppingTrolley.getReservePendingEndDate() != null) {
@@ -230,15 +232,14 @@ public class OrderService {
 				ret.setOrderProductList(new ArrayList<OrderProductOverView>());
 				break;
 			} else {
-				totalPayAmount = totalPayAmount.add(createOverView(ret, shoppingTrolley));
+				createOverView(ret, shoppingTrolley);
 			}
 		}
 		
 		if (ret.getStatus() != MsgData.status_ng) {
 			if (ret.getGuestOrderInfo().getService() != null) ret.getGuestOrderInfo().setCarriage(new BigDecimal(0));
-			totalPayAmount = totalPayAmount.add(ret.getGuestOrderInfo().getCarriage())
-						.add(ret.getGuestOrderInfo().getService());
-			ret.getGuestOrderInfo().setTotalAmount(totalPayAmount);	
+			ret.getGuestOrderInfo().setTotalAmount(ret.getGuestOrderInfo().getTotalAmount().add(ret.getGuestOrderInfo().getCarriage())
+						.add(ret.getGuestOrderInfo().getService()));
 		}	
 		return ret;
 	}
@@ -250,9 +251,11 @@ public class OrderService {
 		ret.getGuestOrderInfo().setCustomerId(custid);
 		ret.getGuestOrderInfo().setCarriage(new BigDecimal(0));
 		ret.getGuestOrderInfo().setService(new BigDecimal(0));
+		ret.getGuestOrderInfo().setTotalAmount(new BigDecimal(0));
+		ret.getGuestOrderInfo().setTotalLeaseAmount(new BigDecimal(0));
+		ret.getGuestOrderInfo().setTotalBail(new BigDecimal(0));
 		ret.setOrderProductList(new ArrayList<OrderProductOverView>());
 
-		BigDecimal totalPayAmount = new BigDecimal(0);
 		ShoppingTrolleyInfoExample exam_trolley;
 		for (ShoppingTrolleyInfo trolley : trolleyList) {
 			exam_trolley = new ShoppingTrolleyInfoExample();
@@ -262,15 +265,14 @@ public class OrderService {
 			List<ShoppingTrolleyInfo> shoppingTrolleyLst = shoppingTrolleyInfoMapper.selectByExample(exam_trolley);
 			if (Utils.listNotNull(shoppingTrolleyLst)) {
 				ShoppingTrolleyInfo shoppingTrolley = shoppingTrolleyLst.get(0);
-				totalPayAmount = totalPayAmount.add(createOverView(ret, shoppingTrolley));
+				createOverView(ret, shoppingTrolley);
 				deleteShoppingTrolley(shoppingTrolley);
 			}
 		}
 		
 		if (ret.getGuestOrderInfo().getService().compareTo(new BigDecimal(0)) > 0) ret.getGuestOrderInfo().setCarriage(new BigDecimal(0));
-		totalPayAmount = totalPayAmount.add(ret.getGuestOrderInfo().getCarriage())
-				.add(ret.getGuestOrderInfo().getService());
-		ret.getGuestOrderInfo().setTotalAmount(totalPayAmount);
+		ret.getGuestOrderInfo().setTotalAmount(ret.getGuestOrderInfo().getTotalAmount().add(ret.getGuestOrderInfo().getCarriage())
+				.add(ret.getGuestOrderInfo().getService()));
 		return ret;
 	}
 	
@@ -302,7 +304,7 @@ public class OrderService {
 		shoppingTrolleyInfoMapper.updateByPrimaryKeySelective(shoppingTrolley);
 	}
 	
-	private BigDecimal createOverView(GuestOrderOverView ov, ShoppingTrolleyInfo shoppingTrolley) {
+	private void createOverView(GuestOrderOverView ov, ShoppingTrolleyInfo shoppingTrolley) {
 		BigDecimal ret = new BigDecimal(0);
 		ProductInfo prod = productInfoMapper.selectByPrimaryKey(shoppingTrolley.getProductId());
 		if (prod != null) {
@@ -321,6 +323,10 @@ public class OrderService {
 				if (prod.getLeaseFlag()) {
 					orderProductOV.getOrderProduct().setPrePayAmount(
 							realUnitPrice.multiply(new BigDecimal(shoppingTrolley.getPendingCount())));
+					ov.getGuestOrderInfo().setTotalLeaseAmount(
+							ov.getGuestOrderInfo().getTotalLeaseAmount().add(orderProductOV.getOrderProduct().getPrePayAmount()));
+					ov.getGuestOrderInfo().setTotalBail(
+							ov.getGuestOrderInfo().getTotalBail().add(orderProductOV.getOrderProduct().getBail()));
 				} else {
 					orderProductOV.getOrderProduct().setPrePayAmount(
 							realUnitPrice.multiply(new BigDecimal(shoppingTrolley.getSaleCount())));
@@ -347,7 +353,7 @@ public class OrderService {
 			}
 		}
 		
-		return ret;
+		ov.getGuestOrderInfo().setTotalAmount(ov.getGuestOrderInfo().getTotalAmount().add(ret));
 	}
 	
 	private ProductImage getFrontCoverImage(String prodID) {
