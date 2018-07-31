@@ -1,6 +1,5 @@
 package com.cn.zbin.wechat.service;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +11,7 @@ import com.cn.zbin.wechat.dto.PromotionPartnerInfo;
 import com.cn.zbin.wechat.dto.PromotionPartnerInfoExample;
 import com.cn.zbin.wechat.dto.WeChatUserInfo;
 import com.cn.zbin.wechat.dto.WeChatUserInfoExample;
+import com.cn.zbin.wechat.exception.BusinessException;
 import com.cn.zbin.wechat.mapper.PromotionPartnerInfoMapper;
 import com.cn.zbin.wechat.mapper.WeChatUserInfoMapper;
 
@@ -23,7 +23,8 @@ public class WechatUserService {
 	private PromotionPartnerInfoMapper promotionPartnerInfoMapper;
 	
 	@Transactional
-	public void createPartner(PromotionPartnerInfo partner) {
+	public void createPartner(PromotionPartnerInfo partner) 
+			throws BusinessException, Exception {
 		PromotionPartnerInfoExample exam_pp = new PromotionPartnerInfoExample();
 		exam_pp.createCriteria().andSceneStrEqualTo(partner.getSceneStr());
 		if (promotionPartnerInfoMapper.countByExample(exam_pp) == 0) {
@@ -33,7 +34,8 @@ public class WechatUserService {
 	}
 	
 	@Transactional
-	public void postUser(WeChatUserBaseInfo userBaseInfo) {
+	public void postUser(WeChatUserBaseInfo userBaseInfo) 
+			throws BusinessException, Exception {
 		WeChatUserInfo user = convert2UserDto(userBaseInfo);
 		WeChatUserInfoExample example = new WeChatUserInfoExample();
 		example.createCriteria().andOpenIdEqualTo(user.getOpenId());

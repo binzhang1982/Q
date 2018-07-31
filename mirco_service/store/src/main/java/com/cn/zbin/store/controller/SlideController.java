@@ -16,7 +16,9 @@ public class SlideController {
 	@Autowired
 	private SlideService slideService;
 	
-	@RequestMapping(value = "/list", produces = {"application/json;charset=UTF-8"}, method = { RequestMethod.GET })
+	@RequestMapping(value = "/list", 
+			produces = {"application/json;charset=UTF-8"}, 
+			method = { RequestMethod.GET })
 	public List<SlideMasterInfo> getSildeList() {
 		List<SlideMasterInfo> ret = slideService.getSildeList();
 		return ret;

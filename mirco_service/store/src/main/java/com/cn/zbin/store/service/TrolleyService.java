@@ -19,11 +19,13 @@ import com.cn.zbin.store.dto.ProductPrice;
 import com.cn.zbin.store.dto.ProductPriceExample;
 import com.cn.zbin.store.dto.ShoppingTrolleyInfo;
 import com.cn.zbin.store.dto.ShoppingTrolleyInfoExample;
+import com.cn.zbin.store.exception.BusinessException;
 import com.cn.zbin.store.mapper.ProductImageMapper;
 import com.cn.zbin.store.mapper.ProductInfoMapper;
 import com.cn.zbin.store.mapper.ProductPriceMapper;
 import com.cn.zbin.store.mapper.ShoppingTrolleyInfoMapper;
 import com.cn.zbin.store.utils.StoreConstants;
+import com.cn.zbin.store.utils.StoreKeyConstants;
 import com.cn.zbin.store.utils.Utils;
 
 @Service
@@ -42,9 +44,9 @@ public class TrolleyService {
 		ShoppingTrolleyOverView ret = new ShoppingTrolleyOverView();
 		ret.setLeaseTrolley(new ArrayList<ShoppingProductDetail>());
 		ret.setSellTrolley(new ArrayList<ShoppingProductDetail>());
-		if (StringUtils.isBlank(strScope) || StoreConstants.PRODUCT_SCOPE_SELL.equals(strScope)) 
+		if (StringUtils.isBlank(strScope) || StoreKeyConstants.PRODUCT_SCOPE_SELL.equals(strScope)) 
 			setTrolleyList(Boolean.FALSE, custid, ret);
-		if (StringUtils.isBlank(strScope) || StoreConstants.PRODUCT_SCOPE_LEASE.equals(strScope)) 
+		if (StringUtils.isBlank(strScope) || StoreKeyConstants.PRODUCT_SCOPE_LEASE.equals(strScope)) 
 			setTrolleyList(Boolean.TRUE, custid, ret);
 		return ret;
 	}
@@ -104,14 +106,15 @@ public class TrolleyService {
 	}
 	
 	@Transactional
-	public String updateTrolley(ShoppingTrolleyInfo trolley) {
+	public String updateTrolley(ShoppingTrolleyInfo trolley) 
+			throws BusinessException, Exception {
 		Integer saleCnt = trolley.getSaleCount();
 		String prodID = trolley.getProductId();
 		String trolleyID = trolley.getTrolleyId();
-		String errMsg = "";
-		if (shoppingTrolleyInfoMapper.selectByPrimaryKey(trolleyID) == null) {
-			errMsg = StoreConstants.CHK_ERR_90010;
-		}
+		String msg = "";
+		if (shoppingTrolleyInfoMapper.selectByPrimaryKey(trolleyID) == null) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90010);
+		
 		ProductInfo product = productInfoMapper.selectByPrimaryKey(prodID);
 		ShoppingTrolleyInfo record = new ShoppingTrolleyInfo();
 		if (product != null) {
@@ -119,11 +122,11 @@ public class TrolleyService {
 				record.setTrolleyId(trolleyID);
 				record.setSaleCount(0);
 				record.setIsDelete(Boolean.TRUE);
-				record.setDeleteCode(StoreConstants.TROLLEY_DEL_REASON_GUEST);
+				record.setDeleteCode(StoreKeyConstants.TROLLEY_DEL_REASON_GUEST);
 				shoppingTrolleyInfoMapper.updateByPrimaryKeySelective(record);
-				errMsg = StoreConstants.CHK_ERR_90011;
+				msg = StoreConstants.CHK_ERR_90011;
 			} else if (saleCnt > product.getStock()) {
-				errMsg = StoreConstants.CHK_ERR_90002;
+				throw new BusinessException(StoreConstants.CHK_ERR_90002);
 			} else {
 				record = new ShoppingTrolleyInfo();
 				record.setTrolleyId(trolleyID);
@@ -134,19 +137,21 @@ public class TrolleyService {
 			record = new ShoppingTrolleyInfo();
 			record.setTrolleyId(trolleyID);
 			record.setIsDelete(Boolean.TRUE);
-			record.setDeleteCode(StoreConstants.TROLLEY_DEL_REASON_PROD);
+			record.setDeleteCode(StoreKeyConstants.TROLLEY_DEL_REASON_PROD);
 			shoppingTrolleyInfoMapper.updateByPrimaryKeySelective(record);
-			errMsg = StoreConstants.CHK_ERR_90001;
+			msg = StoreConstants.CHK_ERR_90001;
 		}
-		return errMsg;
+		return msg;
 	}
 	
 	@Transactional
-	public String add2Trolley(List<ShoppingTrolleyInfo> trolleyList) {
+	public void add2Trolley(List<ShoppingTrolleyInfo> trolleyList)
+			throws BusinessException, Exception {
 		if (Utils.listNotNull(trolleyList)) {
 			for (ShoppingTrolleyInfo trolleyBean : trolleyList) {
-				if (trolleyBean.getReservePendingDate() != null && trolleyBean.getReservePendingEndDate() != null) {
-					trolleyBean.setPendingCount(
+				if (trolleyBean.getReservePendingDate() != null && 
+					trolleyBean.getReservePendingEndDate() != null) {
+						trolleyBean.setPendingCount(
 							TimeUnit.MILLISECONDS.toDays(
 									trolleyBean.getReservePendingEndDate().getTime()
 									-trolleyBean.getReservePendingDate().getTime())); 
@@ -154,29 +159,37 @@ public class TrolleyService {
 					trolleyBean.setPendingCount(new Long(0));
 				}
 				
-				if (trolleyBean.getSaleCount() == null) return StoreConstants.CHK_ERR_90003;
-				else if (trolleyBean.getSaleCount() == 0) return StoreConstants.CHK_ERR_90003;
+				if (trolleyBean.getSaleCount() == null) 
+					throw new BusinessException(StoreConstants.CHK_ERR_90003);
+				else if (trolleyBean.getSaleCount() == 0) 
+					throw new BusinessException(StoreConstants.CHK_ERR_90003);
 				
 				if (trolleyBean.getProductId() != null) {
 					ProductInfo prod = productInfoMapper.selectByPrimaryKey(trolleyBean.getProductId());
-					if (prod == null) return StoreConstants.CHK_ERR_90001; 
-					else if (prod.getLeaseFlag() && trolleyBean.getSaleCount() > 1) return StoreConstants.CHK_ERR_90005;
-					else if (prod.getLeaseFlag() && trolleyBean.getPendingCount() < prod.getLeaseMinDays()) return StoreConstants.CHK_ERR_90008;
-					else if (prod.getLeaseFlag() && trolleyBean.getReservePendingDate() == null) return StoreConstants.CHK_ERR_90006;
-					else if (prod.getLeaseFlag() && trolleyBean.getReservePendingEndDate() == null) return StoreConstants.CHK_ERR_90007;
-					else if (prod.getLeaseFlag() && trolleyBean.getPendingCount() <= 0) return StoreConstants.CHK_ERR_90009;
+					if (prod == null) 
+						throw new BusinessException(StoreConstants.CHK_ERR_90001); 
+					else if (prod.getLeaseFlag() && trolleyBean.getSaleCount() > 1)
+						throw new BusinessException(StoreConstants.CHK_ERR_90005);
+					else if (prod.getLeaseFlag() && trolleyBean.getPendingCount() < prod.getLeaseMinDays()) 
+						throw new BusinessException(StoreConstants.CHK_ERR_90008);
+					else if (prod.getLeaseFlag() && trolleyBean.getReservePendingDate() == null) 
+						throw new BusinessException(StoreConstants.CHK_ERR_90006);
+					else if (prod.getLeaseFlag() && trolleyBean.getReservePendingEndDate() == null)
+						throw new BusinessException(StoreConstants.CHK_ERR_90007);
+					else if (prod.getLeaseFlag() && trolleyBean.getPendingCount() <= 0)
+						throw new BusinessException(StoreConstants.CHK_ERR_90009);
 
 					trolleyBean.setLeaseFlag(prod.getLeaseFlag());
 				} else {
-					return StoreConstants.CHK_ERR_90001;
+					throw new BusinessException(StoreConstants.CHK_ERR_90001);
 				}
-				if (trolleyBean.getCustomerId() == null) return StoreConstants.CHK_ERR_90004;
+				if (trolleyBean.getCustomerId() == null)
+					throw new BusinessException(StoreConstants.CHK_ERR_90004);
 
 				trolleyBean.setIsDelete(Boolean.FALSE);
 				trolleyBean.setTrolleyId(UUID.randomUUID().toString());
 				shoppingTrolleyInfoMapper.insertSelective(trolleyBean);
 			}
 		}
-		return "";
 	}
 }

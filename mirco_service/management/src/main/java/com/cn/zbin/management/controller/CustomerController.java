@@ -18,10 +18,13 @@ import com.cn.zbin.management.bto.MessageHistoryMsgData;
 import com.cn.zbin.management.bto.MsgData;
 import com.cn.zbin.management.bto.OauthAccessToken;
 import com.cn.zbin.management.dto.CustomerAddress;
+import com.cn.zbin.management.dto.CustomerDiseaseHistory;
 import com.cn.zbin.management.dto.CustomerInfo;
 import com.cn.zbin.management.dto.CustomerInvoice;
+import com.cn.zbin.management.exception.BusinessException;
 import com.cn.zbin.management.service.CustomerService;
 import com.cn.zbin.management.service.SmsService;
+import com.cn.zbin.management.utils.MgmtConstants;
 
 @RestController
 @RequestMapping("customer")
@@ -31,11 +34,22 @@ public class CustomerController {
 	@Autowired
 	private SmsService smsService;
 	
-	@RequestMapping(value = "", method = { RequestMethod.POST })
-	public String addWechatUser(@RequestParam("openid") String openid,
+	@RequestMapping(value = "", 
+			consumes = {"application/json;charset=UTF-8"}, 
+			produces = {"application/json;charset=UTF-8"}, 
+			method = { RequestMethod.POST })
+	public MsgData addWechatUser(@RequestParam("openid") String openid,
 			@RequestParam("regtype") Integer registerType) {
-		String ret = "";
-		customerService.postCustomer(openid, registerType);
+		MsgData ret = new MsgData();
+		try {
+			customerService.postCustomer(openid, registerType);
+		} catch (BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getErrorMsg());
+		} catch (Exception e) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(MgmtConstants.CHK_ERR_99999);
+		}
 		return ret;
 	}
 	
@@ -118,7 +132,17 @@ public class CustomerController {
 	public MsgData comfirmValidCode(
 			@PathVariable("customerid") String customerid, 
 			@PathVariable("validcode") String validcode) {
-		return customerService.comfirmValidCode(customerid, validcode);
+		MsgData ret = new MsgData();
+		try {
+			customerService.comfirmValidCode(customerid, validcode);
+		} catch (BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getErrorMsg());
+		} catch (Exception e) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(MgmtConstants.CHK_ERR_99999);
+		}
+		return ret;
 	}
 	
 	@RequestMapping(value = "/oauthatk", 
@@ -126,8 +150,43 @@ public class CustomerController {
 			produces = {"application/json;charset=UTF-8"}, 
 			method = { RequestMethod.POST})
 	public MsgData updateToken(@RequestBody OauthAccessToken oatk) {
-		MsgData msg = new MsgData();
-		customerService.updateToken(oatk);
-		return msg;
+		MsgData ret = new MsgData();
+		try {
+			customerService.updateToken(oatk);
+		} catch (BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getErrorMsg());
+		} catch (Exception e) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(MgmtConstants.CHK_ERR_99999);
+		}
+		return ret;
+	}
+	
+	@RequestMapping(value = "/disease/list/{customerid}", 
+			produces = {"application/json;charset=UTF-8"}, 
+			method = { RequestMethod.GET })
+	public List<CustomerDiseaseHistory> getDiseaseHistory(
+			@PathVariable("customerid") String customerid) {
+		return customerService.getDiseaseHistory(customerid);
+	}
+	
+	@RequestMapping(value = "/disease/list/{customerid}", 
+			consumes = {"application/json;charset=UTF-8"}, 
+			produces = {"application/json;charset=UTF-8"}, 
+			method = { RequestMethod.POST })
+	public MsgData updDiseaseHistory(@PathVariable("customerid") String customerid,
+			@RequestBody List<CustomerDiseaseHistory> diseaseList) {
+		MsgData ret = new MsgData();
+		try {
+			customerService.updDiseaseHistory(customerid, diseaseList);
+		} catch (BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getErrorMsg());
+		} catch (Exception e) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(MgmtConstants.CHK_ERR_99999);
+		}
+		return ret;
 	}
 }

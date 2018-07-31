@@ -1,7 +1,7 @@
 package com.cn.zbin.ribbonserver.service;
 
 import com.cn.zbin.ribbonserver.bto.wechat.WeChatMessage;
-import com.cn.zbin.ribbonserver.utils.RibbonConstants;
+import com.cn.zbin.ribbonserver.utils.RibbonKeyConstants;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 
 import java.io.UnsupportedEncodingException;
@@ -46,7 +46,7 @@ public class WeChatService {
         String ret = "";
 		try {
 			ret = restTemplate.getForObject("http://SERVICE-WECHAT/qr/qr_limit_scene?atk=" 
-					+ URLEncoder.encode(RibbonConstants.APPTOKEN, "UTF-8")
+					+ URLEncoder.encode(RibbonKeyConstants.APPTOKEN, "UTF-8")
 					+ "&scenestr=" + scenestr, String.class);
 		} catch (RestClientException | UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
@@ -63,7 +63,7 @@ public class WeChatService {
     	String ret = "";
 		try {
     		ret = restTemplate.postForObject("http://SERVICE-WECHAT/user/update?atk=" 
-					+ URLEncoder.encode(RibbonConstants.APPTOKEN, "UTF-8")
+					+ URLEncoder.encode(RibbonKeyConstants.APPTOKEN, "UTF-8")
 					+ "&openid=" + openid, null, String.class);
 		} catch (RestClientException | UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
@@ -80,7 +80,7 @@ public class WeChatService {
     	String ret = "";
 		try {
     		ret = restTemplate.getForObject("http://SERVICE-WECHAT/user/one/wx?atk=" 
-					+ URLEncoder.encode(RibbonConstants.APPTOKEN, "UTF-8")
+					+ URLEncoder.encode(RibbonKeyConstants.APPTOKEN, "UTF-8")
 					+ "&openid=" + openid, String.class);
 		} catch (RestClientException | UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
@@ -106,7 +106,7 @@ public class WeChatService {
     	String ret = "";
 		try {
 			ret = restTemplate.getForObject("http://SERVICE-WECHAT/menu?atk="
-					+ URLEncoder.encode(RibbonConstants.APPTOKEN, "UTF-8")
+					+ URLEncoder.encode(RibbonKeyConstants.APPTOKEN, "UTF-8")
 					, String.class);
 		} catch (RestClientException | UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
@@ -122,8 +122,8 @@ public class WeChatService {
     public String getOpenIdByCode(String code) {
     	RestTemplate rest = new RestTemplate();
         String url = "https://api.weixin.qq.com/sns/oauth2/access_token" + 
-        				"?appid=" + RibbonConstants.APPID + 
-        				"&secret=" + RibbonConstants.APPSECRET +
+        				"?appid=" + RibbonKeyConstants.APPID + 
+        				"&secret=" + RibbonKeyConstants.APPSECRET +
         				"&code=" + code +
         				"&grant_type=authorization_code";
         return rest.getForObject(url, String.class);
@@ -137,7 +137,7 @@ public class WeChatService {
     	String ret = "";
 		try {
 			String url = "http://SERVICE-WECHAT/user/oauthatk?atk=" 
-					+ URLEncoder.encode(RibbonConstants.APPTOKEN, "UTF-8");
+					+ URLEncoder.encode(RibbonKeyConstants.APPTOKEN, "UTF-8");
 	        HttpHeaders headers =new HttpHeaders();
 	        MediaType type = MediaType.parseMediaType("application/json; charset=UTF-8");
 	        headers.setContentType(type);

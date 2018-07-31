@@ -24,4 +24,5 @@ nbdist/
 .nb-gradle/
 
 /src/main/java/com/cn/zbin/management/utils/MgmtKeyConstants.java
-/src/main/resources/*
+/src/main/resources/application.yml
+/src/main/resources/generatorConfig.xml

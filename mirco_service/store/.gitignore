@@ -23,5 +23,6 @@ dist/
 nbdist/
 .nb-gradle/
 
-/src/main/java/com/cn/zbin/store/utils/StoreConstants.java
-/src/main/resources/*
+/src/main/java/com/cn/zbin/store/utils/StoreKeyConstants.java
+/src/main/resources/application.yml
+/src/main/resources/generatorConfig.xml

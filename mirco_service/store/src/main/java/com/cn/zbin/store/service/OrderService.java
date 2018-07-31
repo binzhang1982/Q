@@ -31,6 +31,7 @@ import com.cn.zbin.store.dto.ProductPrice;
 import com.cn.zbin.store.dto.ProductPriceExample;
 import com.cn.zbin.store.dto.ShoppingTrolleyInfo;
 import com.cn.zbin.store.dto.ShoppingTrolleyInfoExample;
+import com.cn.zbin.store.exception.BusinessException;
 import com.cn.zbin.store.mapper.CustomerAddressMapper;
 import com.cn.zbin.store.mapper.CustomerInvoiceMapper;
 import com.cn.zbin.store.mapper.GuestOrderInfoMapper;
@@ -42,6 +43,7 @@ import com.cn.zbin.store.mapper.ProductInfoMapper;
 import com.cn.zbin.store.mapper.ProductPriceMapper;
 import com.cn.zbin.store.mapper.ShoppingTrolleyInfoMapper;
 import com.cn.zbin.store.utils.StoreConstants;
+import com.cn.zbin.store.utils.StoreKeyConstants;
 import com.cn.zbin.store.utils.Utils;
 
 @Service
@@ -105,10 +107,10 @@ public class OrderService {
 		CustomerInvoiceOverView invoiceOV = new CustomerInvoiceOverView();
 		invoiceOV.setInvoice(invoice);
 		if (invoice != null) {
-			if (invoice.getInvoiceType().equals(StoreConstants.INVOICE_TYPE_PER))
-				invoiceOV.setInvoiceTypeName(StoreConstants.INVOICE_TYPE_NM_PER);
+			if (invoice.getInvoiceType().equals(StoreKeyConstants.INVOICE_TYPE_PER))
+				invoiceOV.setInvoiceTypeName(StoreKeyConstants.INVOICE_TYPE_NM_PER);
 			else
-				invoiceOV.setInvoiceTypeName(StoreConstants.INVOICE_TYPE_NM_CORP);
+				invoiceOV.setInvoiceTypeName(StoreKeyConstants.INVOICE_TYPE_NM_CORP);
 		}
 		orderOV.setCustomerInvoice(invoiceOV);
 		
@@ -142,21 +144,20 @@ public class OrderService {
 	}
 	
 	@Transactional
-	public String insertGuestOrder(GuestOrderOverView orderView) {
-		String ret = "";
-		
+	public void insertGuestOrder(GuestOrderOverView orderView) 
+			throws BusinessException, Exception {
 		BigDecimal actualAmount = new BigDecimal(0);
 		GuestOrderInfo order = orderView.getGuestOrderInfo();
 		if (StringUtils.isBlank(order.getCustAddressId()))
-			return StoreConstants.CHK_ERR_90012;
+			throw new BusinessException(StoreConstants.CHK_ERR_90012);
 		
 		BigDecimal totalAmount = order.getTotalAmount();
 		actualAmount = actualAmount.add(order.getCarriage())
 									.add(order.getService());
 		order.setOrderId(UUID.randomUUID().toString());
-		order.setStatusCode(StoreConstants.ORDER_STATUS_UNPAID);
-		order.setCreateEmpId(StoreConstants.SYSTEM_EMP_ID);
-		order.setUpdateEmpId(StoreConstants.SYSTEM_EMP_ID);
+		order.setStatusCode(StoreKeyConstants.ORDER_STATUS_UNPAID);
+		order.setCreateEmpId(StoreKeyConstants.SYSTEM_EMP_ID);
+		order.setUpdateEmpId(StoreKeyConstants.SYSTEM_EMP_ID);
 		order.setIsOffered(Boolean.FALSE);
 		guestOrderInfoMapper.insert(order);
 		List<OrderProductOverView> orderProductList = orderView.getOrderProductList();
@@ -171,31 +172,30 @@ public class OrderService {
 						orderProd.getPendingCount(), orderProd.getProductId());
 				if (prod.getLeaseFlag() && orderProd.getPrePayAmount().compareTo
 						(unitPrice.getRealPrice().multiply(new BigDecimal(orderProd.getPendingCount()))) != 0) {
-					return StoreConstants.CHK_ERR_90013;
+					throw new BusinessException(StoreConstants.CHK_ERR_90013);
 				} else if (!prod.getLeaseFlag() &&  orderProd.getPrePayAmount().compareTo
 						(unitPrice.getRealPrice().multiply(new BigDecimal(orderProd.getSaleCount()))) != 0) {
-					return StoreConstants.CHK_ERR_90013;
+					throw new BusinessException(StoreConstants.CHK_ERR_90013);
 				}
 			}
 			
 			orderProd.setIsDelete(Boolean.FALSE);
 			orderProd.setOrderId(order.getOrderId());
 			orderProd.setOrderProductId(UUID.randomUUID().toString());
-			orderProd.setCreateEmpId(StoreConstants.SYSTEM_EMP_ID);
-			orderProd.setUpdateEmpId(StoreConstants.SYSTEM_EMP_ID);
+			orderProd.setCreateEmpId(StoreKeyConstants.SYSTEM_EMP_ID);
+			orderProd.setUpdateEmpId(StoreKeyConstants.SYSTEM_EMP_ID);
 			orderProductMapper.insert(orderProd);
 		}
 		
-		if (totalAmount.compareTo(actualAmount) != 0) return StoreConstants.CHK_ERR_90014;
-		
-		return ret;
+		if (totalAmount.compareTo(actualAmount) != 0) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90014);
 	}
 	
 	public GuestOrderOverView initGuestOrder(String type, String custid,
 			List<ShoppingTrolleyInfo> trolleyList) {
-		if (StoreConstants.ORDER_TYPE_GUEST.equals(type)) {
+		if (StoreKeyConstants.ORDER_TYPE_GUEST.equals(type)) {
 			return initGuestOrderByGuest(trolleyList, custid);
-		} else if (StoreConstants.ORDER_TYPE_TROLLEY.equals(type)) {
+		} else if (StoreKeyConstants.ORDER_TYPE_TROLLEY.equals(type)) {
 			return initGuestOrderByTrolley(trolleyList, custid);
 		} else {
 			return new GuestOrderOverView();
@@ -300,7 +300,7 @@ public class OrderService {
 	
 	private void deleteShoppingTrolley(ShoppingTrolleyInfo shoppingTrolley) {
 		shoppingTrolley.setIsDelete(Boolean.TRUE);
-		shoppingTrolley.setDeleteCode(StoreConstants.TROLLEY_DEL_REASON_ORDER);
+		shoppingTrolley.setDeleteCode(StoreKeyConstants.TROLLEY_DEL_REASON_ORDER);
 		shoppingTrolleyInfoMapper.updateByPrimaryKeySelective(shoppingTrolley);
 	}
 	

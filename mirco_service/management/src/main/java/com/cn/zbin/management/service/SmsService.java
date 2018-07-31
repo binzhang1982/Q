@@ -54,7 +54,7 @@ public class SmsService {
 			MessageHistoryExample exam_mh = new MessageHistoryExample();
 			exam_mh.createCriteria().andCreateTimeBetween(d_yesterday, d_now)
 									.andPhoneNumberEqualTo(phonenumber);
-			if (messageHistoryMapper.countByExample(exam_mh) >= MgmtConstants.SMS_MAX) {
+			if (messageHistoryMapper.countByExample(exam_mh) >= MgmtKeyConstants.SMS_MAX) {
 				smsMsgData.setStatus(MsgData.status_ng);
 				smsMsgData.setMessage(MgmtConstants.CHK_ERR_80006);
 				return smsMsgData;
@@ -63,9 +63,9 @@ public class SmsService {
 			CustomerInfo record = new CustomerInfo();
 			record.setCustomerId(customerid);
 			record.setTelephone(phonenumber);
-			Integer type = MgmtConstants.PHONENUM_ADD_TYPE;
+			Integer type = MgmtKeyConstants.PHONENUM_ADD_TYPE;
 			if (cust.getValidFlag()) {
-				type = MgmtConstants.PHONENUM_UPD_TYPE;
+				type = MgmtKeyConstants.PHONENUM_UPD_TYPE;
 				record.setValidFlag(Boolean.FALSE);
 			}
 			record.setValidCode(String.valueOf((int)((Math.random()*9+1)*1000)));
@@ -75,10 +75,10 @@ public class SmsService {
 			sms.setMessageId(UUID.randomUUID().toString());
 			sms.setSignName(MgmtKeyConstants.SMS_SIGN_NAME);
 			sms.setPhoneNumber(phonenumber);
-			if (MgmtConstants.PHONENUM_ADD_TYPE.equals(type)) {
+			if (MgmtKeyConstants.PHONENUM_ADD_TYPE.equals(type)) {
 				sms.setTemplateCode(MgmtKeyConstants.SMS_NEWINFO_TEMPLATE_ID);
 				sms.setTemplateParams("{\"code\":\"" + record.getValidCode() + "\"}");
-			} else if (MgmtConstants.PHONENUM_UPD_TYPE.equals(type)) {
+			} else if (MgmtKeyConstants.PHONENUM_UPD_TYPE.equals(type)) {
 				sms.setTemplateCode(MgmtKeyConstants.SMS_UPDINFO_TEMPLATE_ID);
 				sms.setTemplateParams("{\"code\":\"" + record.getValidCode() + "\"}");
 			}

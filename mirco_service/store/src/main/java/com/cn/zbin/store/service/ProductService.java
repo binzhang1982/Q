@@ -42,6 +42,7 @@ import com.cn.zbin.store.dto.ProductPrice;
 import com.cn.zbin.store.dto.ProductPriceExample;
 import com.cn.zbin.store.dto.ProductViewHistory;
 import com.cn.zbin.store.dto.WeChatUserInfo;
+import com.cn.zbin.store.exception.BusinessException;
 import com.cn.zbin.store.mapper.CodeDictInfoMapper;
 import com.cn.zbin.store.mapper.CustomerInfoMapper;
 import com.cn.zbin.store.mapper.GuestOrderInfoMapper;
@@ -54,6 +55,7 @@ import com.cn.zbin.store.mapper.ProductServiceAreaMapper;
 import com.cn.zbin.store.mapper.ProductViewHistoryMapper;
 import com.cn.zbin.store.mapper.WeChatUserInfoMapper;
 import com.cn.zbin.store.utils.StoreConstants;
+import com.cn.zbin.store.utils.StoreKeyConstants;
 import com.cn.zbin.store.utils.Utils;
 
 @Service
@@ -150,7 +152,8 @@ public class ProductService {
 	}
 	
 	@Transactional
-	public String addViewHistory(String prodID, String customerid) {
+	public void addViewHistory(String prodID, String customerid) 
+			throws BusinessException, Exception {
 		String viewID = UUID.randomUUID().toString();
 		ProductViewHistory viewHist = new ProductViewHistory();
 		viewHist.setIsHistory(Boolean.FALSE);
@@ -159,7 +162,6 @@ public class ProductService {
 		viewHist.setViewId(viewID);
 		viewHist.setViewCount(1);
 		productViewHistoryMapper.insert(viewHist);
-		return viewID;
 	}
 	
 	public ProductDetail getProductDetail(String prodID) {
@@ -247,18 +249,18 @@ public class ProductService {
 		ret.setSellProdCate(new ArrayList<ProductCategory>());
 		
 		CodeDictInfoExample exam_cdi = new CodeDictInfoExample();
-		exam_cdi.createCriteria().andCodecateEqualTo(StoreConstants.CODE_CATE_PDCT);
+		exam_cdi.createCriteria().andCodecateEqualTo(StoreKeyConstants.CODE_CATE_PDCT);
 		if (strCate != null) exam_cdi.getOredCriteria().get(0).andDictcodeEqualTo(strCate);
 		List<CodeDictInfo> prodCates = codeDictInfoMapper.selectByExample(exam_cdi);
 		
 		for (CodeDictInfo code : prodCates) {
 			if (strScope == null ||
-					StoreConstants.PRODUCT_SCOPE_LEASE.equals(strScope)) {
+					StoreKeyConstants.PRODUCT_SCOPE_LEASE.equals(strScope)) {
 				ret.getLeaseProdCate().add(getProductCategory(code, Boolean.TRUE, 
 						strSearch, offset, limit));
 			}
 			if (strScope == null ||
-					StoreConstants.PRODUCT_SCOPE_SELL.equals(strScope)) {
+					StoreKeyConstants.PRODUCT_SCOPE_SELL.equals(strScope)) {
 				ret.getSellProdCate().add(getProductCategory(code, Boolean.FALSE, 
 						strSearch, offset, limit));
 			}

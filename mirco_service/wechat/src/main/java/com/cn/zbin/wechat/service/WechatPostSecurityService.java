@@ -6,14 +6,14 @@ import java.util.Arrays;
 
 import org.springframework.stereotype.Service;
 
-import com.cn.zbin.wechat.utils.WechatConstants;
+import com.cn.zbin.wechat.utils.WechatKeyConstants;
 
 @Service
 public class WechatPostSecurityService {
 	
 	public Boolean checkSignature(String signature, String timestamp, String nonce) {
 		// 排序
-		String sortString = sort(WechatConstants.SERVER_POST_TOKEN, timestamp, nonce);
+		String sortString = sort(WechatKeyConstants.SERVER_POST_TOKEN, timestamp, nonce);
 		// 加密
 		String myString = sha1(sortString);
 		// 校验

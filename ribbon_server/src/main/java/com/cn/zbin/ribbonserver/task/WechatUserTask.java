@@ -8,7 +8,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import com.cn.zbin.ribbonserver.bto.wechat.WechatUserList;
-import com.cn.zbin.ribbonserver.utils.RibbonConstants;
+import com.cn.zbin.ribbonserver.utils.RibbonKeyConstants;
 
 @Component
 public class WechatUserTask {
@@ -23,10 +23,10 @@ public class WechatUserTask {
         while(count == 10000) {
         	if ("".equals(nextOpenId)) {
         		url = "https://api.weixin.qq.com/cgi-bin/user/get?"
-        				+ "access_token=" + RibbonConstants.APPTOKEN;
+        				+ "access_token=" + RibbonKeyConstants.APPTOKEN;
         	} else {
         		url = "https://api.weixin.qq.com/cgi-bin/user/get?"
-        				+ "access_token=" + RibbonConstants.APPTOKEN
+        				+ "access_token=" + RibbonKeyConstants.APPTOKEN
         				+ "&next_openid=" + nextOpenId;
         	}
         	allUsers = restTemplate.getForObject(

@@ -17,18 +17,23 @@ import com.cn.zbin.management.bto.MsgData;
 import com.cn.zbin.management.bto.OauthAccessToken;
 import com.cn.zbin.management.dto.CustomerAddress;
 import com.cn.zbin.management.dto.CustomerAddressExample;
+import com.cn.zbin.management.dto.CustomerDiseaseHistory;
+import com.cn.zbin.management.dto.CustomerDiseaseHistoryExample;
 import com.cn.zbin.management.dto.CustomerInfo;
 import com.cn.zbin.management.dto.CustomerInfoExample;
 import com.cn.zbin.management.dto.CustomerInvoice;
 import com.cn.zbin.management.dto.CustomerInvoiceExample;
 import com.cn.zbin.management.dto.MasterCity;
 import com.cn.zbin.management.dto.MasterProvince;
+import com.cn.zbin.management.exception.BusinessException;
 import com.cn.zbin.management.mapper.CustomerAddressMapper;
+import com.cn.zbin.management.mapper.CustomerDiseaseHistoryMapper;
 import com.cn.zbin.management.mapper.CustomerInfoMapper;
 import com.cn.zbin.management.mapper.CustomerInvoiceMapper;
 import com.cn.zbin.management.mapper.MasterCityMapper;
 import com.cn.zbin.management.mapper.MasterProvinceMapper;
 import com.cn.zbin.management.utils.MgmtConstants;
+import com.cn.zbin.management.utils.MgmtKeyConstants;
 import com.cn.zbin.management.utils.Utils;
 
 @Service
@@ -43,9 +48,45 @@ public class CustomerService {
 	private CustomerAddressMapper customerAddressMapper;
 	@Autowired
 	private CustomerInvoiceMapper customerInvoiceMapper;
+	@Autowired
+	private CustomerDiseaseHistoryMapper customerDiseaseHistoryMapper;
 
 	@Transactional
-	public void updateToken(OauthAccessToken oatk) {
+	public void updDiseaseHistory(String customerid, List<CustomerDiseaseHistory> diseaseList)
+		throws BusinessException,Exception {
+		CustomerDiseaseHistoryExample exam_cdh = new CustomerDiseaseHistoryExample();
+		exam_cdh.createCriteria().andCustomerIdEqualTo(customerid);
+		customerDiseaseHistoryMapper.deleteByExample(exam_cdh);
+		
+		//TODO 疾病列表
+//		CodeDictInfoExample exam_cdi;
+//		for(CustomerDiseaseHistory dis : diseaseList) {
+//			dis.setHistoryId(UUID.randomUUID().toString());
+//			dis.setCustomerId(customerid);
+//			if (StringUtils.isBlank(dis.getDiseaseCode())) dis.setDiseaseCode("");
+//			exam_cdi = new CodeDictInfoExample();
+//			exam_cdi.createCriteria().andCodecateEqualTo(MgmtConstants.CODE_CATE_DISC)
+//									.andDictcodeEqualTo(dis.getDiseaseCode());
+//			if (codeDictInfoMapper.countByExample(exam_cdi) == 0)
+//				throw new BusinessException(MgmtConstants.CHK_ERR_80009);
+//			
+//			customerDiseaseHistoryMapper.insert(dis);
+//		}
+	}
+	
+	public List<CustomerDiseaseHistory> getDiseaseHistory(String customerid) {
+		CustomerDiseaseHistoryExample exam_cdh = new CustomerDiseaseHistoryExample();
+		exam_cdh.createCriteria().andCustomerIdEqualTo(customerid);
+		List<CustomerDiseaseHistory> ret = customerDiseaseHistoryMapper.selectByExample(exam_cdh);
+		if (!Utils.listNotNull(ret)) {
+			ret = new ArrayList<CustomerDiseaseHistory>();
+		}
+		return ret;
+	}
+	
+	@Transactional
+	public void updateToken(OauthAccessToken oatk) 
+			throws BusinessException,Exception {
 		CustomerInfoExample exam_ci = new CustomerInfoExample();
 		exam_ci.createCriteria().andRegisterIdEqualTo(oatk.getOpenid())
 								.andRegisterTypeEqualTo(1);
@@ -68,8 +109,8 @@ public class CustomerService {
 	}
 	
 	@Transactional
-	public MsgData comfirmValidCode(String customerid, String validcode) {
-		MsgData msg = new MsgData();
+	public void comfirmValidCode(String customerid, String validcode) 
+			throws BusinessException,Exception {
 		CustomerInfo cust = customerInfoMapper.selectByPrimaryKey(customerid);
 		if (cust != null) {
 			if (cust.getValidCode() != null) {
@@ -79,19 +120,14 @@ public class CustomerService {
 					record.setValidFlag(Boolean.TRUE);
 					customerInfoMapper.updateByPrimaryKeySelective(record);
 				} else {
-					msg.setStatus(MsgData.status_ng);
-					msg.setMessage(MgmtConstants.CHK_ERR_80008);
+					throw new BusinessException(MgmtConstants.CHK_ERR_80008);
 				}
 			} else {
-				msg.setStatus(MsgData.status_ng);
-				msg.setMessage(MgmtConstants.CHK_ERR_80008);
+				throw new BusinessException(MgmtConstants.CHK_ERR_80008);
 			}
 		} else {
-			msg.setStatus(MsgData.status_ng);
-			msg.setMessage(MgmtConstants.CHK_ERR_80005);
+			throw new BusinessException(MgmtConstants.CHK_ERR_80005);
 		}
-		
-		return msg;
 	}
 	
 	public CustomerInfoMsgData updateCustomerInfo(CustomerInfo customer) {
@@ -173,7 +209,7 @@ public class CustomerService {
 				
 				Integer seqNo = 1;
 				if (Utils.listNotNull(invoiceList)) {
-					if (invoiceList.size() >= MgmtConstants.INVOICE_MAX) {
+					if (invoiceList.size() >= MgmtKeyConstants.INVOICE_MAX) {
 						ret.setMessage(MgmtConstants.CHK_ERR_80003);
 						ret.setStatus(MsgData.status_ng);
 						return ret;
@@ -267,7 +303,7 @@ public class CustomerService {
 				
 				Integer seqNo = 1;
 				if (Utils.listNotNull(addrList)) {
-					if (addrList.size() >= MgmtConstants.ADDR_MAX) {
+					if (addrList.size() >= MgmtKeyConstants.ADDR_MAX) {
 						ret.setMessage(MgmtConstants.CHK_ERR_80001);
 						ret.setStatus(MsgData.status_ng);
 						return ret;
@@ -367,7 +403,8 @@ public class CustomerService {
 	}
 
 	@Transactional
-	public void postCustomer(String openid, Integer registerType) {
+	public void postCustomer(String openid, Integer registerType) 
+			throws BusinessException, Exception {
 		CustomerInfo cust = convert2CustomerDto(openid, registerType);
 		CustomerInfoExample example = new CustomerInfoExample();
 		example.createCriteria().andRegisterIdEqualTo(openid)

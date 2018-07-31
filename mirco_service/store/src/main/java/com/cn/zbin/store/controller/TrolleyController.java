@@ -2,7 +2,6 @@ package com.cn.zbin.store.controller;
 
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,7 +12,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.cn.zbin.store.bto.MsgData;
 import com.cn.zbin.store.bto.ShoppingTrolleyOverView;
 import com.cn.zbin.store.dto.ShoppingTrolleyInfo;
+import com.cn.zbin.store.exception.BusinessException;
 import com.cn.zbin.store.service.TrolleyService;
+import com.cn.zbin.store.utils.StoreConstants;
 
 @RestController
 @RequestMapping("trolley")
@@ -21,31 +22,44 @@ public class TrolleyController {
 	@Autowired
 	private TrolleyService trolleyService;
 	
-	@RequestMapping(value = "", consumes = {"application/json;charset=UTF-8"}, 
-			produces = {"application/json;charset=UTF-8"}, method = { RequestMethod.POST })
+	@RequestMapping(value = "", 
+			consumes = {"application/json;charset=UTF-8"}, 
+			produces = {"application/json;charset=UTF-8"}, 
+			method = { RequestMethod.POST })
 	public MsgData add2Trolley(@RequestBody List<ShoppingTrolleyInfo> trolleyList) {
 		MsgData ret = new MsgData();
-		String msg = trolleyService.add2Trolley(trolleyList);
-		if (StringUtils.isNotBlank(msg)) {
-			ret.setMessage(msg);
+		try {
+			trolleyService.add2Trolley(trolleyList);
+		} catch (BusinessException be) {
 			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getErrorMsg());
+		} catch (Exception e) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(StoreConstants.CHK_ERR_99999);
 		}
 		return ret;
 	}
 
-	@RequestMapping(value = "/salecount", consumes = {"application/json;charset=UTF-8"}, 
-			produces = {"application/json;charset=UTF-8"}, method = { RequestMethod.POST })
+	@RequestMapping(value = "/salecount", 
+			consumes = {"application/json;charset=UTF-8"}, 
+			produces = {"application/json;charset=UTF-8"}, 
+			method = { RequestMethod.POST })
 	public MsgData updateTrolley(@RequestBody ShoppingTrolleyInfo trolley) {
 		MsgData ret = new MsgData();
-		String errMsg = trolleyService.updateTrolley(trolley);
-		if (StringUtils.isNotBlank(errMsg)) {
+		try {
+			ret.setMessage(trolleyService.updateTrolley(trolley));
+		} catch (BusinessException be) {
 			ret.setStatus(MsgData.status_ng);
-			ret.setMessage(errMsg);
+			ret.setMessage(be.getErrorMsg());
+		} catch (Exception e) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(StoreConstants.CHK_ERR_99999);
 		}
 		return ret;
 	}
 	
-	@RequestMapping(value = "/list", produces = {"application/json;charset=UTF-8"}, 
+	@RequestMapping(value = "/list", 
+			produces = {"application/json;charset=UTF-8"}, 
 			method = { RequestMethod.GET })
 	public ShoppingTrolleyOverView getTrolleyList(
 			@RequestParam(value = "customerid", required = true) String custid,
