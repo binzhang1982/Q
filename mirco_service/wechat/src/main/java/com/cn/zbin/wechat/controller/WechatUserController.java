@@ -2,7 +2,11 @@ package com.cn.zbin.wechat.controller;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,6 +27,7 @@ import com.google.gson.Gson;
 @RestController
 @RequestMapping("user")
 public class WechatUserController {
+	protected static final Logger logger = LoggerFactory.getLogger(WechatUserController.class);
     @Autowired
     private RestTemplate restTemplate; 
     @Autowired
@@ -32,12 +37,18 @@ public class WechatUserController {
 			method = { RequestMethod.POST })
 	public MsgData addWechatUser(@RequestParam("atk") String atk,
 			@RequestParam("openid") String openid) throws UnsupportedEncodingException {
+		logger.info("post api: /user/update || atk: " + atk
+				+ " || openid: " + openid);
 		MsgData ret = new MsgData();
 		try {
-			String url = "https://api.weixin.qq.com/cgi-bin/user/info?access_token="
-					 + URLEncoder.encode(atk, "UTF-8")
-					 + "&openid=" + openid + "&lang=zh_CN";
-			WeChatUserBaseInfo userBaseInfo = restTemplate.getForObject(url, WeChatUserBaseInfo.class);
+	    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+	    	uriVariables.put("atk", URLEncoder.encode(atk, "UTF-8"));
+	    	uriVariables.put("openid", openid);
+	    	
+			String url = "https://api.weixin.qq.com/cgi-bin/user/info?access_token={atk}"
+					+ "&openid={openid}&lang=zh_CN";
+			WeChatUserBaseInfo userBaseInfo = restTemplate.getForObject(
+					url, WeChatUserBaseInfo.class, uriVariables);
 			wechatUserService.postUser(userBaseInfo);
 		} catch (BusinessException be) {
 			ret.setStatus(MsgData.status_ng);
@@ -54,10 +65,16 @@ public class WechatUserController {
 			method = { RequestMethod.GET })
 	public WeChatUserBaseInfo getOneFromWX(@RequestParam("atk") String atk,
 			@RequestParam("openid") String openid) throws UnsupportedEncodingException {
-		String url = "https://api.weixin.qq.com/cgi-bin/user/info?access_token="
-				 + URLEncoder.encode(atk, "UTF-8")
-				 + "&openid=" + openid + "&lang=zh_CN";
-		return restTemplate.getForObject(url, WeChatUserBaseInfo.class); 
+		logger.info("get api: /user/one/wx || atk: " + atk
+				+ " || openid: " + openid);
+
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("atk", URLEncoder.encode(atk, "UTF-8"));
+    	uriVariables.put("openid", openid);
+    	
+		String url = "https://api.weixin.qq.com/cgi-bin/user/info?access_token={atk}"
+				 + "&openid={openid}&lang=zh_CN";
+		return restTemplate.getForObject(url, WeChatUserBaseInfo.class, uriVariables); 
 	}
 
 	@RequestMapping(value = "/one/db", 
@@ -65,6 +82,7 @@ public class WechatUserController {
 			method = { RequestMethod.GET })
 	public WeChatUserBaseInfo getOneFromDB(@RequestParam("openid") String openid) 
 			throws UnsupportedEncodingException {
+		logger.info("get api: /user/one/db || openid: " + openid);
 		return wechatUserService.getOneUser(openid);
 	}
 	
@@ -74,12 +92,17 @@ public class WechatUserController {
 			method = { RequestMethod.POST})
 	public MsgData authWechatUser(@RequestParam("atk") String atk,
 			@RequestBody OauthAccessToken oatk) throws UnsupportedEncodingException {
+		logger.info("post api: /user/oauthatk || atk: " + atk
+				+ " || oatk: " + oatk.toString());
 		MsgData ret = new MsgData();
 		try {
-			String url = "https://api.weixin.qq.com/sns/userinfo?access_token="
-					 + URLEncoder.encode(oatk.getAccess_token(), "UTF-8")
-					 + "&openid=" + oatk.getOpenid() + "&lang=zh_CN";
-			String strUser = restTemplate.getForObject(url, String.class);
+	    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+	    	uriVariables.put("atk", URLEncoder.encode(oatk.getAccess_token(), "UTF-8"));
+	    	uriVariables.put("openid", oatk.getOpenid());
+	    	
+			String url = "https://api.weixin.qq.com/sns/userinfo?access_token={atk}"
+					 + "&openid={openid}&lang=zh_CN";
+			String strUser = restTemplate.getForObject(url, String.class, uriVariables);
 			Gson gson = new Gson();
 			OAuthUserBaseInfo oauthUser = gson.fromJson(strUser, OAuthUserBaseInfo.class);
 			WeChatUserBaseInfo userBaseInfo = new WeChatUserBaseInfo();

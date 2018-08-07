@@ -2,8 +2,12 @@ package com.cn.zbin.wechat.controller;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -25,6 +29,7 @@ import com.cn.zbin.wechat.utils.WechatConstants;
 @RestController
 @RequestMapping("qr")
 public class WechatQRSceneController {
+	protected static final Logger logger = LoggerFactory.getLogger(WechatQRSceneController.class);
     @Autowired
     private WechatUserService wechatUserService;
     @Autowired
@@ -34,15 +39,20 @@ public class WechatQRSceneController {
 			method = { RequestMethod.GET })
 	public String getQRLimitScene(@RequestParam("atk") String atk, 
 			@RequestParam("scenestr") String scenestr) throws UnsupportedEncodingException {
-		System.out.println("qrlimitscene:" + atk + " qrlimitscene:" + scenestr);
-		String url = "https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token="
-				 + URLEncoder.encode(atk, "UTF-8");
+		logger.info("get api: /qr/qr_limit_scene || atk: " + atk
+				+ " || scenestr: " + scenestr);
+
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("atk", URLEncoder.encode(atk, "UTF-8"));
+    	
+		String url = "https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token={atk}";
+		
 		HttpHeaders headers = new HttpHeaders();
 		MediaType type = MediaType.parseMediaType("application/json; charset=UTF-8");
 		headers.setContentType(type);
 		String requestJson = "{\"action_name\": \"QR_LIMIT_STR_SCENE\", \"action_info\": {\"scene\": {\"scene_str\": \"" + scenestr + "\"}}}";
 		HttpEntity<String> entity = new HttpEntity<String>(requestJson,headers);
-		String result = restTemplate.postForObject(url, entity, String.class);
+		String result = restTemplate.postForObject(url, entity, String.class, uriVariables);
 		return result;
 	}
 	
@@ -52,17 +62,21 @@ public class WechatQRSceneController {
 			method = { RequestMethod.POST})
 	public MsgData createPartner(@RequestParam("atk") String atk,
 			@RequestBody List<PromotionPartnerInfo> partnerList) throws UnsupportedEncodingException {
+		logger.info("post api: /qr/partner || atk: " + atk
+				+ " || partnerList: " + partnerList.toString());
 		MsgData ret = new MsgData();
 		try {
-			String url = "https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token="
-					 + URLEncoder.encode(atk, "UTF-8");
+	    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+	    	uriVariables.put("atk", URLEncoder.encode(atk, "UTF-8"));
+	    	
+			String url = "https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token={atk}";
 			for (PromotionPartnerInfo partner : partnerList) {
 				HttpHeaders headers = new HttpHeaders();
 				MediaType type = MediaType.parseMediaType("application/json; charset=UTF-8");
 				headers.setContentType(type);
 				String requestJson = "{\"action_name\": \"QR_LIMIT_STR_SCENE\", \"action_info\": {\"scene\": {\"scene_str\": \"" + partner.getSceneStr() + "\"}}}";
 				HttpEntity<String> entity = new HttpEntity<String>(requestJson,headers);
-				QrScene res = restTemplate.postForObject(url, entity, QrScene.class);
+				QrScene res = restTemplate.postForObject(url, entity, QrScene.class, uriVariables);
 				if (res != null) {
 					partner.setTicket(res.getTicket());
 					partner.setUrl("https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=" + res.getTicket());

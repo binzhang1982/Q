@@ -6,6 +6,8 @@ import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -23,9 +25,14 @@ public class WeChatService {
     @HystrixCommand(fallbackMethod = "postEventError")
     public String postEventService(String signature, String timestamp, String nonce, 
     		WeChatMessage msg) {
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("signature", signature);
+    	uriVariables.put("timestamp", timestamp);
+    	uriVariables.put("nonce", nonce);
+    	String url = "http://SERVICE-WECHAT/recv/event?signature={signature}"
+        			+ "&timestamp={timestamp}&nonce={nonce}";
     	HttpEntity<WeChatMessage> request = new HttpEntity<>(msg);
-        return restTemplate.postForObject("http://SERVICE-WECHAT/recv/event?signature=" + signature + 
-        		"&timestamp=" + timestamp+"&nonce=" + nonce, request, String.class);
+        return restTemplate.postForObject(url, request, String.class, uriVariables);
     }
     public String postEventError(String signature, String timestamp, String nonce, 
     		WeChatMessage msg) {
@@ -34,8 +41,13 @@ public class WeChatService {
     
     @HystrixCommand(fallbackMethod = "getHiCheckError")
     public Boolean getHiCheckService(String signature, String timestamp, String nonce) {
-        return restTemplate.getForObject("http://SERVICE-WECHAT/recv/hicheck?signature=" + signature +
-        			"&timestamp=" + timestamp+"&nonce=" + nonce, Boolean.class);
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("signature", signature);
+    	uriVariables.put("timestamp", timestamp);
+    	uriVariables.put("nonce", nonce);
+    	String url = "http://SERVICE-WECHAT/recv/hicheck?signature={signature}"
+    				+ "&timestamp={timestamp}&nonce={nonce}"; 
+        return restTemplate.getForObject(url, Boolean.class, uriVariables);
     }
     public Boolean getHiCheckError(String signature, String timestamp, String nonce) {
         return Boolean.FALSE;
@@ -45,9 +57,12 @@ public class WeChatService {
     public String createPartner(String scenestr) {
         String ret = "";
 		try {
-			ret = restTemplate.getForObject("http://SERVICE-WECHAT/qr/qr_limit_scene?atk=" 
-					+ URLEncoder.encode(RibbonKeyConstants.APPTOKEN, "UTF-8")
-					+ "&scenestr=" + scenestr, String.class);
+	    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+	    	uriVariables.put("atk", URLEncoder.encode(RibbonKeyConstants.APPTOKEN, "UTF-8"));
+	    	uriVariables.put("scenestr", scenestr);
+	    	String url = "http://SERVICE-WECHAT/qr/qr_limit_scene?atk={atk}" 
+						+ "&scenestr={scenestr}";
+			ret = restTemplate.getForObject(url, String.class, uriVariables);
 		} catch (RestClientException | UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -62,9 +77,12 @@ public class WeChatService {
     public String updateUser(String openid) {
     	String ret = "";
 		try {
-    		ret = restTemplate.postForObject("http://SERVICE-WECHAT/user/update?atk=" 
-					+ URLEncoder.encode(RibbonKeyConstants.APPTOKEN, "UTF-8")
-					+ "&openid=" + openid, null, String.class);
+	    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+	    	uriVariables.put("atk", URLEncoder.encode(RibbonKeyConstants.APPTOKEN, "UTF-8"));
+	    	uriVariables.put("openid", openid);
+	    	String url = "http://SERVICE-WECHAT/user/update?atk={atk}"
+	    				+ "&openid={openid}";
+    		ret = restTemplate.postForObject(url, null, String.class, uriVariables);
 		} catch (RestClientException | UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -79,9 +97,12 @@ public class WeChatService {
     public String oneUserWX(String openid) {
     	String ret = "";
 		try {
-    		ret = restTemplate.getForObject("http://SERVICE-WECHAT/user/one/wx?atk=" 
-					+ URLEncoder.encode(RibbonKeyConstants.APPTOKEN, "UTF-8")
-					+ "&openid=" + openid, String.class);
+	    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+	    	uriVariables.put("atk", URLEncoder.encode(RibbonKeyConstants.APPTOKEN, "UTF-8"));
+	    	uriVariables.put("openid", openid);
+	    	String url = "http://SERVICE-WECHAT/user/one/wx?atk={atk}"
+					+ "&openid={openid}";
+    		ret = restTemplate.getForObject(url, String.class, uriVariables);
 		} catch (RestClientException | UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -94,8 +115,10 @@ public class WeChatService {
 
     @HystrixCommand(fallbackMethod = "oneUserDBError")
     public String oneUserDB(String openid) {
-		return restTemplate.getForObject("http://SERVICE-WECHAT/user/one/db?openid="
-    				+ openid, String.class);
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("openid", openid);
+    	String url = "http://SERVICE-WECHAT/user/one/db?openid={openid}";
+		return restTemplate.getForObject(url, String.class, uriVariables);
     }
     public String oneUserDBError(String openid) {
         return "failed";
@@ -105,9 +128,10 @@ public class WeChatService {
     public String getMenu() {
     	String ret = "";
 		try {
-			ret = restTemplate.getForObject("http://SERVICE-WECHAT/menu?atk="
-					+ URLEncoder.encode(RibbonKeyConstants.APPTOKEN, "UTF-8")
-					, String.class);
+	    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+	    	uriVariables.put("atk", URLEncoder.encode(RibbonKeyConstants.APPTOKEN, "UTF-8"));
+	    	String url = "http://SERVICE-WECHAT/menu?atk={atk}";
+			ret = restTemplate.getForObject(url, String.class, uriVariables);
 		} catch (RestClientException | UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -120,13 +144,18 @@ public class WeChatService {
 
     @HystrixCommand(fallbackMethod = "getOpenIdByCodeError")
     public String getOpenIdByCode(String code) {
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("appid", RibbonKeyConstants.APPID);
+    	uriVariables.put("secret", RibbonKeyConstants.APPSECRET);
+    	uriVariables.put("code", code);
+    	
     	RestTemplate rest = new RestTemplate();
-        String url = "https://api.weixin.qq.com/sns/oauth2/access_token" + 
-        				"?appid=" + RibbonKeyConstants.APPID + 
-        				"&secret=" + RibbonKeyConstants.APPSECRET +
-        				"&code=" + code +
-        				"&grant_type=authorization_code";
-        return rest.getForObject(url, String.class);
+        String url = "https://api.weixin.qq.com/sns/oauth2/access_token"
+        		 	+ "?appid={appid}"
+        			+ "&secret={secret}"
+        			+ "&code={code}"
+        			+ "&grant_type=authorization_code";
+        return rest.getForObject(url, String.class, uriVariables);
     }
     public String getOpenIdByCodeError(String code) {
     	return "failed";
@@ -136,13 +165,15 @@ public class WeChatService {
     public String authWechatUser(String bean) {
     	String ret = "";
 		try {
-			String url = "http://SERVICE-WECHAT/user/oauthatk?atk=" 
-					+ URLEncoder.encode(RibbonKeyConstants.APPTOKEN, "UTF-8");
+	    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+	    	uriVariables.put("atk", URLEncoder.encode(RibbonKeyConstants.APPTOKEN, "UTF-8"));
+	    	
+			String url = "http://SERVICE-WECHAT/user/oauthatk?atk={atk}";
 	        HttpHeaders headers =new HttpHeaders();
 	        MediaType type = MediaType.parseMediaType("application/json; charset=UTF-8");
 	        headers.setContentType(type);
 	        HttpEntity<String> request = new HttpEntity<String>(bean, headers);
-    		ret = restTemplate.postForObject(url, request, String.class);
+    		ret = restTemplate.postForObject(url, request, String.class, uriVariables);
 		} catch (RestClientException | UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

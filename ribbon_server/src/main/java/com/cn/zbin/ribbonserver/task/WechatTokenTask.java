@@ -1,5 +1,8 @@
 package com.cn.zbin.ribbonserver.task;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -12,15 +15,18 @@ public class WechatTokenTask {
 	
 	@Scheduled(cron="0 0 0/1 * * ?")
 	public void refreshToken() {
-		RestTemplate restTemplate = new RestTemplate();
-		AccessToken atk = restTemplate.getForObject(
-				"https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential"
-				+ "&appid=" + RibbonKeyConstants.APPID
-				+ "&secret=" + RibbonKeyConstants.APPSECRET, 
-				AccessToken.class);
-		System.out.println("task:" + atk.getAccess_token());
-		synchronized (RibbonKeyConstants.APPTOKEN) {
-			RibbonKeyConstants.APPTOKEN = atk.getAccess_token();
-		}
+//    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+//    	uriVariables.put("appid", RibbonKeyConstants.APPID);
+//    	uriVariables.put("secret", RibbonKeyConstants.APPSECRET);
+//		
+//		RestTemplate restTemplate = new RestTemplate();
+//    	String url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential"
+//					+ "&appid={appid}"
+//					+ "&secret={secret}";
+//		AccessToken atk = restTemplate.getForObject(url, AccessToken.class, uriVariables);
+//		System.out.println("atk: " + atk.getAccess_token());
+//		synchronized (RibbonKeyConstants.APPTOKEN) {
+//			RibbonKeyConstants.APPTOKEN = atk.getAccess_token();
+//		}
 	}
 }

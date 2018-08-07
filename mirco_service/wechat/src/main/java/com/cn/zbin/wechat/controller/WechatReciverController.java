@@ -1,5 +1,11 @@
 package com.cn.zbin.wechat.controller;
 
+import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,6 +22,7 @@ import com.cn.zbin.wechat.utils.WechatKeyConstants;
 @RestController
 @RequestMapping("recv")
 public class WechatReciverController {
+	protected static final Logger logger = LoggerFactory.getLogger(WechatReciverController.class);
     @Autowired
     RestTemplate restTemplate;
 	@Autowired
@@ -23,8 +30,11 @@ public class WechatReciverController {
 	
 	@RequestMapping(value = "/hicheck", 
 			method = { RequestMethod.GET })
-	public Boolean getHi(@RequestParam("signature") String signature, @RequestParam("timestamp") String timestamp,
+	public Boolean getHi(@RequestParam("signature") String signature, 
+			@RequestParam("timestamp") String timestamp,
 			@RequestParam("nonce") String nonce) {
+		logger.info("get api: /recv/hicheck || signature: " + signature
+				+ " || timestamp: " + timestamp + " || nonce: " + nonce);
 		return securityService.checkSignature(signature, timestamp, nonce);
 	}
 
@@ -33,6 +43,10 @@ public class WechatReciverController {
 	@ResponseBody
 	public String subscribe(@RequestParam("signature") String signature, @RequestParam("timestamp") String timestamp,
 			@RequestParam("nonce") String nonce,@RequestBody WeChatMessage msg) {
+		logger.info("post api: /recv/event || signature: " + signature
+				+ " || timestamp: " + timestamp + " || nonce: " + nonce
+				+ " || msg: " + msg.toTextString());
+		
 		if (WechatKeyConstants.MSG_TYPE_EVENT.equals(msg.getMsgType())) {
 //			if (WechatKeyConstants.EVENT_CLICK.equals(msg.getEvent())) {
 //				if (WechatKeyConstants.EVENT_CLICK_KEY_CUSTOMER_SERVICE.equals(msg.getEventKey())) {
@@ -81,9 +95,11 @@ public class WechatReciverController {
 	}
 	
 	public void createUser(String openid) {
-		restTemplate.postForObject("http://localhost/wechat/user?openid="
-				+ openid, null, String.class);
-		restTemplate.postForObject("http://localhost/mgmt//cust/regtype?openid="
-				+ openid + "&regtype=1", null, String.class);
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("openid", openid);
+		restTemplate.postForObject("http://localhost/wechat/user?openid={openid}", 
+				null, String.class, uriVariables);
+		restTemplate.postForObject("http://localhost/mgmt//cust/regtype?openid={openid}&regtype=1",
+				null, String.class, uriVariables);
 	}
 }

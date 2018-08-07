@@ -5,6 +5,9 @@ eureka:
 server:
   port: 80
 spring:
+  profiles:
+    #指定读取配置文件:dev(开发环境),prod(生产环境)
+    active: dev
   application:
     name: service-ribbon
 qlh:
@@ -24,4 +27,8 @@ hystrix:
       execution:   
         isolation:   
           thread:   
-            timeoutInMilliseconds: 8000  #命令执行超时时间，默认1000ms  
+            timeoutInMilliseconds: 8000  #命令执行超时时间，默认1000ms
+
+#日志相关配置
+logging:
+  config: classpath:logback-${spring.profiles.active}.xml

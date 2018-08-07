@@ -2,6 +2,8 @@ package com.cn.zbin.store.controller;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +21,8 @@ import com.cn.zbin.store.utils.StoreConstants;
 @RestController
 @RequestMapping("trolley")
 public class TrolleyController {
+	protected static final Logger logger = LoggerFactory.getLogger(TrolleyController.class);
+			
 	@Autowired
 	private TrolleyService trolleyService;
 	
@@ -27,6 +31,7 @@ public class TrolleyController {
 			produces = {"application/json;charset=UTF-8"}, 
 			method = { RequestMethod.POST })
 	public MsgData add2Trolley(@RequestBody List<ShoppingTrolleyInfo> trolleyList) {
+		logger.info("post api: /trolley || trolleyList: " + trolleyList.toString());
 		MsgData ret = new MsgData();
 		try {
 			trolleyService.add2Trolley(trolleyList);
@@ -45,6 +50,7 @@ public class TrolleyController {
 			produces = {"application/json;charset=UTF-8"}, 
 			method = { RequestMethod.POST })
 	public MsgData updateTrolley(@RequestBody ShoppingTrolleyInfo trolley) {
+		logger.info("post api: /trolley/salecount || trolley: " + trolley.toString());
 		MsgData ret = new MsgData();
 		try {
 			ret.setMessage(trolleyService.updateTrolley(trolley));
@@ -64,6 +70,8 @@ public class TrolleyController {
 	public ShoppingTrolleyOverView getTrolleyList(
 			@RequestParam(value = "customerid", required = true) String custid,
 			@RequestParam(value = "scope", required = false) String strScope) {
+		logger.info("get api: /trolley/list || customerid: " + custid
+				+ " || scope: " + strScope);
 		return trolleyService.getTrolleyList(custid, strScope);
 	}
 }

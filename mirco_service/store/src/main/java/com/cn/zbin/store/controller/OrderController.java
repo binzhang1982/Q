@@ -2,6 +2,8 @@ package com.cn.zbin.store.controller;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +21,7 @@ import com.cn.zbin.store.utils.StoreConstants;
 @RestController
 @RequestMapping("order")
 public class OrderController {
+	protected static final Logger logger = LoggerFactory.getLogger(OrderController.class);
 	@Autowired
 	private OrderService orderService;
 
@@ -30,6 +33,8 @@ public class OrderController {
 			@RequestParam(value = "type", required = true) String type,
 			@RequestParam(value = "customerid", required = true) String custid,
 			@RequestBody List<ShoppingTrolleyInfo> trolleyList) {
+		logger.info("post api: /order/init || type: " + type
+					+ " || customerid: " + custid + " || trolleyList: " + trolleyList.toString());
 		return orderService.initGuestOrder(type, custid, trolleyList);
 	}
 
@@ -38,6 +43,7 @@ public class OrderController {
 			produces = {"application/json;charset=UTF-8"}, 
 			method = { RequestMethod.POST })
 	public MsgData insertGuestOrder(@RequestBody GuestOrderOverView order) {
+		logger.info("post api: /order/create || order: " + order.toString());
 		MsgData ret = new MsgData();
 		try {
 			orderService.insertGuestOrder(order);
@@ -59,6 +65,9 @@ public class OrderController {
 			@RequestParam(value = "status", required = false) String status,
 			@RequestParam(value = "offset", required = false) Integer offset, 
 			@RequestParam(value = "limit", required = false) Integer limit) {
+		logger.info("get api: /order/list || customerid: " + customerid
+				+ " || status: " + status + " || offset: " + offset
+				+ " || limit: " + limit);
 		return orderService.getGuestOrderList(customerid, status, offset, limit);
 	}
 	
@@ -67,6 +76,8 @@ public class OrderController {
 			method = { RequestMethod.GET })
 	public GuestOrderOverView getGuestOrder(@RequestParam("customerid") String customerid,
 			@RequestParam("orderid") String orderid) {
+		logger.info("get api: /order || customerid: " + customerid
+				+ " || orderid: " + orderid);
 		return orderService.getGuestOrder(customerid, orderid);
 	}
 }

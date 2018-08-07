@@ -2,6 +2,8 @@ package com.cn.zbin.store.controller;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +24,7 @@ import com.cn.zbin.store.utils.StoreConstants;
 @RestController
 @RequestMapping("prod")
 public class ProductController {
+	protected static final Logger logger = LoggerFactory.getLogger(ProductController.class);
 	@Autowired
 	private ProductService productService;
 
@@ -33,6 +36,9 @@ public class ProductController {
 			@RequestParam(value = "cate", required = false) String strCate,
 			@RequestParam(value = "offset", required = false) Integer offset, 
 			@RequestParam(value = "limit", required = false) Integer limit) {
+		logger.info("get api: /prod/list || search: " + strSearch
+				+ " || scope: " + strScope + " || cate: " + strCate
+				+ " || offset: " + offset + " || limit: " + limit);
 		return productService.getProdOverviewList(strSearch, strScope, strCate, offset, limit);
 	}
 	
@@ -40,6 +46,7 @@ public class ProductController {
 			produces = {"application/json;charset=UTF-8"}, 
 			method = { RequestMethod.GET })
 	public ProductDetail getProductDetail(@PathVariable("id") String prodID) {
+		logger.info("get api: /prod/detail/{id} || id: " + prodID);
 		return productService.getProductDetail(prodID);
 	}
 	
@@ -48,6 +55,8 @@ public class ProductController {
 			method = { RequestMethod.POST })
 	public MsgData addViewHistory(@PathVariable("id") String prodID,
 			@RequestParam("customerid") String customerid) {
+		logger.info("post api: /prod/viewhist/{id} || id: " + prodID
+				+ " || customerid: " + customerid);
 		MsgData ret = new MsgData();
 		try {
 			productService.addViewHistory(prodID, customerid);
@@ -67,6 +76,8 @@ public class ProductController {
 	public List<FavoriteProduct> getViewHistoryFavorite(
 			@RequestParam(value = "customerid", required = true) String customerid,
 			@RequestParam(value = "limit", required = false) Integer limit) {
+		logger.info("get api: /prod/favorite || customerid: " + customerid
+				+ " || limit: " + limit);
 		return productService.getViewHistoryFavorite(customerid, limit);
 	}
 
@@ -77,6 +88,8 @@ public class ProductController {
 			@RequestParam(value = "prodid", required = true) String prodID,
 			@RequestParam(value = "offset", required = false) Integer offset, 
 			@RequestParam(value = "limit", required = false) Integer limit) {
+		logger.info("get api: /prod/comment || prodid: " + prodID
+				+ " || offset: " + offset + " || limit: " + limit);
 		return productService.getProductCommentList(prodID, offset, limit);
 	}
 	
@@ -85,6 +98,8 @@ public class ProductController {
 			method = { RequestMethod.GET })	
 	public PendingDate calcPendingCount(@RequestParam("startdate") String pendingStartDate, 
 			@RequestParam("enddate") String pendingEndDate) {
+		logger.info("get api: /prod/lease/calc || startdate: " + pendingStartDate
+				+ " || enddate: " + pendingEndDate);
 		return productService.calcPendingCount(pendingStartDate, pendingEndDate);
 	}
 }

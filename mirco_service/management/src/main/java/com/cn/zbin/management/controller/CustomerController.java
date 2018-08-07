@@ -2,6 +2,8 @@ package com.cn.zbin.management.controller;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,6 +31,7 @@ import com.cn.zbin.management.utils.MgmtConstants;
 @RestController
 @RequestMapping("customer")
 public class CustomerController {
+	protected static final Logger logger = LoggerFactory.getLogger(CustomerController.class);
 	@Autowired
 	private CustomerService customerService;
 	@Autowired
@@ -40,6 +43,8 @@ public class CustomerController {
 			method = { RequestMethod.POST })
 	public MsgData addWechatUser(@RequestParam("openid") String openid,
 			@RequestParam("regtype") Integer registerType) {
+		logger.info("post api: /customer || openid: " + openid 
+					+ " || regtype: " + registerType);
 		MsgData ret = new MsgData();
 		try {
 			customerService.postCustomer(openid, registerType);
@@ -58,6 +63,8 @@ public class CustomerController {
 			method = { RequestMethod.GET })
 	public CustomerInfo getCustomerByRefID(@PathVariable("regtype") Integer registerType,
 			@PathVariable("refid") String refid) {
+		logger.info("get api: /customer/{regtype}/{refid} || regtype: " + registerType 
+				+ " || refid: " + refid);
 		return customerService.getCustomerByRefID(refid, registerType);
 	}
 	
@@ -65,6 +72,7 @@ public class CustomerController {
 			produces = {"application/json;charset=UTF-8"}, 
 			method = { RequestMethod.GET })
 	public CustomerInfo getRefIdByCustId(@PathVariable("customerid") String customerid) {
+		logger.info("get api: /customer/{customerid} || customerid: " + customerid);
 		return customerService.getRefIdByCustId(customerid);
 	}
 	
@@ -74,6 +82,8 @@ public class CustomerController {
 	public List<CustomerAddressOverView> getCustomerAddressList(
 			@PathVariable("customerid") String customerid,
 			@RequestParam(value = "defaultflag", required = false) Boolean defaultflag) {
+		logger.info("get api: /customer/address/list/{customerid}"
+					+ " || customerid: " + customerid + " || defaultflag: " + defaultflag);
 		return customerService.getCustomerAddressList(customerid, defaultflag);
 	}
 	
@@ -83,6 +93,8 @@ public class CustomerController {
 			method = { RequestMethod.POST})
 	public CustomerAddressMsgData updateCustomerAddress(
 			@RequestBody CustomerAddress address) {
+		logger.info("post api: /customer/address"
+				+ " || address: " + address.toString());
 		return customerService.updateCustomerAddress(address);
 	}
 
@@ -92,6 +104,8 @@ public class CustomerController {
 	public List<CustomerInvoice> getCustomerInvoiceList(
 			@PathVariable("customerid") String customerid,
 			@RequestParam(value = "defaultflag", required = false) Boolean defaultflag) {
+		logger.info("get api: /customer/invoice/list/{customerid}"
+				+ " || customerid: " + customerid + " || defaultflag: " + defaultflag);
 		return customerService.getCustomerInvoiceList(customerid, defaultflag);
 	}
 	
@@ -101,6 +115,8 @@ public class CustomerController {
 			method = { RequestMethod.POST})
 	public CustomerInvoiceMsgData updateCustomerInvoice(
 			@RequestBody CustomerInvoice invoice) {
+		logger.info("post api: /customer/invoice"
+				+ " || invoice: " + invoice.toString());
 		return customerService.updateCustomerInvoice(invoice);
 	}
 
@@ -110,6 +126,8 @@ public class CustomerController {
 			method = { RequestMethod.POST})
 	public CustomerInfoMsgData updateCustomerInfo(
 			@RequestBody CustomerInfo customer) {
+		logger.info("post api: /customer/info"
+				+ " || customer: " + customer.toString());
 		return customerService.updateCustomerInfo(customer);
 	}
 	
@@ -118,6 +136,8 @@ public class CustomerController {
 			method = { RequestMethod.GET })
     public MsgData addPhoneNum(@PathVariable("customerid") String customerid, 
     		@PathVariable("phonenumber") String phonenumber) {
+		logger.info("get api: /customer/phone/{customerid}/{phonenumber}"
+				+ " || customerid: " + customerid + " || phonenumber: " + phonenumber);
 		MsgData msg = new MsgData();
 		MessageHistoryMsgData smsMsgData = smsService.addMessageHistory(customerid, phonenumber);
 		msg.setMessage(smsMsgData.getMessage());
@@ -132,6 +152,8 @@ public class CustomerController {
 	public MsgData comfirmValidCode(
 			@PathVariable("customerid") String customerid, 
 			@PathVariable("validcode") String validcode) {
+		logger.info("get api: /customer/valid/{customerid}/{validcode}"
+				+ " || customerid: " + customerid + " || validcode: " + validcode);
 		MsgData ret = new MsgData();
 		try {
 			customerService.comfirmValidCode(customerid, validcode);
@@ -150,6 +172,8 @@ public class CustomerController {
 			produces = {"application/json;charset=UTF-8"}, 
 			method = { RequestMethod.POST})
 	public MsgData updateToken(@RequestBody OauthAccessToken oatk) {
+		logger.info("post api: /customer/oauthatk"
+				+ " || oatk: " + oatk.toString());
 		MsgData ret = new MsgData();
 		try {
 			customerService.updateToken(oatk);
@@ -168,6 +192,8 @@ public class CustomerController {
 			method = { RequestMethod.GET })
 	public List<CustomerDiseaseHistory> getDiseaseHistory(
 			@PathVariable("customerid") String customerid) {
+		logger.info("get api: /customer/disease/list/{customerid}"
+				+ " || customerid: " + customerid);
 		return customerService.getDiseaseHistory(customerid);
 	}
 	
@@ -177,6 +203,8 @@ public class CustomerController {
 			method = { RequestMethod.POST })
 	public MsgData updDiseaseHistory(@PathVariable("customerid") String customerid,
 			@RequestBody List<CustomerDiseaseHistory> diseaseList) {
+		logger.info("post api: /customer/disease/list/{customerid}"
+				+ " || customerid: " + customerid + " || diseaseList: " + diseaseList.toString());
 		MsgData ret = new MsgData();
 		try {
 			customerService.updDiseaseHistory(customerid, diseaseList);

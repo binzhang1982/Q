@@ -1,5 +1,8 @@
 package com.cn.zbin.ribbonserver.service;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -16,8 +19,11 @@ public class ManagementService {
     
     @HystrixCommand(fallbackMethod = "updateCustomerError")
     public String updateCustomer(String openid, Integer registerType) {
-        return restTemplate.postForObject("http://SERVICE-MGMT/customer?openid=" 
-				+ openid + "&regtype=" + registerType, null, String.class);
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("openid", openid);
+    	uriVariables.put("regtype", registerType);
+        return restTemplate.postForObject("http://SERVICE-MGMT/customer?openid={openid}" 
+				+ "&regtype={regtype}", null, String.class, uriVariables);
     }
     public String updateCustomerError(String openid, Integer registerType) {
         return "failed";
@@ -25,8 +31,11 @@ public class ManagementService {
 
     @HystrixCommand(fallbackMethod = "getCustomerByRefIDError")
 	public String getCustomerByRefID(Integer registerType, String refid) {
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("registerType", registerType);
+    	uriVariables.put("refid", refid);
         return restTemplate.getForObject("http://SERVICE-MGMT/customer/" 
-				+ registerType + "/" + refid, String.class);
+				+ "{registerType}/{refid}", String.class, uriVariables);
 	}
 	public String getCustomerByRefIDError(Integer registerType, String refid) {
 		return "failed";
@@ -34,8 +43,10 @@ public class ManagementService {
 
     @HystrixCommand(fallbackMethod = "getRefIdByCustIdError")
 	public String getRefIdByCustId(String customerid) {
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("customerid", customerid);
         return restTemplate.getForObject("http://SERVICE-MGMT/customer/" 
-				+ customerid, String.class);
+				+ "{customerid}", String.class, uriVariables);
 	}
 	public String getRefIdByCustIdError(String customerid) {
 		return "failed";
@@ -43,10 +54,12 @@ public class ManagementService {
 
     @HystrixCommand(fallbackMethod = "getCustomerAddressListError")
 	public String getCustomerAddressList(String customerid, Boolean defaultflag) {
-    	String url = "http://SERVICE-MGMT/customer/address/list/" + customerid;
-    	url = url + "?defaultflag=";
-    	if (defaultflag != null) url = url + defaultflag;
-    	return restTemplate.getForObject(url, String.class);
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("customerid", customerid);
+    	uriVariables.put("defaultflag", defaultflag != null ? defaultflag : "");
+    	String url = "http://SERVICE-MGMT/customer/address/list/{customerid}"
+    				+ "?defaultflag={defaultflag}";
+    	return restTemplate.getForObject(url, String.class, uriVariables);
 	}
 	public String getCustomerAddressListError(String customerid, Boolean defaultflag) {
 		return "failed";
@@ -67,10 +80,12 @@ public class ManagementService {
 	
     @HystrixCommand(fallbackMethod = "getCustomerInvoiceListError")
 	public String getCustomerInvoiceList(String customerid, Boolean defaultflag) {
-    	String url = "http://SERVICE-MGMT/customer/invoice/list/" + customerid;
-    	url = url + "?defaultflag=";
-    	if (defaultflag != null) url = url + defaultflag;
-    	return restTemplate.getForObject(url, String.class);
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("customerid", customerid);
+    	uriVariables.put("defaultflag", defaultflag != null ? defaultflag : "");
+    	String url = "http://SERVICE-MGMT/customer/invoice/list/{customerid}"
+    				+ "?defaultflag={defaultflag}";
+    	return restTemplate.getForObject(url, String.class, uriVariables);
 	}
 	public String getCustomerInvoiceListError(String customerid, Boolean defaultflag) {
 		return "failed";
@@ -92,18 +107,20 @@ public class ManagementService {
 	@HystrixCommand(fallbackMethod = "getCityListError")
 	public String getCityList(String strSearch, String strProvinceCode, 
 			String strCityCode,	Integer offset, Integer limit) {
-    	String url = "http://SERVICE-MGMT/master/city/list";
-    	url = url + "?search=";
-    	if (strSearch != null) url = url + strSearch;
-    	url = url + "&pcode=";
-    	if (strProvinceCode != null) url = url + strProvinceCode;
-    	url = url + "&ccode=";
-    	if (strCityCode != null) url = url + strCityCode;
-    	url = url + "&offset=";
-    	if (offset != null) url = url + offset;
-    	url = url + "&limit=";
-    	if (limit != null) url = url + limit;
-    	return restTemplate.getForObject(url, String.class);
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("search", strSearch != null ? strSearch : "");
+    	uriVariables.put("pcode", strProvinceCode != null ? strProvinceCode : "");
+    	uriVariables.put("ccode", strCityCode != null ? strCityCode : "");
+    	uriVariables.put("offset", offset != null ? offset : "");
+    	uriVariables.put("limit", limit != null ? limit : "");
+    	
+    	String url = "http://SERVICE-MGMT/master/city/list"
+    				+ "?search={search}"
+    				+ "&pcode={pcode}"
+    				+ "&ccode={ccode}"
+    				+ "&offset={offset}"
+    				+ "&limit={limit}";
+    	return restTemplate.getForObject(url, String.class, uriVariables);
 	}
 	public String getCityListError(String strSearch, String strProvinceCode, 
 			String strCityCode,	Integer offset, Integer limit) {
@@ -113,16 +130,18 @@ public class ManagementService {
 	@HystrixCommand(fallbackMethod = "getProvinceListError")
 	public String getProvinceList(String strSearch, 
 			String strProvinceCode, Integer offset, Integer limit) {
-    	String url = "http://SERVICE-MGMT/master/province/list";
-    	url = url + "?search=";
-    	if (strSearch != null) url = url + strSearch;
-    	url = url + "&pcode=";
-    	if (strProvinceCode != null) url = url + strProvinceCode;
-    	url = url + "&offset=";
-    	if (offset != null) url = url + offset;
-    	url = url + "&limit=";
-    	if (limit != null) url = url + limit;
-    	return restTemplate.getForObject(url, String.class);
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("search", strSearch != null ? strSearch : "");
+    	uriVariables.put("pcode", strProvinceCode != null ? strProvinceCode : "");
+    	uriVariables.put("offset", offset != null ? offset : "");
+    	uriVariables.put("limit", limit != null ? limit : "");
+    	
+    	String url = "http://SERVICE-MGMT/master/province/list"
+    				+ "?search={search}"
+    				+ "&pcode={pcode}"
+    				+ "&offset={offset}"
+    				+ "&limit={limit}";
+    	return restTemplate.getForObject(url, String.class, uriVariables);
 	}
 	public String getProvinceListError(String strSearch, 
 			String strProvinceCode, Integer offset, Integer limit) {
@@ -144,9 +163,13 @@ public class ManagementService {
 
 	@HystrixCommand(fallbackMethod = "addPhoneNumError")
 	public String addPhoneNum(String customerid, String phonenumber) {
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("customerid", customerid);
+    	uriVariables.put("phonenumber", phonenumber);
+    	
     	String url = "http://SERVICE-MGMT/customer/phone/"
-    			+ customerid + "/" + phonenumber;
-    	return restTemplate.getForObject(url, String.class);
+    			+ "{customerid}/{phonenumber}";
+    	return restTemplate.getForObject(url, String.class, uriVariables);
 	}
 	public String addPhoneNumError(String customerid, String phonenumber) {
 		return "failed";
@@ -154,9 +177,13 @@ public class ManagementService {
 
 	@HystrixCommand(fallbackMethod = "comfirmValidCodeError")
 	public String comfirmValidCode(String customerid, String validcode) {
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("customerid", customerid);
+    	uriVariables.put("validcode", validcode);
+    	
     	String url = "http://SERVICE-MGMT/customer/valid/"
-    			+ customerid + "/" + validcode;
-    	return restTemplate.getForObject(url, String.class);
+    			+ "{customerid}/{validcode}";
+    	return restTemplate.getForObject(url, String.class, uriVariables);
 	}
 	public String comfirmValidCodeError(String customerid, String validcode) {
 		return "failed";
