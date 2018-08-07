@@ -25,4 +25,4 @@ nbdist/
 
 
 /src/main/java/com/cn/zbin/ribbonserver/utils/RibbonKeyConstants.java
-/src/main/resources/*
+/src/main/resources/application.yml
