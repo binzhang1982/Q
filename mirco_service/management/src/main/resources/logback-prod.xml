@@ -30,7 +30,7 @@
         <appender-ref ref="file" />
     </root>
     <logger name="org.springframework.scheduling"  level="error" />
-    <logger name="com.cn.zbin.eurekaserver" level="warn" />
+    <logger name="com.cn.zbin.management" level="info" />
     <Logger name="org.apache.catalina.util.LifecycleBase" level="warn" />
     <Logger name="org.apache.coyote.http11.Http11NioProtocol" level="warn" />
     <Logger name="org.apache.tomcat.util.net.NioSelectorPool" level="warn" />
