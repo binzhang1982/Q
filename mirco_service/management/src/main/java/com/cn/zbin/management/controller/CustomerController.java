@@ -37,9 +37,7 @@ public class CustomerController {
 	@Autowired
 	private SmsService smsService;
 	
-	@RequestMapping(value = "", 
-			consumes = {"application/json;charset=UTF-8"}, 
-			produces = {"application/json;charset=UTF-8"}, 
+	@RequestMapping(value = "",
 			method = { RequestMethod.POST })
 	public MsgData addWechatUser(@RequestParam("openid") String openid,
 			@RequestParam("regtype") Integer registerType) {
@@ -50,7 +48,7 @@ public class CustomerController {
 			customerService.postCustomer(openid, registerType);
 		} catch (BusinessException be) {
 			ret.setStatus(MsgData.status_ng);
-			ret.setMessage(be.getErrorMsg());
+			ret.setMessage(be.getMessage());
 		} catch (Exception e) {
 			ret.setStatus(MsgData.status_ng);
 			ret.setMessage(MgmtConstants.CHK_ERR_99999);
@@ -159,7 +157,7 @@ public class CustomerController {
 			customerService.comfirmValidCode(customerid, validcode);
 		} catch (BusinessException be) {
 			ret.setStatus(MsgData.status_ng);
-			ret.setMessage(be.getErrorMsg());
+			ret.setMessage(be.getMessage());
 		} catch (Exception e) {
 			ret.setStatus(MsgData.status_ng);
 			ret.setMessage(MgmtConstants.CHK_ERR_99999);
@@ -179,7 +177,7 @@ public class CustomerController {
 			customerService.updateToken(oatk);
 		} catch (BusinessException be) {
 			ret.setStatus(MsgData.status_ng);
-			ret.setMessage(be.getErrorMsg());
+			ret.setMessage(be.getMessage());
 		} catch (Exception e) {
 			ret.setStatus(MsgData.status_ng);
 			ret.setMessage(MgmtConstants.CHK_ERR_99999);
@@ -210,7 +208,7 @@ public class CustomerController {
 			customerService.updDiseaseHistory(customerid, diseaseList);
 		} catch (BusinessException be) {
 			ret.setStatus(MsgData.status_ng);
-			ret.setMessage(be.getErrorMsg());
+			ret.setMessage(be.getMessage());
 		} catch (Exception e) {
 			ret.setStatus(MsgData.status_ng);
 			ret.setMessage(MgmtConstants.CHK_ERR_99999);

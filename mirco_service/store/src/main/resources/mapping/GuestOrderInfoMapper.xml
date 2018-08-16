@@ -495,4 +495,23 @@
       update_time = now()
     where order_id = #{orderId,jdbcType=VARCHAR}
   </update>
+  
+  
+  
+  
+  <select id="selectOnePageByExample" resultMap="BaseResultMap" parameterType="map" >
+    select
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from guestorder
+    <if test="example != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+    <if test="limit != null">
+      limit ${offset},${limit}
+    </if>
+  </select>
 </mapper>

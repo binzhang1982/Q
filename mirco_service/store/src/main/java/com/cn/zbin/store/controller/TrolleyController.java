@@ -37,7 +37,7 @@ public class TrolleyController {
 			trolleyService.add2Trolley(trolleyList);
 		} catch (BusinessException be) {
 			ret.setStatus(MsgData.status_ng);
-			ret.setMessage(be.getErrorMsg());
+			ret.setMessage(be.getMessage());
 		} catch (Exception e) {
 			ret.setStatus(MsgData.status_ng);
 			ret.setMessage(StoreConstants.CHK_ERR_99999);
@@ -56,7 +56,7 @@ public class TrolleyController {
 			ret.setMessage(trolleyService.updateTrolley(trolley));
 		} catch (BusinessException be) {
 			ret.setStatus(MsgData.status_ng);
-			ret.setMessage(be.getErrorMsg());
+			ret.setMessage(be.getMessage());
 		} catch (Exception e) {
 			ret.setStatus(MsgData.status_ng);
 			ret.setMessage(StoreConstants.CHK_ERR_99999);

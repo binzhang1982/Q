@@ -49,7 +49,7 @@ public class OrderController {
 			orderService.insertGuestOrder(order);
 		} catch (BusinessException be) {
 			ret.setStatus(MsgData.status_ng);
-			ret.setMessage(be.getErrorMsg());
+			ret.setMessage(be.getMessage());
 		} catch (Exception e) {
 			ret.setStatus(MsgData.status_ng);
 			ret.setMessage(StoreConstants.CHK_ERR_99999);
