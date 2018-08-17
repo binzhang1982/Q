@@ -2,6 +2,7 @@ package com.cn.zbin.store.controller;
 
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +54,11 @@ public class TrolleyController {
 		logger.info("post api: /trolley/salecount || trolley: " + trolley.toString());
 		MsgData ret = new MsgData();
 		try {
-			ret.setMessage(trolleyService.updateTrolley(trolley));
+			String msg = trolleyService.updateTrolley(trolley);
+			if (StringUtils.isNotBlank(msg)) {
+				ret.setStatus(MsgData.status_ng);
+				ret.setMessage(msg);
+			}
 		} catch (BusinessException be) {
 			ret.setStatus(MsgData.status_ng);
 			ret.setMessage(be.getMessage());

@@ -20,19 +20,19 @@ public class QLHStartupRunner implements CommandLineRunner {
 
 	@Override
 	public void run(String... arg0) throws Exception {
-    	Map<String, Object> uriVariables = new HashMap<String, Object>();
-    	uriVariables.put("appid", RibbonKeyConstants.APPID);
-    	uriVariables.put("secret", RibbonKeyConstants.APPSECRET);
-    	
-    	String url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential"
-					+ "&appid={appid}"
-					+ "&secret={secret}";
-		RestTemplate restTemplate = new RestTemplate();
-		AccessToken atk = restTemplate.getForObject(url, AccessToken.class, uriVariables);
-		logger.info("atk: " + atk.getAccess_token());
-		synchronized (RibbonKeyConstants.APPTOKEN) {
-			RibbonKeyConstants.APPTOKEN = atk.getAccess_token();
-		}
+//    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+//    	uriVariables.put("appid", RibbonKeyConstants.APPID);
+//    	uriVariables.put("secret", RibbonKeyConstants.APPSECRET);
+//    	
+//    	String url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential"
+//					+ "&appid={appid}"
+//					+ "&secret={secret}";
+//		RestTemplate restTemplate = new RestTemplate();
+//		AccessToken atk = restTemplate.getForObject(url, AccessToken.class, uriVariables);
+//		logger.info("atk: " + atk.getAccess_token());
+//		synchronized (RibbonKeyConstants.APPTOKEN) {
+//			RibbonKeyConstants.APPTOKEN = atk.getAccess_token();
+//		}
 	}
 
 }
