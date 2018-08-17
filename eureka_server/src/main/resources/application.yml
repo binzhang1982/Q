@@ -4,6 +4,9 @@ server:
 eureka:
   instance:
     hostname: localhost
+  server:
+    enable-self-preservation: false
+    eviction-interval-timer-in-ms: 10000
   client:
     registerWithEureka: false
     fetchRegistry: false
@@ -11,10 +14,10 @@ eureka:
       defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
       
 #日志相关配置
-spring:
-  profiles:
-    #指定读取配置文件:dev(开发环境),prod(生产环境)
-    active: dev
+#spring:
+#  profiles:
+#    #指定读取配置文件:dev(开发环境),prod(生产环境)
+#    active: prod
 
 logging:
   config: classpath:logback-${spring.profiles.active}.xml

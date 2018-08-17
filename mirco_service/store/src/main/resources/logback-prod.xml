@@ -26,15 +26,15 @@
         </encoder>
     </appender>
 
-    <root level="warn">
+    <root level="info">
         <appender-ref ref="file" />
     </root>
-    <logger name="org.springframework.scheduling"  level="error" />
+    <logger name="org.springframework.scheduling"  level="info" />
     <logger name="com.cn.zbin.store" level="info" />
-    <Logger name="org.apache.catalina.util.LifecycleBase" level="warn" />
-    <Logger name="org.apache.coyote.http11.Http11NioProtocol" level="warn" />
-    <Logger name="org.apache.tomcat.util.net.NioSelectorPool" level="warn" />
-    <Logger name="org.springframework" level="warn" />
+    <Logger name="org.apache.catalina.util.LifecycleBase" level="info" />
+    <Logger name="org.apache.coyote.http11.Http11NioProtocol" level="info" />
+    <Logger name="org.apache.tomcat.util.net.NioSelectorPool" level="info" />
+    <Logger name="org.springframework" level="info" />
     <logger name="org.mybatis" level="warn" />
     <logger name="java.sql" level="error" />
     <logger name="java.sql.Connection" level="error" />
