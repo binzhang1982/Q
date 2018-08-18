@@ -882,6 +882,76 @@ public class CustomerInfoExample {
             return (Criteria) this;
         }
 
+        public Criteria andDiseaseTextIsNull() {
+            addCriterion("disease_text is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiseaseTextIsNotNull() {
+            addCriterion("disease_text is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiseaseTextEqualTo(String value) {
+            addCriterion("disease_text =", value, "diseaseText");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiseaseTextNotEqualTo(String value) {
+            addCriterion("disease_text <>", value, "diseaseText");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiseaseTextGreaterThan(String value) {
+            addCriterion("disease_text >", value, "diseaseText");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiseaseTextGreaterThanOrEqualTo(String value) {
+            addCriterion("disease_text >=", value, "diseaseText");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiseaseTextLessThan(String value) {
+            addCriterion("disease_text <", value, "diseaseText");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiseaseTextLessThanOrEqualTo(String value) {
+            addCriterion("disease_text <=", value, "diseaseText");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiseaseTextLike(String value) {
+            addCriterion("disease_text like", value, "diseaseText");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiseaseTextNotLike(String value) {
+            addCriterion("disease_text not like", value, "diseaseText");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiseaseTextIn(List<String> values) {
+            addCriterion("disease_text in", values, "diseaseText");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiseaseTextNotIn(List<String> values) {
+            addCriterion("disease_text not in", values, "diseaseText");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiseaseTextBetween(String value1, String value2) {
+            addCriterion("disease_text between", value1, value2, "diseaseText");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiseaseTextNotBetween(String value1, String value2) {
+            addCriterion("disease_text not between", value1, value2, "diseaseText");
+            return (Criteria) this;
+        }
+
         public Criteria andCreateTimeIsNull() {
             addCriterion("create_time is null");
             return (Criteria) this;
