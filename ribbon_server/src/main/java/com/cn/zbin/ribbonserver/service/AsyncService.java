@@ -43,4 +43,14 @@ public class AsyncService {
 			e.printStackTrace();
 		}
 	}
+
+	@Async("asyncServiceExecutor")
+	public void executeCancelUnpaidOrderAsync() {
+		try {
+	    	String urlOrder = "http://SERVICE-STORE/order/cancel/sys";
+	        restTemplate.postForObject(urlOrder, null, String.class);
+		} catch (RestClientException e) {
+			e.printStackTrace();
+		}
+	}
 }

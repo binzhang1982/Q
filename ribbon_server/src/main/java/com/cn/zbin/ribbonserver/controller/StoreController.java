@@ -98,7 +98,6 @@ public class StoreController {
     	return storeService.updateTrolley(bean);
     }
     
-    
     @PostMapping(value = "/order/init")
     @CrossOrigin
     public String initOrder(
@@ -132,6 +131,7 @@ public class StoreController {
 	}
 	
     @GetMapping(value = "/order")
+    @CrossOrigin
 	public String getGuestOrder(@RequestParam("customerid") String customerid,
 			@RequestParam("orderid") String orderid) {
 		logger.info("get api: /store/order || customerid: " + customerid
@@ -140,10 +140,19 @@ public class StoreController {
 	}
     
     @GetMapping(value = "/prod/lease/calc")
+    @CrossOrigin
     public String calcPendingCount(@RequestParam("startdate") String pendingStartDate, 
     		@RequestParam("enddate") String pendingEndDate) {
 		logger.info("get api: /store/prod/lease/calc || startdate: " + pendingStartDate
 				+ " || enddate: " + pendingEndDate);
     	return storeService.calcPendingCount(pendingStartDate, pendingEndDate);
+    }
+    
+    @PostMapping(value = "/order/cancel/cust/{id}")
+    @CrossOrigin
+	public String cancelOrderByCustomer(
+			@RequestParam(value = "id", required = true) String customerid,
+			@RequestBody String bean) {
+    	return storeService.cancelOrderByCustomer(customerid, bean);
     }
 }

@@ -2,11 +2,13 @@ package com.cn.zbin.store.service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,7 @@ import com.cn.zbin.store.dto.GuestOrderInfo;
 import com.cn.zbin.store.dto.GuestOrderInfoExample;
 import com.cn.zbin.store.dto.MasterCity;
 import com.cn.zbin.store.dto.MasterProvince;
+import com.cn.zbin.store.dto.OrderOperationHistory;
 import com.cn.zbin.store.dto.OrderProduct;
 import com.cn.zbin.store.dto.OrderProductExample;
 import com.cn.zbin.store.dto.ProductImage;
@@ -37,6 +40,7 @@ import com.cn.zbin.store.mapper.CustomerInvoiceMapper;
 import com.cn.zbin.store.mapper.GuestOrderInfoMapper;
 import com.cn.zbin.store.mapper.MasterCityMapper;
 import com.cn.zbin.store.mapper.MasterProvinceMapper;
+import com.cn.zbin.store.mapper.OrderOperationHistoryMapper;
 import com.cn.zbin.store.mapper.OrderProductMapper;
 import com.cn.zbin.store.mapper.ProductImageMapper;
 import com.cn.zbin.store.mapper.ProductInfoMapper;
@@ -59,6 +63,8 @@ public class OrderService {
 	@Autowired
 	private OrderProductMapper orderProductMapper;
 	@Autowired
+	private OrderOperationHistoryMapper orderOperationHistoryMapper;
+	@Autowired
 	private ProductImageMapper productImageMapper;
 	@Autowired
 	private CustomerAddressMapper customerAddressMapper;
@@ -69,6 +75,51 @@ public class OrderService {
 	@Autowired
 	private MasterCityMapper masterCityMapper;
 	
+	public List<GuestOrderInfo> getExpiredUnpaidOrderList() {
+		GuestOrderInfoExample exam_goi = new GuestOrderInfoExample();
+		exam_goi.createCriteria()
+			.andUpdateTimeLessThanOrEqualTo(DateUtils.addHours(new Date(), -5))
+			.andStatusCodeEqualTo(StoreKeyConstants.ORDER_STATUS_UNPAID);
+		List<GuestOrderInfo> ret = guestOrderInfoMapper.selectByExample(exam_goi);
+		if (!Utils.listNotNull(ret)) ret = new ArrayList<GuestOrderInfo>();
+		return ret;
+	}
+	
+	@Transactional
+	public void operateOrder(OrderOperationHistory operation) 
+			throws BusinessException, Exception {
+		switch (operation.getOperateCode()) {
+			case StoreKeyConstants.ORDER_OPERATION_CANCEL:
+				GuestOrderInfo guestOrder = guestOrderInfoMapper.selectByPrimaryKey(
+						operation.getOrderId());
+				
+				if (guestOrder == null) 
+					throw new BusinessException(StoreConstants.CHK_ERR_90016);
+				
+				if (!guestOrder.getCustomerId().equals(guestOrder.getOrderId())) 
+					throw new BusinessException(StoreConstants.CHK_ERR_90017);
+				
+				if (!StoreKeyConstants.ORDER_STATUS_UNPAID.equals(guestOrder.getStatusCode())) 
+					throw new BusinessException(StoreConstants.CHK_ERR_90018);
+
+				operation.setOrderOperId(UUID.randomUUID().toString());
+				operation.setOrderProductId(null);
+				operation.setDeferDate(null);
+				operation.setPendingEndDate(null);
+				operation.setReturnCount(null);
+				orderOperationHistoryMapper.insertSelective(operation);
+				
+				GuestOrderInfo record = new GuestOrderInfo();
+				record.setOrderId(operation.getOrderId());
+				record.setStatusCode(StoreKeyConstants.ORDER_STATUS_CANCELED);
+				record.setUpdateEmpId(operation.getOperatorId());
+				guestOrderInfoMapper.updateByPrimaryKeySelective(record);
+				break;
+			default:
+				throw new BusinessException(StoreConstants.CHK_ERR_90019);
+		}
+	}
+	
 	public List<GuestOrderOverView> getGuestOrderList(String customerid,
 			String status, Integer offset, Integer limit) {
 		List<GuestOrderOverView> ret = new ArrayList<GuestOrderOverView>();
@@ -76,6 +127,9 @@ public class OrderService {
 		exam_go.createCriteria().andCustomerIdEqualTo(customerid);
 		if (StringUtils.isNotBlank(status)) 
 			exam_go.getOredCriteria().get(0).andStatusCodeEqualTo(status);
+		else
+			exam_go.getOredCriteria().get(0).andStatusCodeNotEqualTo(
+					StoreKeyConstants.ORDER_STATUS_CANCELED);
 		List<GuestOrderInfo> guestOrderList = guestOrderInfoMapper.selectOnePageByExample(
 				exam_go, offset, limit, "update_time desc");
 		if (Utils.listNotNull(guestOrderList)) {

@@ -16,8 +16,11 @@ public class StoreConstants {
 	public final static String CHK_ERR_90012 = "90012:商品送到哪儿去呀?!";
 	public final static String CHK_ERR_90013 = "90013:订单单件商品金额有误,请联系我们!";
 	public final static String CHK_ERR_90014 = "90014:订单商品总金额有误,请联系我们!";
-	public final static String CHK_ERR_90015 = "90014:日期转换失败!";
-	
+	public final static String CHK_ERR_90015 = "90015:日期转换失败!";
+	public final static String CHK_ERR_90016 = "90016:订单不存在,不能取消!";
+	public final static String CHK_ERR_90017 = "90017:这不是您的订单,不能取消!";
+	public final static String CHK_ERR_90018 = "90018:不是未付款订单,不能取消!";
+	public final static String CHK_ERR_90019 = "90019:无效操作,请联系我们!";
 	
 	public final static String CHK_ERR_99999 = "99999:系统出错,请联系我们!";
 	

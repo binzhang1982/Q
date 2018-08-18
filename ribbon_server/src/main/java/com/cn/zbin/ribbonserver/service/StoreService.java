@@ -226,4 +226,20 @@ public class StoreService {
     public String calcPendingCountError(String pendingStartDate, String pendingEndDate) {
     	return "failed";
     }
+    
+    @HystrixCommand(fallbackMethod = "cancelOrderByCustomerError")
+    public String cancelOrderByCustomer(String customerid, String bean) {
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("customerid", customerid);
+    	String url = "http://SERVICE-STORE/order/cancel/cust/{customerid}";
+    	
+        HttpHeaders headers =new HttpHeaders();
+        MediaType mtype = MediaType.parseMediaType("application/json; charset=UTF-8");
+        headers.setContentType(mtype);
+        HttpEntity<String> request = new HttpEntity<String>(bean, headers);
+    	return restTemplate.postForObject(url, request, String.class, uriVariables);
+    }
+    public String cancelOrderByCustomerError(String bean) {
+    	return "failed";
+    }
 }
