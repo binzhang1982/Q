@@ -96,7 +96,8 @@ public class OrderService {
 				if (guestOrder == null) 
 					throw new BusinessException(StoreConstants.CHK_ERR_90016);
 				
-				if (!guestOrder.getCustomerId().equals(guestOrder.getOrderId())) 
+				if (!guestOrder.getCustomerId().equals(operation.getOperatorId()) && 
+						StoreKeyConstants.OPERATION_TYPE_CUSTOMER.equals(operation.getOperateType())) 
 					throw new BusinessException(StoreConstants.CHK_ERR_90017);
 				
 				if (!StoreKeyConstants.ORDER_STATUS_UNPAID.equals(guestOrder.getStatusCode())) 

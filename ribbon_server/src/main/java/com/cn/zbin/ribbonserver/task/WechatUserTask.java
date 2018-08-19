@@ -25,34 +25,34 @@ public class WechatUserTask {
 	
 	@Scheduled(cron="0 0/30 * * * ? ")
 	public void getAllUser() throws RestClientException, UnsupportedEncodingException {
-//		RestTemplate restTemplate = new RestTemplate();
-//		Integer count = 10000;
-//		String nextOpenId = "";
-//		String url = "";
-//		WechatUserList allUsers;
-//    	Map<String, Object> uriVariables_atk;
-//    	while(count == 10000) {
-//        	uriVariables_atk = new HashMap<String, Object>();
-//        	if ("".equals(nextOpenId)) {
-//            	uriVariables_atk.put("atk", RibbonKeyConstants.APPTOKEN);
-//            	url = "https://api.weixin.qq.com/cgi-bin/user/get?"
-//            	    	+ "access_token={atk}";
-//            } else {
-//                uriVariables_atk.put("atk", RibbonKeyConstants.APPTOKEN);
-//        		uriVariables_atk.put("nextOpenId", nextOpenId);
-//        		url = "https://api.weixin.qq.com/cgi-bin/user/get?"
-//        				+ "access_token={atk}"
-//        				+ "&next_openid={nextOpenId}";
-//        	}
-//        	allUsers = restTemplate.getForObject(
-//        	    	url, WechatUserList.class, uriVariables_atk);
-//        	for (String openid : allUsers.getData().getOpenid()) {
-//        		logger.info("openid: {}", openid);
-//        		asyncService.executeWechatUserAsync(openid);
-//        		asyncService.executeMgmtCustAsync(openid);
-//        	}
-//        	count = allUsers.getCount();
-//        	nextOpenId = allUsers.getNext_openid();
-//        }
+		RestTemplate restTemplate = new RestTemplate();
+		Integer count = 10000;
+		String nextOpenId = "";
+		String url = "";
+		WechatUserList allUsers;
+    	Map<String, Object> uriVariables_atk;
+    	while(count == 10000) {
+        	uriVariables_atk = new HashMap<String, Object>();
+        	if ("".equals(nextOpenId)) {
+            	uriVariables_atk.put("atk", RibbonKeyConstants.APPTOKEN);
+            	url = "https://api.weixin.qq.com/cgi-bin/user/get?"
+            	    	+ "access_token={atk}";
+            } else {
+                uriVariables_atk.put("atk", RibbonKeyConstants.APPTOKEN);
+        		uriVariables_atk.put("nextOpenId", nextOpenId);
+        		url = "https://api.weixin.qq.com/cgi-bin/user/get?"
+        				+ "access_token={atk}"
+        				+ "&next_openid={nextOpenId}";
+        	}
+        	allUsers = restTemplate.getForObject(
+        	    	url, WechatUserList.class, uriVariables_atk);
+        	for (String openid : allUsers.getData().getOpenid()) {
+        		logger.info("openid: {}", openid);
+        		asyncService.executeWechatUserAsync(openid);
+        		asyncService.executeMgmtCustAsync(openid);
+        	}
+        	count = allUsers.getCount();
+        	nextOpenId = allUsers.getNext_openid();
+        }
 	}
 }

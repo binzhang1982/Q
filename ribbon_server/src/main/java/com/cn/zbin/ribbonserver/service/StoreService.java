@@ -231,7 +231,7 @@ public class StoreService {
     public String cancelOrderByCustomer(String customerid, String bean) {
     	Map<String, Object> uriVariables = new HashMap<String, Object>();
     	uriVariables.put("customerid", customerid);
-    	String url = "http://SERVICE-STORE/order/cancel/cust/{customerid}";
+    	String url = "http://SERVICE-STORE/order/cancel/cust?customerid={customerid}";
     	
         HttpHeaders headers =new HttpHeaders();
         MediaType mtype = MediaType.parseMediaType("application/json; charset=UTF-8");
@@ -239,7 +239,7 @@ public class StoreService {
         HttpEntity<String> request = new HttpEntity<String>(bean, headers);
     	return restTemplate.postForObject(url, request, String.class, uriVariables);
     }
-    public String cancelOrderByCustomerError(String bean) {
+    public String cancelOrderByCustomerError(String customerid, String bean) {
     	return "failed";
     }
 }

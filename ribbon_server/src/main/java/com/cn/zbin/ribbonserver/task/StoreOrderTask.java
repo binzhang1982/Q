@@ -14,7 +14,8 @@ public class StoreOrderTask {
 
 	@Autowired
 	private AsyncService asyncService;
-	
+
+//	@Scheduled(cron="0 0/5 * * * ?")
 	@Scheduled(cron="0 0 0/1 * * ?")
 	public void cancelOrderTask() {
 		asyncService.executeCancelUnpaidOrderAsync();

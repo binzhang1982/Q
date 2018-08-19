@@ -84,16 +84,19 @@ public class OrderController {
 		return orderService.getGuestOrder(customerid, orderid);
 	}
 
-	@RequestMapping(value = "/cancel/cust/{id}", 
+	@RequestMapping(value = "/cancel/cust", 
 			consumes = {"application/json;charset=UTF-8"}, 
 			produces = {"application/json;charset=UTF-8"}, 
 			method = { RequestMethod.POST })
 	public MsgData cancelOrderByCustomer(
-			@RequestParam(value = "id", required = true) String customerid,
+			@RequestParam(value = "customerid", required = true) String customerid,
 			@RequestBody List<OrderOperationHistory> operationList) {
+		logger.info("post api: /order/cancel/cust || customerid: " + customerid
+				+ " || operationList: " + operationList);
 		MsgData ret = new MsgData();
 		try {
 			for (OrderOperationHistory operation : operationList) {
+				operation.setOperateCode(StoreKeyConstants.ORDER_OPERATION_CANCEL);
 				operation.setOperateType(StoreKeyConstants.OPERATION_TYPE_CUSTOMER);
 				operation.setOperatorId(customerid);
 				orderService.operateOrder(operation);
@@ -102,6 +105,7 @@ public class OrderController {
 			ret.setStatus(MsgData.status_ng);
 			ret.setMessage(be.getMessage());
 		} catch (Exception e) {
+			e.printStackTrace();
 			ret.setStatus(MsgData.status_ng);
 			ret.setMessage(StoreConstants.CHK_ERR_99999);
 		}
@@ -112,13 +116,14 @@ public class OrderController {
 	@RequestMapping(value = "/cancel/sys", 
 			method = { RequestMethod.POST })
 	public MsgData cancelOrderBySystem() {
+		logger.info("post api: /order/cancel/sys");
 		MsgData ret = new MsgData();
 		try {
 			List<GuestOrderInfo> orderList = orderService.getExpiredUnpaidOrderList();
 			for (GuestOrderInfo order : orderList) {
 				OrderOperationHistory operation = new OrderOperationHistory();
 				operation.setOperateCode(StoreKeyConstants.ORDER_OPERATION_CANCEL);
-				operation.setOperateType(StoreKeyConstants.OPERATION_TYPE_CUSTOMER);
+				operation.setOperateType(StoreKeyConstants.OPERATION_TYPE_MANAGEMENT);
 				operation.setOperatorId(StoreKeyConstants.SYSTEM_EMP_ID);
 				operation.setOrderId(order.getOrderId());
 				orderService.operateOrder(operation);

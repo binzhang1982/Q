@@ -148,11 +148,13 @@ public class StoreController {
     	return storeService.calcPendingCount(pendingStartDate, pendingEndDate);
     }
     
-    @PostMapping(value = "/order/cancel/cust/{id}")
+    @PostMapping(value = "/order/cancel/cust")
     @CrossOrigin
 	public String cancelOrderByCustomer(
-			@RequestParam(value = "id", required = true) String customerid,
+			@RequestParam(value = "customerid", required = true) String customerid,
 			@RequestBody String bean) {
+		logger.info("post api: /order/cancel/cust || customerid: " + customerid
+				+ " || bean: " + bean);
     	return storeService.cancelOrderByCustomer(customerid, bean);
     }
 }
