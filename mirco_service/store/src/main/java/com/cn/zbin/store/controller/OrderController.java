@@ -1,6 +1,8 @@
 package com.cn.zbin.store.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import com.cn.zbin.store.bto.GuestOrderOverView;
 import com.cn.zbin.store.bto.MsgData;
@@ -27,6 +30,8 @@ public class OrderController {
 	protected static final Logger logger = LoggerFactory.getLogger(OrderController.class);
 	@Autowired
 	private OrderService orderService;
+	@Autowired
+    private RestTemplate restTemplate;
 
 	@RequestMapping(value = "/init", 
 			consumes = {"application/json;charset=UTF-8"}, 
@@ -137,5 +142,29 @@ public class OrderController {
 		}
 		
 		return ret;
+	}
+
+	@RequestMapping(value = "/pay/unified", 
+			method = { RequestMethod.GET })
+	public void unifiedOrderPay(String appid, String mch_id, String key) {
+//		Map<String, String> data = new HashMap<String, String>();
+//		data.put("appid", appid);
+//		data.put("mch_id", mch_id);
+//		data.put("nonce_str", WXPayUtil.generateNonceStr());
+//		data.put("sign_type", "HMAC-SHA256");
+//		data.put("body", "巧赁辉-微信支付");
+//		data.put("out_trade_no", "20150806125346");
+//		data.put("total_fee", "1");
+//		data.put("spbill_create_ip", "52.231.194.85");
+//		data.put("notify_url", "zbin429.koreasouth.cloudapp.azure.com");
+//		data.put("trade_type", "JSAPI");
+//		
+//		String url = "https://api.mch.weixin.qq.com/pay/unifiedorder";
+//		try {
+//			String xml = WXPayUtil.generateSignedXml(data, key, SignType.HMACSHA256);
+//		} catch (Exception e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 	}
 }
