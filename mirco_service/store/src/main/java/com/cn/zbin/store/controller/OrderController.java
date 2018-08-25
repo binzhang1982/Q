@@ -146,25 +146,66 @@ public class OrderController {
 
 	@RequestMapping(value = "/pay/unified", 
 			method = { RequestMethod.GET })
-	public void unifiedOrderPay(String appid, String mch_id, String key) {
-//		Map<String, String> data = new HashMap<String, String>();
-//		data.put("appid", appid);
-//		data.put("mch_id", mch_id);
-//		data.put("nonce_str", WXPayUtil.generateNonceStr());
-//		data.put("sign_type", "HMAC-SHA256");
-//		data.put("body", "巧赁辉-微信支付");
-//		data.put("out_trade_no", "20150806125346");
-//		data.put("total_fee", "1");
-//		data.put("spbill_create_ip", "52.231.194.85");
-//		data.put("notify_url", "zbin429.koreasouth.cloudapp.azure.com");
-//		data.put("trade_type", "JSAPI");
-//		
-//		String url = "https://api.mch.weixin.qq.com/pay/unifiedorder";
-//		try {
-//			String xml = WXPayUtil.generateSignedXml(data, key, SignType.HMACSHA256);
-//		} catch (Exception e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+	public void unifiedOrderPay(
+			@RequestParam(value = "orderid", required = true) String orderId, 
+			@RequestParam(value = "customerid", required = true) String customerId, 
+			@RequestParam(value = "ip", required = true) String spbillCreateIp, 
+			@RequestParam(value = "appid", required = true) String appid, 
+			@RequestParam(value = "mchid", required = true) String mch_id, 
+			@RequestParam(value = "key", required = true) String key) {
+		try {
+			Map<String, String> resp = orderService.applyPayUnified(orderId, customerId, 
+					spbillCreateIp, appid, mch_id, key, StoreKeyConstants.CERT_PATH);
+			String msg = "return_code : " + resp.get("return_code") + 
+					" | return_msg : " + resp.get("return_msg");
+			if (resp.containsKey("prepay_id")) { 
+				msg = msg + " | prepay_id : " + resp.get("prepay_id");
+			}
+			logger.info(msg);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@RequestMapping(value = "/pay/query", 
+			method = { RequestMethod.GET })
+	public void queryOrderPay(
+			@RequestParam(value = "orderid", required = true) String orderId, 
+			@RequestParam(value = "appid", required = true) String appid, 
+			@RequestParam(value = "mchid", required = true) String mch_id, 
+			@RequestParam(value = "key", required = true) String key) {
+		try {
+			Map<String, String> resp = orderService.queryPay(orderId, appid, 
+					mch_id, key, StoreKeyConstants.CERT_PATH);
+			String msg = "return_code : " + resp.get("return_code") + 
+					" | return_msg : " + resp.get("return_msg");
+			if (resp.containsKey("trade_state")) { 
+				msg = msg + " | trade_state : " + resp.get("trade_state");
+			}
+			logger.info(msg);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@RequestMapping(value = "/pay/close", 
+			method = { RequestMethod.GET })
+	public void closeOrderPay(
+			@RequestParam(value = "orderid", required = true) String orderId, 
+			@RequestParam(value = "appid", required = true) String appid, 
+			@RequestParam(value = "mchid", required = true) String mch_id, 
+			@RequestParam(value = "key", required = true) String key) {
+		try {
+			Map<String, String> resp = orderService.closePay(orderId, appid, 
+					mch_id, key, StoreKeyConstants.CERT_PATH);
+			String msg = "return_code : " + resp.get("return_code") + 
+					" | return_msg : " + resp.get("return_msg");
+			if (resp.containsKey("result_code")) { 
+				msg = msg + " | result_code : " + resp.get("result_code");
+			}
+			logger.info(msg);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

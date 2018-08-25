@@ -3,7 +3,9 @@ package com.cn.zbin.store.service;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -19,6 +21,7 @@ import com.cn.zbin.store.bto.GuestOrderOverView;
 import com.cn.zbin.store.bto.MsgData;
 import com.cn.zbin.store.bto.OrderProductOverView;
 import com.cn.zbin.store.dto.CustomerAddress;
+import com.cn.zbin.store.dto.CustomerInfo;
 import com.cn.zbin.store.dto.CustomerInvoice;
 import com.cn.zbin.store.dto.GuestOrderInfo;
 import com.cn.zbin.store.dto.GuestOrderInfoExample;
@@ -36,6 +39,7 @@ import com.cn.zbin.store.dto.ShoppingTrolleyInfo;
 import com.cn.zbin.store.dto.ShoppingTrolleyInfoExample;
 import com.cn.zbin.store.exception.BusinessException;
 import com.cn.zbin.store.mapper.CustomerAddressMapper;
+import com.cn.zbin.store.mapper.CustomerInfoMapper;
 import com.cn.zbin.store.mapper.CustomerInvoiceMapper;
 import com.cn.zbin.store.mapper.GuestOrderInfoMapper;
 import com.cn.zbin.store.mapper.MasterCityMapper;
@@ -46,9 +50,11 @@ import com.cn.zbin.store.mapper.ProductImageMapper;
 import com.cn.zbin.store.mapper.ProductInfoMapper;
 import com.cn.zbin.store.mapper.ProductPriceMapper;
 import com.cn.zbin.store.mapper.ShoppingTrolleyInfoMapper;
+import com.cn.zbin.store.utils.QLHWXPayConfig;
 import com.cn.zbin.store.utils.StoreConstants;
 import com.cn.zbin.store.utils.StoreKeyConstants;
 import com.cn.zbin.store.utils.Utils;
+import com.github.wxpay.sdk.WXPay;
 
 @Service
 public class OrderService {
@@ -74,6 +80,50 @@ public class OrderService {
 	private MasterProvinceMapper masterProvinceMapper;
 	@Autowired
 	private MasterCityMapper masterCityMapper;
+	@Autowired
+	private CustomerInfoMapper customerInfoMapper;
+	
+	public Map<String, String> closePay(String orderId, String appid, 
+			String mch_id, String key, String path) throws Exception {
+		QLHWXPayConfig config = new QLHWXPayConfig(path, appid, key, mch_id);
+        WXPay wxpay = new WXPay(config);
+        Map<String, String> data = new HashMap<String, String>();
+        data.put("out_trade_no", orderId);
+        Map<String, String> resp = wxpay.closeOrder(data);
+        return resp;
+	}
+	
+	public Map<String, String> queryPay(String orderId, String appid, 
+			String mch_id, String key, String path) throws Exception {
+		QLHWXPayConfig config = new QLHWXPayConfig(path, appid, key, mch_id);
+        WXPay wxpay = new WXPay(config);
+        Map<String, String> data = new HashMap<String, String>();
+        data.put("out_trade_no", orderId);
+        Map<String, String> resp = wxpay.orderQuery(data);
+        return resp;
+	}
+	
+	public Map<String, String> applyPayUnified(String orderId, String customerid, String spbillCreateIp, 
+			String appid, String mch_id, String key, String path) throws Exception {
+		CustomerInfo cust = customerInfoMapper.selectByPrimaryKey(customerid);
+		String openid = cust.getRegisterId();
+		
+		QLHWXPayConfig config = new QLHWXPayConfig(path, appid, key, mch_id);
+        WXPay wxpay = new WXPay(config);
+        Map<String, String> data = new HashMap<String, String>();
+        String body="订单支付";
+        data.put("body", body);
+        //TODO 32位去掉-
+        data.put("out_trade_no", orderId);
+        data.put("total_fee", "1");
+        data.put("spbill_create_ip",spbillCreateIp);
+        //TODO 异步通知地址（请注意必须是外网）
+        data.put("notify_url", "http://106.15.88.109/store/order/wxpay/notify");
+        data.put("trade_type", "JSAPI");
+        data.put("openid", openid);
+        Map<String, String> resp = wxpay.unifiedOrder(data);
+		return resp;
+	}
 	
 	public List<GuestOrderInfo> getExpiredUnpaidOrderList() {
 		GuestOrderInfoExample exam_goi = new GuestOrderInfoExample();
