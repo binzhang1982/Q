@@ -37,6 +37,8 @@ import com.cn.zbin.store.dto.ProductPrice;
 import com.cn.zbin.store.dto.ProductPriceExample;
 import com.cn.zbin.store.dto.ShoppingTrolleyInfo;
 import com.cn.zbin.store.dto.ShoppingTrolleyInfoExample;
+import com.cn.zbin.store.dto.WxPayHistory;
+import com.cn.zbin.store.dto.WxPayHistoryExample;
 import com.cn.zbin.store.exception.BusinessException;
 import com.cn.zbin.store.mapper.CustomerAddressMapper;
 import com.cn.zbin.store.mapper.CustomerInfoMapper;
@@ -50,6 +52,7 @@ import com.cn.zbin.store.mapper.ProductImageMapper;
 import com.cn.zbin.store.mapper.ProductInfoMapper;
 import com.cn.zbin.store.mapper.ProductPriceMapper;
 import com.cn.zbin.store.mapper.ShoppingTrolleyInfoMapper;
+import com.cn.zbin.store.mapper.WxPayHistoryMapper;
 import com.cn.zbin.store.utils.QLHWXPayConfig;
 import com.cn.zbin.store.utils.StoreConstants;
 import com.cn.zbin.store.utils.StoreKeyConstants;
@@ -82,10 +85,22 @@ public class OrderService {
 	private MasterCityMapper masterCityMapper;
 	@Autowired
 	private CustomerInfoMapper customerInfoMapper;
+	@Autowired
+	private WxPayHistoryMapper wxPayHistoryMapper;
+	
+	@Transactional
+	public void logPayHistory(WxPayHistory hist) throws Exception {
+		WxPayHistoryExample exam_wph = new WxPayHistoryExample();
+		exam_wph.createCriteria().andOutTradeNoEqualTo(hist.getOutTradeNo());
+		if (wxPayHistoryMapper.countByExample(exam_wph) > 0)
+			wxPayHistoryMapper.updateByPrimaryKeySelective(hist);
+		else
+			wxPayHistoryMapper.insertSelective(hist);
+	}
 	
 	public Map<String, String> closePay(String orderId, String appid, 
-			String mch_id, String key, String path) throws Exception {
-		QLHWXPayConfig config = new QLHWXPayConfig(path, appid, key, mch_id);
+			String mch_id, String key) throws Exception {
+		QLHWXPayConfig config = new QLHWXPayConfig(null, appid, key, mch_id);
         WXPay wxpay = new WXPay(config);
         Map<String, String> data = new HashMap<String, String>();
         data.put("out_trade_no", orderId);
@@ -94,8 +109,8 @@ public class OrderService {
 	}
 	
 	public Map<String, String> queryPay(String orderId, String appid, 
-			String mch_id, String key, String path) throws Exception {
-		QLHWXPayConfig config = new QLHWXPayConfig(path, appid, key, mch_id);
+			String mch_id, String key) throws Exception {
+		QLHWXPayConfig config = new QLHWXPayConfig(null, appid, key, mch_id);
         WXPay wxpay = new WXPay(config);
         Map<String, String> data = new HashMap<String, String>();
         data.put("out_trade_no", orderId);
@@ -103,26 +118,59 @@ public class OrderService {
         return resp;
 	}
 	
-	public Map<String, String> applyPayUnified(String orderId, String customerid, String spbillCreateIp, 
-			String appid, String mch_id, String key, String path) throws Exception {
+	public WxPayHistory applyPayUnified(String orderId, String customerid, 
+			String spbillCreateIp, String appid, String mch_id, String key)
+			throws BusinessException, Exception {
+        WxPayHistory ret = new WxPayHistory();
 		CustomerInfo cust = customerInfoMapper.selectByPrimaryKey(customerid);
+		if (cust == null) throw new BusinessException(StoreConstants.CHK_ERR_90004);
 		String openid = cust.getRegisterId();
+		if (openid == null) throw new BusinessException(StoreConstants.CHK_ERR_90004);
 		
-		QLHWXPayConfig config = new QLHWXPayConfig(path, appid, key, mch_id);
+		GuestOrderInfo order = guestOrderInfoMapper.selectByPrimaryKey(orderId);
+		if (order == null) throw new BusinessException(StoreConstants.CHK_ERR_90020);
+		if (!StoreKeyConstants.ORDER_STATUS_UNPAID.equals(order.getStatusCode()))
+			throw new BusinessException(StoreConstants.CHK_ERR_90021);
+		BigDecimal totalAmount = order.getTotalAmount();
+		if (totalAmount == null) throw new BusinessException(StoreConstants.CHK_ERR_90013);
+		if (totalAmount.compareTo(new BigDecimal(0)) <= 0) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90013);
+		
+		QLHWXPayConfig config = new QLHWXPayConfig(null, appid, key, mch_id);
         WXPay wxpay = new WXPay(config);
         Map<String, String> data = new HashMap<String, String>();
-        String body="订单支付";
-        data.put("body", body);
-        //TODO 32位去掉-
-        data.put("out_trade_no", orderId);
-        data.put("total_fee", "1");
+        data.put("body", StoreKeyConstants.PAY_BODY);
+        //32位,建议根据当前系统时间加随机序列来生成订单号
+        String outTradeNo = Utils.getTradeNo();
+        data.put("out_trade_no", outTradeNo);
+        String totalFee = String.valueOf(totalAmount.multiply(new BigDecimal(100)).intValue());
+        data.put("total_fee", totalFee);
         data.put("spbill_create_ip",spbillCreateIp);
         //TODO 异步通知地址（请注意必须是外网）
-        data.put("notify_url", "http://106.15.88.109/store/order/wxpay/notify");
+//        data.put("notify_url", "http://106.15.88.109/store/order/wxpay/notify");
+        data.put("notify_url", "http://52.231.194.85/store/order/wxpay/notify");
         data.put("trade_type", "JSAPI");
         data.put("openid", openid);
         Map<String, String> resp = wxpay.unifiedOrder(data);
-		return resp;
+        
+        if (resp != null) {
+            ret.setOrderId(orderId);
+            ret.setSpbillCreateIp(spbillCreateIp);
+            ret.setOpenid(openid);
+            ret.setOutTradeNo(outTradeNo);
+            ret.setTotalFee(Integer.valueOf(totalFee));
+            ret.setReturnCode(resp.get("return_code"));
+            ret.setReturnMsg(resp.get("return_msg"));
+            ret.setTradeState("NOTPAY");
+			ret.setWxApi("unifiedorder");
+            if (resp.containsKey("nonce_str")) ret.setNonceStr(resp.get("nonce_str"));
+            if (resp.containsKey("sign")) ret.setSign(resp.get("sign"));
+            if (resp.containsKey("result_code")) ret.setResultCode(resp.get("result_code"));
+            if (resp.containsKey("err_code")) ret.setErrCode(resp.get("err_code"));
+            if (resp.containsKey("err_code_des")) ret.setErrCodeDes(resp.get("err_code_des"));
+            if (resp.containsKey("prepay_id")) ret.setPrepayId(resp.get("prepay_id"));
+        }
+		return ret;
 	}
 	
 	public List<GuestOrderInfo> getExpiredUnpaidOrderList() {

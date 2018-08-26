@@ -1,8 +1,17 @@
 package com.cn.zbin.store.utils;
 
+import java.security.SecureRandom;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Random;
 
 public class Utils {
+
+    private static final String SYMBOLS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private static final Random RANDOM = new SecureRandom();
+    
     public static boolean stringNotEmpty(String res) {
         return null != res && !"".equals(res.trim());
     }
@@ -74,4 +83,17 @@ public class Utils {
 		newString = newString + srcStr;
 		return newString;
 	}
+    
+    public static String getTradeNo() {
+    	Calendar cal = Calendar.getInstance(); 
+    	Date date = cal.getTime();
+    	//20160505010134364
+    	String time = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(date);
+
+        char[] nonceChars = new char[15];
+        for (int index = 0; index < nonceChars.length; ++index) {
+            nonceChars[index] = SYMBOLS.charAt(RANDOM.nextInt(SYMBOLS.length()));
+        }
+        return new String(nonceChars) + time;
+    }
 }

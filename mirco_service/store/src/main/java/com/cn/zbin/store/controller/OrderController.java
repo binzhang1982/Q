@@ -16,9 +16,11 @@ import org.springframework.web.client.RestTemplate;
 
 import com.cn.zbin.store.bto.GuestOrderOverView;
 import com.cn.zbin.store.bto.MsgData;
+import com.cn.zbin.store.bto.WxPayOverView;
 import com.cn.zbin.store.dto.GuestOrderInfo;
 import com.cn.zbin.store.dto.OrderOperationHistory;
 import com.cn.zbin.store.dto.ShoppingTrolleyInfo;
+import com.cn.zbin.store.dto.WxPayHistory;
 import com.cn.zbin.store.exception.BusinessException;
 import com.cn.zbin.store.service.OrderService;
 import com.cn.zbin.store.utils.StoreConstants;
@@ -146,37 +148,57 @@ public class OrderController {
 
 	@RequestMapping(value = "/pay/unified", 
 			method = { RequestMethod.GET })
-	public void unifiedOrderPay(
+	public WxPayOverView unifiedOrderPay(
 			@RequestParam(value = "orderid", required = true) String orderId, 
 			@RequestParam(value = "customerid", required = true) String customerId, 
 			@RequestParam(value = "ip", required = true) String spbillCreateIp, 
-			@RequestParam(value = "appid", required = true) String appid, 
-			@RequestParam(value = "mchid", required = true) String mch_id, 
-			@RequestParam(value = "key", required = true) String key) {
+			@RequestParam(value = "appid", required = true) String appid) {
+		logger.info("get api: /order/pay/unified || orderid: " + orderId
+				+ " || customerid: " + customerId + " || ip: " + spbillCreateIp);
+		WxPayOverView ret = new WxPayOverView();
+		WxPayHistory hist = new WxPayHistory();
 		try {
-			Map<String, String> resp = orderService.applyPayUnified(orderId, customerId, 
-					spbillCreateIp, appid, mch_id, key, StoreKeyConstants.CERT_PATH);
-			String msg = "return_code : " + resp.get("return_code") + 
-					" | return_msg : " + resp.get("return_msg");
-			if (resp.containsKey("prepay_id")) { 
-				msg = msg + " | prepay_id : " + resp.get("prepay_id");
-			}
-			logger.info(msg);
+			hist = orderService.applyPayUnified(orderId, customerId, 
+					spbillCreateIp, appid, StoreKeyConstants.MCHID, StoreKeyConstants.PAYSECRET);
+			logger.info("return_code : {} | return_msg : {} | prepay_id : {}", 
+					hist.getReturnCode(), hist.getReturnMsg(), hist.getPrepayId());
+		} catch (BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getMessage());
+			logger.info(be.getMessage());
+			return ret;
 		} catch (Exception e) {
 			e.printStackTrace();
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(StoreConstants.CHK_ERR_99999);
+			return ret;
 		}
+		
+		if (hist.getOutTradeNo() != null) {
+			try {
+				orderService.logPayHistory(hist);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		hist.setNonceStr(null);
+		hist.setSign(null);
+		hist.setWxApi(null);
+		
+		ret.setPay(hist);
+		
+		return ret;
 	}
 
 	@RequestMapping(value = "/pay/query", 
 			method = { RequestMethod.GET })
 	public void queryOrderPay(
 			@RequestParam(value = "orderid", required = true) String orderId, 
-			@RequestParam(value = "appid", required = true) String appid, 
-			@RequestParam(value = "mchid", required = true) String mch_id, 
-			@RequestParam(value = "key", required = true) String key) {
+			@RequestParam(value = "appid", required = true) String appid) {
 		try {
 			Map<String, String> resp = orderService.queryPay(orderId, appid, 
-					mch_id, key, StoreKeyConstants.CERT_PATH);
+					StoreKeyConstants.MCHID, StoreKeyConstants.PAYSECRET);
 			String msg = "return_code : " + resp.get("return_code") + 
 					" | return_msg : " + resp.get("return_msg");
 			if (resp.containsKey("trade_state")) { 
@@ -192,12 +214,10 @@ public class OrderController {
 			method = { RequestMethod.GET })
 	public void closeOrderPay(
 			@RequestParam(value = "orderid", required = true) String orderId, 
-			@RequestParam(value = "appid", required = true) String appid, 
-			@RequestParam(value = "mchid", required = true) String mch_id, 
-			@RequestParam(value = "key", required = true) String key) {
+			@RequestParam(value = "appid", required = true) String appid) {
 		try {
 			Map<String, String> resp = orderService.closePay(orderId, appid, 
-					mch_id, key, StoreKeyConstants.CERT_PATH);
+					StoreKeyConstants.MCHID, StoreKeyConstants.PAYSECRET);
 			String msg = "return_code : " + resp.get("return_code") + 
 					" | return_msg : " + resp.get("return_msg");
 			if (resp.containsKey("result_code")) { 
