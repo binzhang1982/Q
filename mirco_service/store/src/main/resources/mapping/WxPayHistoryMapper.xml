@@ -23,7 +23,7 @@
     <result column="bank_type" property="bankType" jdbcType="VARCHAR" />
     <result column="cash_fee" property="cashFee" jdbcType="INTEGER" />
     <result column="transaction_id" property="transactionId" jdbcType="VARCHAR" />
-    <result column="time_end" property="timeEnd" jdbcType="VARCHAR" />
+    <result column="time_end" property="timeEnd" jdbcType="TIMESTAMP" />
     <result column="trade_state_desc" property="tradeStateDesc" jdbcType="VARCHAR" />
     <result column="wx_api" property="wxApi" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
@@ -169,9 +169,9 @@
       #{returnMsg,jdbcType=VARCHAR}, #{nonceStr,jdbcType=VARCHAR}, #{sign,jdbcType=VARCHAR}, 
       #{resultCode,jdbcType=VARCHAR}, #{errCode,jdbcType=VARCHAR}, #{errCodeDes,jdbcType=VARCHAR}, 
       #{prepayId,jdbcType=VARCHAR}, #{tradeState,jdbcType=VARCHAR}, #{bankType,jdbcType=VARCHAR}, 
-      #{cashFee,jdbcType=INTEGER}, #{transactionId,jdbcType=VARCHAR}, #{timeEnd,jdbcType=VARCHAR}, 
-      #{tradeStateDesc,jdbcType=VARCHAR}, #{wxApi,jdbcType=VARCHAR}, now(), 
-      now())
+      #{cashFee,jdbcType=INTEGER}, #{transactionId,jdbcType=VARCHAR}, #{timeEnd,jdbcType=TIMESTAMP}, 
+      #{tradeStateDesc,jdbcType=VARCHAR}, #{wxApi,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.cn.zbin.store.dto.WxPayHistory" >
     <!--
@@ -240,8 +240,12 @@
       <if test="wxApi != null" >
         wx_api,
       </if>
+      <if test="createTime != null" >
         create_time,
+      </if>
+      <if test="updateTime != null" >
         update_time,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="outTradeNo != null" >
@@ -296,7 +300,7 @@
         #{transactionId,jdbcType=VARCHAR},
       </if>
       <if test="timeEnd != null" >
-        #{timeEnd,jdbcType=VARCHAR},
+        #{timeEnd,jdbcType=TIMESTAMP},
       </if>
       <if test="tradeStateDesc != null" >
         #{tradeStateDesc,jdbcType=VARCHAR},
@@ -304,8 +308,12 @@
       <if test="wxApi != null" >
         #{wxApi,jdbcType=VARCHAR},
       </if>
-        now(),
-        now(),
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
     </trim>
   </insert>
   <select id="countByExample" parameterType="com.cn.zbin.store.dto.WxPayHistoryExample" resultType="java.lang.Integer" >
@@ -377,7 +385,7 @@
         transaction_id = #{record.transactionId,jdbcType=VARCHAR},
       </if>
       <if test="record.timeEnd != null" >
-        time_end = #{record.timeEnd,jdbcType=VARCHAR},
+        time_end = #{record.timeEnd,jdbcType=TIMESTAMP},
       </if>
       <if test="record.tradeStateDesc != null" >
         trade_state_desc = #{record.tradeStateDesc,jdbcType=VARCHAR},
@@ -388,7 +396,9 @@
       <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
       </if>
-        update_time = now(),
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -417,11 +427,11 @@
       bank_type = #{record.bankType,jdbcType=VARCHAR},
       cash_fee = #{record.cashFee,jdbcType=INTEGER},
       transaction_id = #{record.transactionId,jdbcType=VARCHAR},
-      time_end = #{record.timeEnd,jdbcType=VARCHAR},
+      time_end = #{record.timeEnd,jdbcType=TIMESTAMP},
       trade_state_desc = #{record.tradeStateDesc,jdbcType=VARCHAR},
       wx_api = #{record.wxApi,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = now()
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -482,7 +492,7 @@
         transaction_id = #{transactionId,jdbcType=VARCHAR},
       </if>
       <if test="timeEnd != null" >
-        time_end = #{timeEnd,jdbcType=VARCHAR},
+        time_end = #{timeEnd,jdbcType=TIMESTAMP},
       </if>
       <if test="tradeStateDesc != null" >
         trade_state_desc = #{tradeStateDesc,jdbcType=VARCHAR},
@@ -493,7 +503,9 @@
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
-        update_time = now(),
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
     </set>
     where out_trade_no = #{outTradeNo,jdbcType=VARCHAR}
   </update>
@@ -519,11 +531,11 @@
       bank_type = #{bankType,jdbcType=VARCHAR},
       cash_fee = #{cashFee,jdbcType=INTEGER},
       transaction_id = #{transactionId,jdbcType=VARCHAR},
-      time_end = #{timeEnd,jdbcType=VARCHAR},
+      time_end = #{timeEnd,jdbcType=TIMESTAMP},
       trade_state_desc = #{tradeStateDesc,jdbcType=VARCHAR},
       wx_api = #{wxApi,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = now()
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
     where out_trade_no = #{outTradeNo,jdbcType=VARCHAR}
   </update>
 </mapper>

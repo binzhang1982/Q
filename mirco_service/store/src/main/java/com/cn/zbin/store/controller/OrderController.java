@@ -1,7 +1,6 @@
 package com.cn.zbin.store.controller;
 
 import java.util.List;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -164,7 +163,6 @@ public class OrderController {
 		} catch (BusinessException be) {
 			ret.setStatus(MsgData.status_ng);
 			ret.setMessage(be.getMessage());
-			logger.info(be.getMessage());
 			return ret;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -173,9 +171,10 @@ public class OrderController {
 			return ret;
 		}
 		
-		if (hist.getOutTradeNo() != null) {
+		if (hist.getOutTradeNo() != null && hist.getCreateTime() == null) {
 			try {
 				orderService.logPayHistory(hist);
+				orderService.updateTradeState(hist);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -193,16 +192,22 @@ public class OrderController {
 	@RequestMapping(value = "/pay/query", 
 			method = { RequestMethod.GET })
 	public WxPayOverView queryOrderPay(
-			@RequestParam(value = "outtradeno", required = true) String outTradeNo, 
+			@RequestParam(value = "orderid", required = true) String orderId, 
+			@RequestParam(value = "customerid", required = true) String customerId, 
 			@RequestParam(value = "appid", required = true) String appid) {
-		logger.info("get api: /order/pay/query || outtradeno: " + outTradeNo);
+		logger.info("get api: /order/pay/query || orderid: " + orderId
+				+ " || customerid: " + customerId);
 		WxPayOverView ret = new WxPayOverView();
 		WxPayHistory hist = new WxPayHistory();
 		try {
-			hist = orderService.queryPay(outTradeNo, appid, 
+			hist = orderService.queryPay(orderId, customerId, appid, 
 					StoreKeyConstants.MCHID, StoreKeyConstants.PAYSECRET);
 			logger.info("return_code : {} | return_msg : {} | trade_state : {}", 
 					hist.getReturnCode(), hist.getReturnMsg(), hist.getTradeState());
+		} catch (BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getMessage());
+			return ret;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -210,6 +215,7 @@ public class OrderController {
 		if (hist.getOutTradeNo() != null) {
 			try {
 				orderService.logPayHistory(hist);
+				orderService.updateTradeState(hist);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -241,4 +247,6 @@ public class OrderController {
 		ret.setPay(hist);
 		return ret;
 	}
+	
+	//TODO close all expired pay
 }

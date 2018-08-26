@@ -1375,62 +1375,52 @@ public class WxPayHistoryExample {
             return (Criteria) this;
         }
 
-        public Criteria andTimeEndEqualTo(String value) {
+        public Criteria andTimeEndEqualTo(Date value) {
             addCriterion("time_end =", value, "timeEnd");
             return (Criteria) this;
         }
 
-        public Criteria andTimeEndNotEqualTo(String value) {
+        public Criteria andTimeEndNotEqualTo(Date value) {
             addCriterion("time_end <>", value, "timeEnd");
             return (Criteria) this;
         }
 
-        public Criteria andTimeEndGreaterThan(String value) {
+        public Criteria andTimeEndGreaterThan(Date value) {
             addCriterion("time_end >", value, "timeEnd");
             return (Criteria) this;
         }
 
-        public Criteria andTimeEndGreaterThanOrEqualTo(String value) {
+        public Criteria andTimeEndGreaterThanOrEqualTo(Date value) {
             addCriterion("time_end >=", value, "timeEnd");
             return (Criteria) this;
         }
 
-        public Criteria andTimeEndLessThan(String value) {
+        public Criteria andTimeEndLessThan(Date value) {
             addCriterion("time_end <", value, "timeEnd");
             return (Criteria) this;
         }
 
-        public Criteria andTimeEndLessThanOrEqualTo(String value) {
+        public Criteria andTimeEndLessThanOrEqualTo(Date value) {
             addCriterion("time_end <=", value, "timeEnd");
             return (Criteria) this;
         }
 
-        public Criteria andTimeEndLike(String value) {
-            addCriterion("time_end like", value, "timeEnd");
-            return (Criteria) this;
-        }
-
-        public Criteria andTimeEndNotLike(String value) {
-            addCriterion("time_end not like", value, "timeEnd");
-            return (Criteria) this;
-        }
-
-        public Criteria andTimeEndIn(List<String> values) {
+        public Criteria andTimeEndIn(List<Date> values) {
             addCriterion("time_end in", values, "timeEnd");
             return (Criteria) this;
         }
 
-        public Criteria andTimeEndNotIn(List<String> values) {
+        public Criteria andTimeEndNotIn(List<Date> values) {
             addCriterion("time_end not in", values, "timeEnd");
             return (Criteria) this;
         }
 
-        public Criteria andTimeEndBetween(String value1, String value2) {
+        public Criteria andTimeEndBetween(Date value1, Date value2) {
             addCriterion("time_end between", value1, value2, "timeEnd");
             return (Criteria) this;
         }
 
-        public Criteria andTimeEndNotBetween(String value1, String value2) {
+        public Criteria andTimeEndNotBetween(Date value1, Date value2) {
             addCriterion("time_end not between", value1, value2, "timeEnd");
             return (Criteria) this;
         }

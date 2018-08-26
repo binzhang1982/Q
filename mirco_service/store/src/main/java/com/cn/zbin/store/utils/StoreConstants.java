@@ -23,6 +23,8 @@ public class StoreConstants {
 	public final static String CHK_ERR_90019 = "90019:无效操作,请联系我们!";
 	public final static String CHK_ERR_90020 = "90020:订单不存在,不能支付!";
 	public final static String CHK_ERR_90021 = "90021:订单状态不正确,不能支付!";
+	public final static String CHK_ERR_90022 = "90022:这不是您的订单,不能支付!";
+	public final static String CHK_ERR_90023 = "90023:订单支付信息不存在!";
 	
 	public final static String CHK_ERR_99999 = "99999:系统出错,请联系我们!";
 	

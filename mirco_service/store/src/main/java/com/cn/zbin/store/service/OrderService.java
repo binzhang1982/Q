@@ -1,6 +1,7 @@
 package com.cn.zbin.store.service;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -98,6 +99,27 @@ public class OrderService {
 			wxPayHistoryMapper.insertSelective(hist);
 	}
 	
+	@Transactional
+	public void updateTradeState(WxPayHistory hist) throws Exception {
+		if (hist.getTradeState() == null) return;
+		GuestOrderInfo order = new GuestOrderInfo();
+		switch (hist.getTradeState()) {
+			case StoreKeyConstants.PAY_STATE_SUCCESS:
+				order.setOrderId(hist.getOrderId());
+				order.setPaymentVoucher(hist.getOutTradeNo());
+				order.setStatusCode(StoreKeyConstants.ORDER_STATUS_WAIT_DELIVERY);
+				guestOrderInfoMapper.updateByPrimaryKeySelective(order);
+				break;
+			case StoreKeyConstants.PAY_STATE_NOTPAY:
+				order.setOrderId(hist.getOrderId());
+				order.setPaymentVoucher(hist.getOutTradeNo());
+				guestOrderInfoMapper.updateByPrimaryKeySelective(order);
+				break;
+			default:
+				break;
+		}
+	}
+	
 	public WxPayHistory closePay(String outTradeNo, String appid, 
 			String mch_id, String key) throws Exception {
 		WxPayHistory ret = new WxPayHistory();
@@ -120,8 +142,16 @@ public class OrderService {
         return ret;
 	}
 	
-	public WxPayHistory queryPay(String outTradeNo, String appid, 
-			String mch_id, String key) throws Exception {
+	public WxPayHistory queryPay(String orderId, String customerid, String appid, 
+			String mch_id, String key) throws BusinessException, Exception {
+		GuestOrderInfo order = guestOrderInfoMapper.selectByPrimaryKey(orderId);
+		if (order == null) throw new BusinessException(StoreConstants.CHK_ERR_90020);
+		if (!order.getCustomerId().equals(customerid)) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90022);
+		if (order.getPaymentVoucher() == null) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90023);
+        String outTradeNo = order.getPaymentVoucher();
+		
 		WxPayHistory ret = new WxPayHistory();
 		QLHWXPayConfig config = new QLHWXPayConfig(null, appid, key, mch_id);
         WXPay wxpay = new WXPay(config);
@@ -142,7 +172,10 @@ public class OrderService {
             if (resp.containsKey("bank_type")) ret.setBankType(resp.get("bank_type"));
             if (resp.containsKey("cash_fee")) ret.setCashFee(Integer.parseInt(resp.get("cash_fee")));
             if (resp.containsKey("transaction_id")) ret.setTransactionId(resp.get("transaction_id"));
-            if (resp.containsKey("time_end")) ret.setTimeEnd(resp.get("time_end"));
+            if (resp.containsKey("time_end")) {
+            	SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
+            	ret.setTimeEnd((Date)sdf.parse(resp.get("time_end")));
+            }
             if (resp.containsKey("trade_state_desc")) ret.setTradeStateDesc(resp.get("trade_state_desc"));
         }
         return ret;
@@ -151,7 +184,6 @@ public class OrderService {
 	public WxPayHistory applyPayUnified(String orderId, String customerid, 
 			String spbillCreateIp, String appid, String mch_id, String key)
 			throws BusinessException, Exception {
-        WxPayHistory ret = new WxPayHistory();
 		CustomerInfo cust = customerInfoMapper.selectByPrimaryKey(customerid);
 		if (cust == null) throw new BusinessException(StoreConstants.CHK_ERR_90004);
 		String openid = cust.getRegisterId();
@@ -159,12 +191,31 @@ public class OrderService {
 		
 		GuestOrderInfo order = guestOrderInfoMapper.selectByPrimaryKey(orderId);
 		if (order == null) throw new BusinessException(StoreConstants.CHK_ERR_90020);
+		if (!order.getCustomerId().equals(customerid)) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90022);
 		if (!StoreKeyConstants.ORDER_STATUS_UNPAID.equals(order.getStatusCode()))
 			throw new BusinessException(StoreConstants.CHK_ERR_90021);
 		BigDecimal totalAmount = order.getTotalAmount();
 		if (totalAmount == null) throw new BusinessException(StoreConstants.CHK_ERR_90013);
 		if (totalAmount.compareTo(new BigDecimal(0)) <= 0) 
 			throw new BusinessException(StoreConstants.CHK_ERR_90013);
+		
+		WxPayHistory ret = new WxPayHistory();
+		if (order.getPaymentVoucher() != null) {
+			ret = wxPayHistoryMapper.selectByPrimaryKey(order.getPaymentVoucher());
+			if (ret != null) {
+				if (StoreKeyConstants.PAY_STATE_NOTPAY.equals(ret.getTradeState())) {
+					return ret;
+				} else if (StoreKeyConstants.PAY_STATE_CLOSED.equals(ret.getTradeState())) {
+					ret = new WxPayHistory();
+				} else {
+					throw new BusinessException(StoreConstants.CHK_ERR_90021);
+				}
+			} else {
+				ret = new WxPayHistory();
+			}
+		}
+		
 		
 		QLHWXPayConfig config = new QLHWXPayConfig(null, appid, key, mch_id);
         WXPay wxpay = new WXPay(config);
