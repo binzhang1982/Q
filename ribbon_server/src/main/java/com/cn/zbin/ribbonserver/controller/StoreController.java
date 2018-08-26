@@ -1,5 +1,13 @@
 package com.cn.zbin.ribbonserver.controller;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -156,5 +164,43 @@ public class StoreController {
 		logger.info("post api: /order/cancel/cust || customerid: " + customerid
 				+ " || bean: " + bean);
     	return storeService.cancelOrderByCustomer(customerid, bean);
+    }
+    
+    
+    @PostMapping(value="/order/wxpay/notify")
+    @CrossOrigin
+    public String wxPayBack (HttpServletRequest request,HttpServletResponse response){
+        String resXml="";
+        System.err.println("进入异步通知");
+        try{
+            //
+            InputStream is = request.getInputStream();
+            //将InputStream转换成String
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+            StringBuilder sb = new StringBuilder();
+            String line = null;
+            try {
+                   while ((line = reader.readLine()) != null) {
+                            sb.append(line + "\n");
+                          }
+                 } catch (IOException e) {
+                      e.printStackTrace();
+                   } finally {
+               try {
+                    is.close();
+                    } catch (IOException e) {
+                     e.printStackTrace();
+                     }
+            }
+            resXml=sb.toString();
+            System.err.println(resXml);
+//           String result = .payBack(resXml);
+            return "<xml><return_code><![CDATA[SUCCESS]]></return_code> <return_msg><![CDATA[OK]]></return_msg></xml>";
+//            return result;
+        } catch (Exception e){
+            logger.error("手机支付回调通知失败",e);
+            String result = "<xml>" + "<return_code><![CDATA[FAIL]]></return_code>" + "<return_msg><![CDATA[报文为空]]></return_msg>" + "</xml> ";
+            return result;
+        }
     }
 }
