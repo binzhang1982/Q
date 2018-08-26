@@ -98,24 +98,54 @@ public class OrderService {
 			wxPayHistoryMapper.insertSelective(hist);
 	}
 	
-	public Map<String, String> closePay(String orderId, String appid, 
+	public WxPayHistory closePay(String outTradeNo, String appid, 
 			String mch_id, String key) throws Exception {
+		WxPayHistory ret = new WxPayHistory();
 		QLHWXPayConfig config = new QLHWXPayConfig(null, appid, key, mch_id);
         WXPay wxpay = new WXPay(config);
         Map<String, String> data = new HashMap<String, String>();
-        data.put("out_trade_no", orderId);
+        data.put("out_trade_no", outTradeNo);
         Map<String, String> resp = wxpay.closeOrder(data);
-        return resp;
+        if (resp != null) {
+            ret.setOutTradeNo(outTradeNo);
+            ret.setReturnCode(resp.get("return_code"));
+            ret.setReturnMsg(resp.get("return_msg"));
+			ret.setWxApi("close");
+            if (resp.containsKey("nonce_str")) ret.setNonceStr(resp.get("nonce_str"));
+            if (resp.containsKey("sign")) ret.setSign(resp.get("sign"));
+            if (resp.containsKey("result_code")) ret.setResultCode(resp.get("result_code"));
+            if (resp.containsKey("err_code")) ret.setErrCode(resp.get("err_code"));
+            if (resp.containsKey("err_code_des")) ret.setErrCodeDes(resp.get("err_code_des"));
+        }
+        return ret;
 	}
 	
-	public Map<String, String> queryPay(String orderId, String appid, 
+	public WxPayHistory queryPay(String outTradeNo, String appid, 
 			String mch_id, String key) throws Exception {
+		WxPayHistory ret = new WxPayHistory();
 		QLHWXPayConfig config = new QLHWXPayConfig(null, appid, key, mch_id);
         WXPay wxpay = new WXPay(config);
         Map<String, String> data = new HashMap<String, String>();
-        data.put("out_trade_no", orderId);
+        data.put("out_trade_no", outTradeNo);
         Map<String, String> resp = wxpay.orderQuery(data);
-        return resp;
+        if (resp != null) {
+            ret.setOutTradeNo(outTradeNo);
+            ret.setReturnCode(resp.get("return_code"));
+            ret.setReturnMsg(resp.get("return_msg"));
+			ret.setWxApi("query");
+            if (resp.containsKey("nonce_str")) ret.setNonceStr(resp.get("nonce_str"));
+            if (resp.containsKey("sign")) ret.setSign(resp.get("sign"));
+            if (resp.containsKey("result_code")) ret.setResultCode(resp.get("result_code"));
+            if (resp.containsKey("err_code")) ret.setErrCode(resp.get("err_code"));
+            if (resp.containsKey("err_code_des")) ret.setErrCodeDes(resp.get("err_code_des"));
+            if (resp.containsKey("trade_state")) ret.setTradeState(resp.get("trade_state"));;
+            if (resp.containsKey("bank_type")) ret.setBankType(resp.get("bank_type"));
+            if (resp.containsKey("cash_fee")) ret.setCashFee(Integer.parseInt(resp.get("cash_fee")));
+            if (resp.containsKey("transaction_id")) ret.setTransactionId(resp.get("transaction_id"));
+            if (resp.containsKey("time_end")) ret.setTimeEnd(resp.get("time_end"));
+            if (resp.containsKey("trade_state_desc")) ret.setTradeStateDesc(resp.get("trade_state_desc"));
+        }
+        return ret;
 	}
 	
 	public WxPayHistory applyPayUnified(String orderId, String customerid, 

@@ -1,6 +1,5 @@
 package com.cn.zbin.store.controller;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -193,39 +192,53 @@ public class OrderController {
 
 	@RequestMapping(value = "/pay/query", 
 			method = { RequestMethod.GET })
-	public void queryOrderPay(
-			@RequestParam(value = "orderid", required = true) String orderId, 
+	public WxPayOverView queryOrderPay(
+			@RequestParam(value = "outtradeno", required = true) String outTradeNo, 
 			@RequestParam(value = "appid", required = true) String appid) {
+		logger.info("get api: /order/pay/query || outtradeno: " + outTradeNo);
+		WxPayOverView ret = new WxPayOverView();
+		WxPayHistory hist = new WxPayHistory();
 		try {
-			Map<String, String> resp = orderService.queryPay(orderId, appid, 
+			hist = orderService.queryPay(outTradeNo, appid, 
 					StoreKeyConstants.MCHID, StoreKeyConstants.PAYSECRET);
-			String msg = "return_code : " + resp.get("return_code") + 
-					" | return_msg : " + resp.get("return_msg");
-			if (resp.containsKey("trade_state")) { 
-				msg = msg + " | trade_state : " + resp.get("trade_state");
-			}
-			logger.info(msg);
+			logger.info("return_code : {} | return_msg : {} | trade_state : {}", 
+					hist.getReturnCode(), hist.getReturnMsg(), hist.getTradeState());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		if (hist.getOutTradeNo() != null) {
+			try {
+				orderService.logPayHistory(hist);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		hist.setNonceStr(null);
+		hist.setSign(null);
+		hist.setWxApi(null);
+		ret.setPay(hist);
+		return ret;
 	}
 
 	@RequestMapping(value = "/pay/close", 
 			method = { RequestMethod.GET })
-	public void closeOrderPay(
-			@RequestParam(value = "orderid", required = true) String orderId, 
+	public WxPayOverView closeOrderPay(
+			@RequestParam(value = "outtradeno", required = true) String outTradeNo, 
 			@RequestParam(value = "appid", required = true) String appid) {
+		logger.info("get api: /order/pay/close || outtradeno: " + outTradeNo);
+		WxPayOverView ret = new WxPayOverView();
+		WxPayHistory hist = new WxPayHistory();
 		try {
-			Map<String, String> resp = orderService.closePay(orderId, appid, 
+			hist = orderService.closePay(outTradeNo, appid, 
 					StoreKeyConstants.MCHID, StoreKeyConstants.PAYSECRET);
-			String msg = "return_code : " + resp.get("return_code") + 
-					" | return_msg : " + resp.get("return_msg");
-			if (resp.containsKey("result_code")) { 
-				msg = msg + " | result_code : " + resp.get("result_code");
-			}
-			logger.info(msg);
+			logger.info("return_code : {} | return_msg : {} | result_code : {}", 
+					hist.getReturnCode(), hist.getReturnMsg(), hist.getResultCode());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		ret.setPay(hist);
+		return ret;
 	}
 }
