@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.cn.zbin.ribbonserver.service.StoreService;
+import com.cn.zbin.ribbonserver.utils.Utils;
 
 @RestController
 @RequestMapping("store")
@@ -171,8 +172,8 @@ public class StoreController {
     @CrossOrigin
     public String wxPayBack (HttpServletRequest request,HttpServletResponse response){
         String resXml="";
-        System.err.println("进入异步通知");
         try{
+        	logger.info("IP : " + Utils.getIpAddr(request));
             //
             InputStream is = request.getInputStream();
             //将InputStream转换成String
@@ -193,7 +194,7 @@ public class StoreController {
                      }
             }
             resXml=sb.toString();
-            System.err.println(resXml);
+            logger.info(resXml);
 //           String result = .payBack(resXml);
             return "<xml><return_code><![CDATA[SUCCESS]]></return_code> <return_msg><![CDATA[OK]]></return_msg></xml>";
 //            return result;
