@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.cn.zbin.ribbonserver.utils.RibbonKeyConstants;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 
 @Service
@@ -240,6 +241,22 @@ public class StoreService {
     	return restTemplate.postForObject(url, request, String.class, uriVariables);
     }
     public String cancelOrderByCustomerError(String customerid, String bean) {
+    	return "failed";
+    }
+
+    @HystrixCommand(fallbackMethod = "unifiedOrderPayError")
+    public String unifiedOrderPay(String orderid, String customerid, String ip) {
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("orderid", orderid);
+    	uriVariables.put("customerid", customerid);
+    	uriVariables.put("ip", ip);
+    	uriVariables.put("appid", RibbonKeyConstants.APPID);
+    	
+    	String url = "http://SERVICE-STORE/order/pay/unified?orderid={orderid}"
+    				+ "&customerid={customerid}&ip={ip}&appid={appid}";
+    	return restTemplate.getForObject(url, String.class, uriVariables);
+    }
+    public String unifiedOrderPayError(String orderid, String customerid, String ip) {
     	return "failed";
     }
 }

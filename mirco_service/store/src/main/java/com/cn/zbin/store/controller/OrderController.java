@@ -180,11 +180,11 @@ public class OrderController {
 			}
 		}
 		
-		hist.setNonceStr(null);
-		hist.setSign(null);
-		hist.setWxApi(null);
-		
-		ret.setPay(hist);
+		try {
+			ret.setParam(orderService.returnPayUnifiedParams(appid, hist.getPrepayId()));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		
 		return ret;
 	}

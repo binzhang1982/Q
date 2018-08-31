@@ -167,6 +167,18 @@ public class StoreController {
     	return storeService.cancelOrderByCustomer(customerid, bean);
     }
     
+    @GetMapping(value="/order/pay/unified")
+    @CrossOrigin
+    public String unifiedOrderPay(HttpServletRequest request, HttpServletResponse response) {
+		logger.info("get api: /order/pay/unified");
+        String orderid = request.getParameter("orderid");
+        String customerid = request.getParameter("customerid");
+        String ip = request.getRemoteAddr();
+        logger.info(" || orderid: " + orderid
+			+ " || customerid: " + customerid + " || ip: " + ip);
+        
+    	return storeService.unifiedOrderPay(orderid, customerid, ip);
+    }
     
     @PostMapping(value="/order/wxpay/notify")
     @CrossOrigin
@@ -174,6 +186,7 @@ public class StoreController {
         String resXml="";
         try{
         	logger.info("IP : " + Utils.getIpAddr(request));
+        	logger.info("IP : " + request.getRemoteAddr());
             //
             InputStream is = request.getInputStream();
             //将InputStream转换成String

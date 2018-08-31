@@ -18,6 +18,6 @@ public class StoreOrderTask {
 //	@Scheduled(cron="0 0/5 * * * ?")
 	@Scheduled(cron="0 0 0/1 * * ?")
 	public void cancelOrderTask() {
-		asyncService.executeCancelUnpaidOrderAsync();
+//		asyncService.executeCancelUnpaidOrderAsync();
 	}
 }

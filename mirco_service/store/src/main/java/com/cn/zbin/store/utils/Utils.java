@@ -1,10 +1,12 @@
 package com.cn.zbin.store.utils;
 
+import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 
 public class Utils {
@@ -83,6 +85,21 @@ public class Utils {
 		newString = newString + srcStr;
 		return newString;
 	}
+    
+    public static Date getChinaCurrentTime() {
+    	Calendar calendar = Calendar.getInstance(Locale.CHINA);
+        return calendar.getTime();
+    }
+    
+    public static Long getChinaCurrentTimeInMillis() {
+    	Calendar calendar = Calendar.getInstance(Locale.CHINA);
+        return calendar.getTimeInMillis();
+    }
+    
+    public static Long getChinaCurrentTimeInSeconds() {
+    	BigDecimal mills = new BigDecimal(getChinaCurrentTimeInMillis());
+    	return mills.divide(new BigDecimal(1000)).longValue();
+    }
     
     public static String getTradeNo() {
     	Calendar cal = Calendar.getInstance(); 

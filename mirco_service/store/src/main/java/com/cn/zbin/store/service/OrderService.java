@@ -21,6 +21,8 @@ import com.cn.zbin.store.bto.CustomerInvoiceOverView;
 import com.cn.zbin.store.bto.GuestOrderOverView;
 import com.cn.zbin.store.bto.MsgData;
 import com.cn.zbin.store.bto.OrderProductOverView;
+import com.cn.zbin.store.bto.WxPayH5Param;
+import com.cn.zbin.store.bto.WxPayOverView;
 import com.cn.zbin.store.dto.CustomerAddress;
 import com.cn.zbin.store.dto.CustomerInfo;
 import com.cn.zbin.store.dto.CustomerInvoice;
@@ -59,6 +61,7 @@ import com.cn.zbin.store.utils.StoreConstants;
 import com.cn.zbin.store.utils.StoreKeyConstants;
 import com.cn.zbin.store.utils.Utils;
 import com.github.wxpay.sdk.WXPay;
+import com.github.wxpay.sdk.WXPayUtil;
 
 @Service
 public class OrderService {
@@ -88,6 +91,24 @@ public class OrderService {
 	private CustomerInfoMapper customerInfoMapper;
 	@Autowired
 	private WxPayHistoryMapper wxPayHistoryMapper;
+	
+	public WxPayH5Param returnPayUnifiedParams(String appId, String prepayId) throws Exception {
+		Map<String, String> data = new HashMap<String, String>();
+		data.put("appId", appId);
+		data.put("timeStamp", String.valueOf(Utils.getChinaCurrentTimeInSeconds()));
+		data.put("nonceStr", WXPayUtil.generateNonceStr());
+		data.put("package", "prepay_id=" + prepayId);
+		data.put("signType", "MD5");
+		
+		WxPayH5Param ret = new WxPayH5Param();
+		ret.setAppId(appId);
+		ret.setNonceStr(data.get("nonceStr"));
+		ret.setPaySign(WXPayUtil.generateSignature(data, StoreKeyConstants.PAYSECRET));
+		ret.setPkg(data.get("package"));
+		ret.setSignType(data.get("signType"));
+		ret.setTimeStamp(data.get("timeStamp"));
+		return ret;
+	}
 	
 	@Transactional
 	public void logPayHistory(WxPayHistory hist) throws Exception {
