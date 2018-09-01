@@ -47,7 +47,7 @@ public class WechatUserTask {
 //        	allUsers = restTemplate.getForObject(
 //        	    	url, WechatUserList.class, uriVariables_atk);
 //        	for (String openid : allUsers.getData().getOpenid()) {
-//        		logger.info("openid: {}", openid);
+////        		logger.info("openid: {}", openid);
 //        		asyncService.executeWechatUserAsync(openid);
 //        		asyncService.executeMgmtCustAsync(openid);
 //        	}

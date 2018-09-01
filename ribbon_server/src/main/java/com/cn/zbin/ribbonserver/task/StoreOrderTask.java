@@ -20,4 +20,9 @@ public class StoreOrderTask {
 	public void cancelOrderTask() {
 //		asyncService.executeCancelUnpaidOrderAsync();
 	}
+	
+	@Scheduled(cron="0 0/5 * * * ?")
+	public void scanPayOrderTask() {
+		asyncService.executeScanPayOrderAsync();
+	}
 }

@@ -19,12 +19,12 @@ public class VisiableThreadPoolTaskExecutor extends ThreadPoolTaskExecutor {
 		if (null==threadPoolExecutor) {
             return;
         }
-		logger.info("{},taskCount [{}], completedTaskCount [{}], activeCount [{}], queueSize [{}]",
-                prefix,
-                threadPoolExecutor.getTaskCount(),
-                threadPoolExecutor.getCompletedTaskCount(),
-                threadPoolExecutor.getActiveCount(),
-                threadPoolExecutor.getQueue().size());
+//		logger.info("{},taskCount [{}], completedTaskCount [{}], activeCount [{}], queueSize [{}]",
+//                prefix,
+//                threadPoolExecutor.getTaskCount(),
+//                threadPoolExecutor.getCompletedTaskCount(),
+//                threadPoolExecutor.getActiveCount(),
+//                threadPoolExecutor.getQueue().size());
 	}
 	
     @Override

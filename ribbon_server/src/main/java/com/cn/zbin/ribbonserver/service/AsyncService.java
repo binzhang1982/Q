@@ -53,4 +53,20 @@ public class AsyncService {
 			e.printStackTrace();
 		}
 	}
+
+	@Async("asyncSingtonServiceExecutor")
+	public void executeScanPayOrderAsync() {
+		try {
+	    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+	    	uriVariables.put("interval", 15);
+	    	uriVariables.put("expiredhour", 1);
+	    	uriVariables.put("appid", RibbonKeyConstants.APPID);
+	    	
+	    	String urlOrder = "http://SERVICE-STORE/order/pay/scan?interval={interval}" +
+	    			"&expiredhour={expiredhour}&appid={appid}";
+	        restTemplate.getForObject(urlOrder, String.class, uriVariables);
+		} catch (RestClientException e) {
+			e.printStackTrace();
+		}
+	}
 }

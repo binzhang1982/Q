@@ -92,6 +92,16 @@ public class OrderService {
 	@Autowired
 	private WxPayHistoryMapper wxPayHistoryMapper;
 	
+	public List<WxPayHistory> scanPayOrder(Integer interval) {
+		Date bef = DateUtils.addMinutes(Utils.getChinaCurrentTime(), 0-interval);
+		WxPayHistoryExample exam_wph = new WxPayHistoryExample();
+		exam_wph.createCriteria().andCreateTimeLessThan(bef)
+								.andTradeStateEqualTo(StoreKeyConstants.PAY_STATE_NOTPAY);
+		List<WxPayHistory> ret = wxPayHistoryMapper.selectByExample(exam_wph);
+		if (!Utils.listNotNull(ret)) ret = new ArrayList<WxPayHistory>();
+		return ret;
+	}
+	
 	public WxPayH5Param returnPayUnifiedParams(String appId, String prepayId) throws Exception {
 		Map<String, String> data = new HashMap<String, String>();
 		data.put("appId", appId);
@@ -123,7 +133,7 @@ public class OrderService {
 	@Transactional
 	public void updateTradeState(WxPayHistory hist) throws Exception {
 		if (hist.getTradeState() == null) return;
-		GuestOrderInfo order = new GuestOrderInfo();
+		GuestOrderInfo order = guestOrderInfoMapper.selectByPrimaryKey(hist.getOrderId());
 		switch (hist.getTradeState()) {
 			case StoreKeyConstants.PAY_STATE_SUCCESS:
 				order.setOrderId(hist.getOrderId());
@@ -132,9 +142,11 @@ public class OrderService {
 				guestOrderInfoMapper.updateByPrimaryKeySelective(order);
 				break;
 			case StoreKeyConstants.PAY_STATE_NOTPAY:
-				order.setOrderId(hist.getOrderId());
-				order.setPaymentVoucher(hist.getOutTradeNo());
-				guestOrderInfoMapper.updateByPrimaryKeySelective(order);
+				if (StoreKeyConstants.ORDER_STATUS_UNPAID.equals(order.getStatusCode())) {
+					order.setOrderId(hist.getOrderId());
+					order.setPaymentVoucher(hist.getOutTradeNo());
+					guestOrderInfoMapper.updateByPrimaryKeySelective(order);
+				}
 				break;
 			default:
 				break;
@@ -172,7 +184,11 @@ public class OrderService {
 		if (order.getPaymentVoucher() == null) 
 			throw new BusinessException(StoreConstants.CHK_ERR_90023);
         String outTradeNo = order.getPaymentVoucher();
-		
+		return queryPay(outTradeNo, appid, mch_id, key);
+	}
+	
+	public WxPayHistory queryPay(String outTradeNo, String appid, 
+			String mch_id, String key) throws BusinessException, Exception {
 		WxPayHistory ret = new WxPayHistory();
 		QLHWXPayConfig config = new QLHWXPayConfig(null, appid, key, mch_id);
         WXPay wxpay = new WXPay(config);
@@ -249,8 +265,8 @@ public class OrderService {
         data.put("total_fee", totalFee);
         data.put("spbill_create_ip",spbillCreateIp);
         //TODO 异步通知地址（请注意必须是外网）
-//        data.put("notify_url", "http://106.15.88.109/store/order/wxpay/notify");
-        data.put("notify_url", "http://52.231.194.85/store/order/wxpay/notify");
+        data.put("notify_url", "http://106.15.88.109/store/order/wxpay/notify");
+//        data.put("notify_url", "http://52.231.194.85/store/order/wxpay/notify");
         data.put("trade_type", "JSAPI");
         data.put("openid", openid);
         Map<String, String> resp = wxpay.unifiedOrder(data);
@@ -399,8 +415,9 @@ public class OrderService {
 	}
 	
 	@Transactional
-	public void insertGuestOrder(GuestOrderOverView orderView) 
+	public String insertGuestOrder(GuestOrderOverView orderView) 
 			throws BusinessException, Exception {
+		String orderid = "";
 		BigDecimal actualAmount = new BigDecimal(0);
 		GuestOrderInfo order = orderView.getGuestOrderInfo();
 		if (StringUtils.isBlank(order.getCustAddressId()))
@@ -409,7 +426,8 @@ public class OrderService {
 		BigDecimal totalAmount = order.getTotalAmount();
 		actualAmount = actualAmount.add(order.getCarriage())
 									.add(order.getService());
-		order.setOrderId(UUID.randomUUID().toString());
+		orderid = UUID.randomUUID().toString();
+		order.setOrderId(orderid);
 		order.setStatusCode(StoreKeyConstants.ORDER_STATUS_UNPAID);
 		order.setCreateEmpId(StoreKeyConstants.SYSTEM_EMP_ID);
 		order.setUpdateEmpId(StoreKeyConstants.SYSTEM_EMP_ID);
@@ -444,6 +462,8 @@ public class OrderService {
 		
 		if (totalAmount.compareTo(actualAmount) != 0) 
 			throw new BusinessException(StoreConstants.CHK_ERR_90014);
+		
+		return orderid;
 	}
 	
 	public GuestOrderOverView initGuestOrder(String type, String custid,

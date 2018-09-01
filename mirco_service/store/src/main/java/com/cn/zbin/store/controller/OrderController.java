@@ -2,6 +2,7 @@ package com.cn.zbin.store.controller;
 
 import java.util.List;
 
+import org.apache.commons.lang.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,7 @@ import com.cn.zbin.store.exception.BusinessException;
 import com.cn.zbin.store.service.OrderService;
 import com.cn.zbin.store.utils.StoreConstants;
 import com.cn.zbin.store.utils.StoreKeyConstants;
+import com.cn.zbin.store.utils.Utils;
 
 @RestController
 @RequestMapping("order")
@@ -50,11 +52,13 @@ public class OrderController {
 			consumes = {"application/json;charset=UTF-8"}, 
 			produces = {"application/json;charset=UTF-8"}, 
 			method = { RequestMethod.POST })
-	public MsgData insertGuestOrder(@RequestBody GuestOrderOverView order) {
+	public GuestOrderOverView insertGuestOrder(@RequestBody GuestOrderOverView order) {
 		logger.info("post api: /order/create || order: " + order.toString());
-		MsgData ret = new MsgData();
+		GuestOrderOverView ret = new GuestOrderOverView();
 		try {
-			orderService.insertGuestOrder(order);
+			GuestOrderInfo newOrder = new GuestOrderInfo();
+			newOrder.setOrderId(orderService.insertGuestOrder(order));
+			ret.setGuestOrderInfo(newOrder);
 		} catch (BusinessException be) {
 			ret.setStatus(MsgData.status_ng);
 			ret.setMessage(be.getMessage());
@@ -145,6 +149,7 @@ public class OrderController {
 	}
 
 	@RequestMapping(value = "/pay/unified", 
+			produces = {"application/json;charset=UTF-8"}, 
 			method = { RequestMethod.GET })
 	public WxPayOverView unifiedOrderPay(
 			@RequestParam(value = "orderid", required = true) String orderId, 
@@ -190,6 +195,7 @@ public class OrderController {
 	}
 
 	@RequestMapping(value = "/pay/query", 
+			produces = {"application/json;charset=UTF-8"}, 
 			method = { RequestMethod.GET })
 	public WxPayOverView queryOrderPay(
 			@RequestParam(value = "orderid", required = true) String orderId, 
@@ -247,6 +253,58 @@ public class OrderController {
 		ret.setPay(hist);
 		return ret;
 	}
-	
-	//TODO close all expired pay
+
+	@RequestMapping(value = "/pay/scan", 
+			method = { RequestMethod.GET })
+	public MsgData scanPayInfo(
+			@RequestParam(value = "interval", required = true) Integer interval,
+			@RequestParam(value = "expiredhour", required = true, defaultValue = "2") Integer expiredhour,
+			@RequestParam(value = "appid", required = true) String appid) {
+		logger.info("get api: /order/pay/scan || interval: " + String.valueOf(interval) +
+				" || expiredhour: " + String.valueOf(expiredhour));
+		MsgData ret = new MsgData();
+		try {
+			WxPayHistory hist = new WxPayHistory();
+			for (WxPayHistory pay : orderService.scanPayOrder(interval)) {
+				try {
+					hist = orderService.queryPay(pay.getOutTradeNo(), appid, 
+							StoreKeyConstants.MCHID, StoreKeyConstants.PAYSECRET);
+					hist.setOrderId(pay.getOrderId());
+					logger.info("return_code : {} | return_msg : {} | trade_state : {}", 
+							hist.getReturnCode(), hist.getReturnMsg(), hist.getTradeState());
+				} catch (BusinessException be) {
+					ret.setStatus(MsgData.status_ng);
+					ret.setMessage(be.getMessage());
+					return ret;
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				
+				if (pay.getCreateTime().compareTo(
+						DateUtils.addHours(Utils.getChinaCurrentTime(), 0 - expiredhour)) < 0 &&
+						StoreKeyConstants.PAY_STATE_NOTPAY.equals(hist.getTradeState())) {
+					try {
+						orderService.closePay(pay.getOutTradeNo(), appid, 
+								StoreKeyConstants.MCHID, StoreKeyConstants.PAYSECRET);
+						logger.info("return_code : {} | return_msg : {} | result_code : {}", 
+								hist.getReturnCode(), hist.getReturnMsg(), hist.getResultCode());
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+				
+				if (hist.getOutTradeNo() != null) {
+					try {
+						orderService.logPayHistory(hist);
+						orderService.updateTradeState(hist);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return ret;
+	}
 }

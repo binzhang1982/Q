@@ -170,8 +170,8 @@
       #{resultCode,jdbcType=VARCHAR}, #{errCode,jdbcType=VARCHAR}, #{errCodeDes,jdbcType=VARCHAR}, 
       #{prepayId,jdbcType=VARCHAR}, #{tradeState,jdbcType=VARCHAR}, #{bankType,jdbcType=VARCHAR}, 
       #{cashFee,jdbcType=INTEGER}, #{transactionId,jdbcType=VARCHAR}, #{timeEnd,jdbcType=TIMESTAMP}, 
-      #{tradeStateDesc,jdbcType=VARCHAR}, #{wxApi,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP})
+      #{tradeStateDesc,jdbcType=VARCHAR}, #{wxApi,jdbcType=VARCHAR}, now(), 
+      now())
   </insert>
   <insert id="insertSelective" parameterType="com.cn.zbin.store.dto.WxPayHistory" >
     <!--
@@ -240,12 +240,8 @@
       <if test="wxApi != null" >
         wx_api,
       </if>
-      <if test="createTime != null" >
         create_time,
-      </if>
-      <if test="updateTime != null" >
         update_time,
-      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="outTradeNo != null" >
@@ -308,12 +304,8 @@
       <if test="wxApi != null" >
         #{wxApi,jdbcType=VARCHAR},
       </if>
-      <if test="createTime != null" >
-        #{createTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="updateTime != null" >
-        #{updateTime,jdbcType=TIMESTAMP},
-      </if>
+        now(),
+        now(),
     </trim>
   </insert>
   <select id="countByExample" parameterType="com.cn.zbin.store.dto.WxPayHistoryExample" resultType="java.lang.Integer" >
@@ -396,9 +388,7 @@
       <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.updateTime != null" >
-        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      </if>
+        update_time = now(),
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -431,7 +421,7 @@
       trade_state_desc = #{record.tradeStateDesc,jdbcType=VARCHAR},
       wx_api = #{record.wxApi,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+      update_time = now()
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -503,9 +493,7 @@
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="updateTime != null" >
-        update_time = #{updateTime,jdbcType=TIMESTAMP},
-      </if>
+        update_time = now(),
     </set>
     where out_trade_no = #{outTradeNo,jdbcType=VARCHAR}
   </update>
@@ -535,7 +523,7 @@
       trade_state_desc = #{tradeStateDesc,jdbcType=VARCHAR},
       wx_api = #{wxApi,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+      update_time = now()
     where out_trade_no = #{outTradeNo,jdbcType=VARCHAR}
   </update>
 </mapper>
