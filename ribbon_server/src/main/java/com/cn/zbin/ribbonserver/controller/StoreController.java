@@ -20,8 +20,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cn.zbin.ribbonserver.service.AsyncService;
 import com.cn.zbin.ribbonserver.service.StoreService;
-import com.cn.zbin.ribbonserver.utils.Utils;
 
 @RestController
 @RequestMapping("store")
@@ -30,6 +30,8 @@ public class StoreController {
 	protected static final Logger logger = LoggerFactory.getLogger(StoreController.class);
     @Autowired
     StoreService storeService;
+    @Autowired
+    AsyncService asyncService;
 
     @GetMapping(value = "/slide/list")
     @CrossOrigin
@@ -182,35 +184,34 @@ public class StoreController {
     
     @PostMapping(value="/order/wxpay/notify")
     @CrossOrigin
-    public String wxPayBack (HttpServletRequest request,HttpServletResponse response){
-        String resXml="";
+//    public String wxPayBack (HttpServletRequest request,HttpServletResponse response){
+    public String wxPayBack (@RequestBody String bean) {
+    	String resXml="";
         try{
-        	logger.info("IP : " + Utils.getIpAddr(request));
-        	logger.info("IP : " + request.getRemoteAddr());
-            //
-            InputStream is = request.getInputStream();
-            //将InputStream转换成String
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-            StringBuilder sb = new StringBuilder();
-            String line = null;
-            try {
-                   while ((line = reader.readLine()) != null) {
-                            sb.append(line + "\n");
-                          }
-                 } catch (IOException e) {
-                      e.printStackTrace();
-                   } finally {
-               try {
-                    is.close();
-                    } catch (IOException e) {
-                     e.printStackTrace();
-                     }
-            }
-            resXml=sb.toString();
-            logger.info(resXml);
-//           String result = .payBack(resXml);
+//        	InputStream is = request.getInputStream();
+//        	//将InputStream转换成String
+//        	BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+//        	StringBuilder sb = new StringBuilder();
+//        	String line = null;
+//        	try {
+//        		while ((line = reader.readLine()) != null) {
+//        			sb.append(line + "\n");
+//        		}
+//        	} catch (IOException e) {
+//        		e.printStackTrace();
+//        	} finally {
+//        		try {
+//        			is.close();
+//        		} catch (IOException e) {
+//        			e.printStackTrace();
+//        		}
+//        	}
+//        	resXml=sb.toString();
+
+        	resXml = bean;
+        	logger.info(resXml);
+            asyncService.executeNotifyOrderPay(resXml);
             return "<xml><return_code><![CDATA[SUCCESS]]></return_code> <return_msg><![CDATA[OK]]></return_msg></xml>";
-//            return result;
         } catch (Exception e){
             logger.error("手机支付回调通知失败",e);
             String result = "<xml>" + "<return_code><![CDATA[FAIL]]></return_code>" + "<return_msg><![CDATA[报文为空]]></return_msg>" + "</xml> ";

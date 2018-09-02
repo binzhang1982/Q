@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
@@ -69,4 +72,19 @@ public class AsyncService {
 			e.printStackTrace();
 		}
 	}
+
+	@Async("asyncPayNotifyExecutor")
+    public void executeNotifyOrderPay(String bean) {
+		try {
+	    	String url = "http://SERVICE-STORE/order/wxpay/notify";
+	    	
+	        HttpHeaders headers =new HttpHeaders();
+	        MediaType mtype = MediaType.parseMediaType("text/html; charset=utf-8");
+	        headers.setContentType(mtype);
+	        HttpEntity<String> request = new HttpEntity<String>(bean, headers);
+	    	restTemplate.postForObject(url, request, String.class);
+		} catch (RestClientException e) {
+			e.printStackTrace();
+		}
+    }
 }

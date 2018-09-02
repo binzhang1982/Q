@@ -94,12 +94,17 @@ public class WechatReciverController {
 		return null;
 	}
 	
+	//TODO 改ribbon调用
 	public void createUser(String openid) {
-    	Map<String, Object> uriVariables = new HashMap<String, Object>();
-    	uriVariables.put("openid", openid);
-		restTemplate.postForObject("http://localhost/wechat/user?openid={openid}", 
-				null, String.class, uriVariables);
-		restTemplate.postForObject("http://localhost/mgmt//cust/regtype?openid={openid}&regtype=1",
-				null, String.class, uriVariables);
+		try {
+	    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+	    	uriVariables.put("openid", openid);
+			restTemplate.postForObject("http://106.15.88.109/wechat/user?openid={openid}", 
+					null, String.class, uriVariables);
+			restTemplate.postForObject("http://106.15.88.109/mgmt/cust/regtype?openid={openid}&regtype=1",
+					null, String.class, uriVariables);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

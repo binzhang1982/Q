@@ -92,6 +92,55 @@ public class OrderService {
 	@Autowired
 	private WxPayHistoryMapper wxPayHistoryMapper;
 	
+	public WxPayHistory notifyPayOrder(String bean) throws Exception {
+		WxPayHistory ret = new WxPayHistory();
+		Map<String, String> resp = WXPayUtil.xmlToMap(bean);
+		if (!WXPayUtil.isSignatureValid(resp, StoreKeyConstants.PAYSECRET))
+			throw new BusinessException(StoreConstants.CHK_ERR_99998);
+
+		String return_code = resp.get("return_code");
+		if (!StoreKeyConstants.WXPAY_API_RC_SUCCESS.equals(return_code)) {
+			throw new BusinessException(ret.getReturnMsg());
+		} else {
+			ret.setTradeState(StoreKeyConstants.PAY_STATE_SUCCESS);
+			ret.setTradeStateDesc(StoreKeyConstants.PAY_STATE_DESC_SUCCESS);
+		}
+
+		ret.setReturnCode(return_code);
+		ret.setReturnMsg(resp.get("return_msg"));
+		ret.setWxApi("notify");
+		if (resp.containsKey("out_trade_no")) {
+			ret.setOutTradeNo(resp.get("out_trade_no"));
+			WxPayHistory temp = wxPayHistoryMapper.selectByPrimaryKey(resp.get("out_trade_no"));
+			if (temp == null) throw new BusinessException(StoreConstants.CHK_ERR_99997);
+			ret.setOrderId(temp.getOrderId());
+		} else {
+			 throw new BusinessException(StoreConstants.CHK_ERR_99996);
+		}
+		
+		if (resp.containsKey("nonce_str"))
+			ret.setNonceStr(resp.get("nonce_str"));
+		if (resp.containsKey("sign"))
+			ret.setSign(resp.get("sign"));
+		if (resp.containsKey("result_code"))
+			ret.setResultCode(resp.get("result_code"));
+		if (resp.containsKey("err_code"))
+			ret.setErrCode(resp.get("err_code"));
+		if (resp.containsKey("err_code_des"))
+			ret.setErrCodeDes(resp.get("err_code_des"));
+		if (resp.containsKey("bank_type"))
+			ret.setBankType(resp.get("bank_type"));
+		if (resp.containsKey("cash_fee"))
+			ret.setCashFee(Integer.parseInt(resp.get("cash_fee")));
+		if (resp.containsKey("transaction_id"))
+			ret.setTransactionId(resp.get("transaction_id"));
+		if (resp.containsKey("time_end")) {
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
+			ret.setTimeEnd((Date) sdf.parse(resp.get("time_end")));
+		}
+		return ret;
+	}
+	
 	public List<WxPayHistory> scanPayOrder(Integer interval) {
 		Date bef = DateUtils.addMinutes(Utils.getChinaCurrentTime(), 0-interval);
 		WxPayHistoryExample exam_wph = new WxPayHistoryExample();
@@ -133,6 +182,7 @@ public class OrderService {
 	@Transactional
 	public void updateTradeState(WxPayHistory hist) throws Exception {
 		if (hist.getTradeState() == null) return;
+		if (hist.getOrderId() == null) return;
 		GuestOrderInfo order = guestOrderInfoMapper.selectByPrimaryKey(hist.getOrderId());
 		switch (hist.getTradeState()) {
 			case StoreKeyConstants.PAY_STATE_SUCCESS:

@@ -63,7 +63,7 @@ public class WechatController {
 	
 	@PostMapping(value = "/user")
 	@CrossOrigin
-	public String updateUser(@RequestParam("user") String openid) {
+	public String updateUser(@RequestParam("openid") String openid) {
 		logger.info("post api: /wechat/user || openid: " + openid);
 		return wechatService.updateUser(openid);
 	}

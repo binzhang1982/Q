@@ -307,4 +307,29 @@ public class OrderController {
 		}
 		return ret;
 	}
+	
+	@RequestMapping(value = "/wxpay/notify", 
+//			produces="text/html;charset=utf-8",
+			method = { RequestMethod.POST })
+	public MsgData notifyPay(@RequestBody String bean) {
+		MsgData ret = new MsgData();
+		WxPayHistory hist = new WxPayHistory();
+		try {
+			hist = orderService.notifyPayOrder(bean);
+		} catch (BusinessException be) {
+			logger.error(be.getMessage());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		if (hist.getOutTradeNo() != null) {
+			try {
+				orderService.logPayHistory(hist);
+				orderService.updateTradeState(hist);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return ret;
+	}
 }
