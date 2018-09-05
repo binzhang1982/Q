@@ -42,6 +42,7 @@ import com.cn.zbin.store.dto.ShoppingTrolleyInfo;
 import com.cn.zbin.store.dto.ShoppingTrolleyInfoExample;
 import com.cn.zbin.store.dto.WxPayHistory;
 import com.cn.zbin.store.dto.WxPayHistoryExample;
+import com.cn.zbin.store.dto.WxRefundHistory;
 import com.cn.zbin.store.exception.BusinessException;
 import com.cn.zbin.store.mapper.CustomerAddressMapper;
 import com.cn.zbin.store.mapper.CustomerInfoMapper;
@@ -91,6 +92,45 @@ public class OrderService {
 	private CustomerInfoMapper customerInfoMapper;
 	@Autowired
 	private WxPayHistoryMapper wxPayHistoryMapper;
+	
+	public WxRefundHistory applyRefund(WxPayHistory payHist, OrderOperationHistory operHist,
+			String appid, String mch_id, String key) throws BusinessException, Exception {
+		WxRefundHistory ret = new WxRefundHistory();
+		QLHWXPayConfig config = new QLHWXPayConfig(StoreKeyConstants.CERT_PATH, appid, key, mch_id);
+        WXPay wxpay = new WXPay(config);
+        Map<String, String> data = new HashMap<String, String>();
+        data.put("transaction_id", payHist.getTransactionId());
+        String outRefundNo = Utils.getRefundNo();
+        data.put("out_refund_no", outRefundNo);
+        data.put("total_fee", String.valueOf(payHist.getTotalFee()));
+        Integer refundFee = operHist.getAdjustAmount().multiply(new BigDecimal(100)).intValue();
+        data.put("refund_fee", String.valueOf(refundFee));
+        //TODO 异步通知地址（请注意必须是外网）
+        data.put("notify_url", "http://106.15.88.109/store/order/wxrefund/notify");
+        Map<String, String> resp = wxpay.refund(data);
+        
+        if (resp != null) {
+        	ret.setOutRefundNo(outRefundNo);
+        	ret.setOrderId(payHist.getOrderId());
+        	ret.setOrderOperId(operHist.getOrderOperId());
+        	ret.setOutTradeNo(payHist.getOutTradeNo());
+        	ret.setRefundFee(refundFee);
+        	ret.setTotalFee(payHist.getTotalFee());
+        	ret.setTransactionId(payHist.getTransactionId());
+            ret.setReturnCode(resp.get("return_code"));
+            ret.setReturnMsg(resp.get("return_msg"));
+            ret.setRefundStatus(StoreKeyConstants.REFUND_STATE_PROCESSING);
+        	ret.setWxApi("refund");
+            if (resp.containsKey("nonce_str")) ret.setNonceStr(resp.get("nonce_str"));
+            if (resp.containsKey("sign")) ret.setSign(resp.get("sign"));
+            if (resp.containsKey("result_code")) ret.setResultCode(resp.get("result_code"));
+            if (resp.containsKey("err_code")) ret.setErrCode(resp.get("err_code"));
+            if (resp.containsKey("err_code_des")) ret.setErrCodeDes(resp.get("err_code_des"));
+            if (resp.containsKey("refund_id")) ret.setRefundId(resp.get("refund_id"));
+            if (resp.containsKey("cash_fee")) ret.setCashFee(Integer.valueOf(resp.get("cash_fee")));
+        }
+		return ret;
+	}
 	
 	public WxPayHistory notifyPayOrder(String bean) throws Exception {
 		WxPayHistory ret = new WxPayHistory();
@@ -329,7 +369,7 @@ public class OrderService {
             ret.setTotalFee(Integer.valueOf(totalFee));
             ret.setReturnCode(resp.get("return_code"));
             ret.setReturnMsg(resp.get("return_msg"));
-            ret.setTradeState("NOTPAY");
+            ret.setTradeState(StoreKeyConstants.PAY_STATE_NOTPAY);
 			ret.setWxApi("unifiedorder");
             if (resp.containsKey("nonce_str")) ret.setNonceStr(resp.get("nonce_str"));
             if (resp.containsKey("sign")) ret.setSign(resp.get("sign"));
@@ -352,39 +392,52 @@ public class OrderService {
 	}
 	
 	@Transactional
-	public void operateOrder(OrderOperationHistory operation) 
-			throws BusinessException, Exception {
-		switch (operation.getOperateCode()) {
-			case StoreKeyConstants.ORDER_OPERATION_CANCEL:
-				GuestOrderInfo guestOrder = guestOrderInfoMapper.selectByPrimaryKey(
-						operation.getOrderId());
-				
-				if (guestOrder == null) 
-					throw new BusinessException(StoreConstants.CHK_ERR_90016);
-				
-				if (!guestOrder.getCustomerId().equals(operation.getOperatorId()) && 
-						StoreKeyConstants.OPERATION_TYPE_CUSTOMER.equals(operation.getOperateType())) 
-					throw new BusinessException(StoreConstants.CHK_ERR_90017);
-				
-				if (!StoreKeyConstants.ORDER_STATUS_UNPAID.equals(guestOrder.getStatusCode())) 
-					throw new BusinessException(StoreConstants.CHK_ERR_90018);
+	public void operateOrder(OrderOperationHistory operation, String operatorId, 
+			Integer opertionType) throws BusinessException, Exception {
+		String operationCode = operation.getCustOperCode();
+		if (opertionType == StoreKeyConstants.OPERATION_TYPE_MANAGEMENT)
+			operationCode = operation.getMgmtOperCode();
 
+		GuestOrderInfo guestOrder = guestOrderInfoMapper.selectByPrimaryKey(
+				operation.getOrderId());
+		if (guestOrder == null) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90016);
+		if (!guestOrder.getCustomerId().equals(operatorId) &&
+				opertionType == StoreKeyConstants.OPERATION_TYPE_CUSTOMER)
+			throw new BusinessException(StoreConstants.CHK_ERR_90017);
+
+		String orderStatus = guestOrder.getStatusCode();
+		
+		switch (operationCode) {
+			case StoreKeyConstants.ORDER_OPERATION_CANCEL:
+				if (!StoreKeyConstants.ORDER_STATUS_UNPAID.equals(orderStatus)) 
+					throw new BusinessException(StoreConstants.CHK_ERR_90018);
+	
 				operation.setOrderOperId(UUID.randomUUID().toString());
 				operation.setOrderProductId(null);
 				operation.setDeferDate(null);
 				operation.setPendingEndDate(null);
 				operation.setReturnCount(null);
-				orderOperationHistoryMapper.insertSelective(operation);
-				
+
 				GuestOrderInfo record = new GuestOrderInfo();
 				record.setOrderId(operation.getOrderId());
 				record.setStatusCode(StoreKeyConstants.ORDER_STATUS_CANCELED);
-				record.setUpdateEmpId(operation.getOperatorId());
+				record.setUpdateEmpId(operatorId);
 				guestOrderInfoMapper.updateByPrimaryKeySelective(record);
+				break;
+			case StoreKeyConstants.ORDER_OPERATION_CONF_RETURN:
+				if (!StoreKeyConstants.ORDER_STATUS_WAIT_DELIVERY.equals(orderStatus) &&
+					!StoreKeyConstants.ORDER_STATUS_LEASE.equals(orderStatus) &&
+					!StoreKeyConstants.ORDER_STATUS_WAIT_COMMENT.equals(orderStatus)) 
+					throw new BusinessException(StoreConstants.CHK_ERR_90024);
+				//TODO 7天无理由退货
+				
 				break;
 			default:
 				throw new BusinessException(StoreConstants.CHK_ERR_90019);
 		}
+		
+		orderOperationHistoryMapper.insertSelective(operation);
 	}
 	
 	public List<GuestOrderOverView> getGuestOrderList(String customerid,

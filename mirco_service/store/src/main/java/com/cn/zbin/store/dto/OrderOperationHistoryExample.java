@@ -1,5 +1,6 @@
 package com.cn.zbin.store.dto;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -432,133 +433,143 @@ public class OrderOperationHistoryExample {
             return (Criteria) this;
         }
 
-        public Criteria andOperateCodeIsNull() {
-            addCriterion("operate_code is null");
+        public Criteria andCustOperCodeIsNull() {
+            addCriterion("cust_oper_code is null");
             return (Criteria) this;
         }
 
-        public Criteria andOperateCodeIsNotNull() {
-            addCriterion("operate_code is not null");
+        public Criteria andCustOperCodeIsNotNull() {
+            addCriterion("cust_oper_code is not null");
             return (Criteria) this;
         }
 
-        public Criteria andOperateCodeEqualTo(String value) {
-            addCriterion("operate_code =", value, "operateCode");
+        public Criteria andCustOperCodeEqualTo(String value) {
+            addCriterion("cust_oper_code =", value, "custOperCode");
             return (Criteria) this;
         }
 
-        public Criteria andOperateCodeNotEqualTo(String value) {
-            addCriterion("operate_code <>", value, "operateCode");
+        public Criteria andCustOperCodeNotEqualTo(String value) {
+            addCriterion("cust_oper_code <>", value, "custOperCode");
             return (Criteria) this;
         }
 
-        public Criteria andOperateCodeGreaterThan(String value) {
-            addCriterion("operate_code >", value, "operateCode");
+        public Criteria andCustOperCodeGreaterThan(String value) {
+            addCriterion("cust_oper_code >", value, "custOperCode");
             return (Criteria) this;
         }
 
-        public Criteria andOperateCodeGreaterThanOrEqualTo(String value) {
-            addCriterion("operate_code >=", value, "operateCode");
+        public Criteria andCustOperCodeGreaterThanOrEqualTo(String value) {
+            addCriterion("cust_oper_code >=", value, "custOperCode");
             return (Criteria) this;
         }
 
-        public Criteria andOperateCodeLessThan(String value) {
-            addCriterion("operate_code <", value, "operateCode");
+        public Criteria andCustOperCodeLessThan(String value) {
+            addCriterion("cust_oper_code <", value, "custOperCode");
             return (Criteria) this;
         }
 
-        public Criteria andOperateCodeLessThanOrEqualTo(String value) {
-            addCriterion("operate_code <=", value, "operateCode");
+        public Criteria andCustOperCodeLessThanOrEqualTo(String value) {
+            addCriterion("cust_oper_code <=", value, "custOperCode");
             return (Criteria) this;
         }
 
-        public Criteria andOperateCodeLike(String value) {
-            addCriterion("operate_code like", value, "operateCode");
+        public Criteria andCustOperCodeLike(String value) {
+            addCriterion("cust_oper_code like", value, "custOperCode");
             return (Criteria) this;
         }
 
-        public Criteria andOperateCodeNotLike(String value) {
-            addCriterion("operate_code not like", value, "operateCode");
+        public Criteria andCustOperCodeNotLike(String value) {
+            addCriterion("cust_oper_code not like", value, "custOperCode");
             return (Criteria) this;
         }
 
-        public Criteria andOperateCodeIn(List<String> values) {
-            addCriterion("operate_code in", values, "operateCode");
+        public Criteria andCustOperCodeIn(List<String> values) {
+            addCriterion("cust_oper_code in", values, "custOperCode");
             return (Criteria) this;
         }
 
-        public Criteria andOperateCodeNotIn(List<String> values) {
-            addCriterion("operate_code not in", values, "operateCode");
+        public Criteria andCustOperCodeNotIn(List<String> values) {
+            addCriterion("cust_oper_code not in", values, "custOperCode");
             return (Criteria) this;
         }
 
-        public Criteria andOperateCodeBetween(String value1, String value2) {
-            addCriterion("operate_code between", value1, value2, "operateCode");
+        public Criteria andCustOperCodeBetween(String value1, String value2) {
+            addCriterion("cust_oper_code between", value1, value2, "custOperCode");
             return (Criteria) this;
         }
 
-        public Criteria andOperateCodeNotBetween(String value1, String value2) {
-            addCriterion("operate_code not between", value1, value2, "operateCode");
+        public Criteria andCustOperCodeNotBetween(String value1, String value2) {
+            addCriterion("cust_oper_code not between", value1, value2, "custOperCode");
             return (Criteria) this;
         }
 
-        public Criteria andOperateTypeIsNull() {
-            addCriterion("operate_type is null");
+        public Criteria andMgmtOperCodeIsNull() {
+            addCriterion("mgmt_oper_code is null");
             return (Criteria) this;
         }
 
-        public Criteria andOperateTypeIsNotNull() {
-            addCriterion("operate_type is not null");
+        public Criteria andMgmtOperCodeIsNotNull() {
+            addCriterion("mgmt_oper_code is not null");
             return (Criteria) this;
         }
 
-        public Criteria andOperateTypeEqualTo(Integer value) {
-            addCriterion("operate_type =", value, "operateType");
+        public Criteria andMgmtOperCodeEqualTo(String value) {
+            addCriterion("mgmt_oper_code =", value, "mgmtOperCode");
             return (Criteria) this;
         }
 
-        public Criteria andOperateTypeNotEqualTo(Integer value) {
-            addCriterion("operate_type <>", value, "operateType");
+        public Criteria andMgmtOperCodeNotEqualTo(String value) {
+            addCriterion("mgmt_oper_code <>", value, "mgmtOperCode");
             return (Criteria) this;
         }
 
-        public Criteria andOperateTypeGreaterThan(Integer value) {
-            addCriterion("operate_type >", value, "operateType");
+        public Criteria andMgmtOperCodeGreaterThan(String value) {
+            addCriterion("mgmt_oper_code >", value, "mgmtOperCode");
             return (Criteria) this;
         }
 
-        public Criteria andOperateTypeGreaterThanOrEqualTo(Integer value) {
-            addCriterion("operate_type >=", value, "operateType");
+        public Criteria andMgmtOperCodeGreaterThanOrEqualTo(String value) {
+            addCriterion("mgmt_oper_code >=", value, "mgmtOperCode");
             return (Criteria) this;
         }
 
-        public Criteria andOperateTypeLessThan(Integer value) {
-            addCriterion("operate_type <", value, "operateType");
+        public Criteria andMgmtOperCodeLessThan(String value) {
+            addCriterion("mgmt_oper_code <", value, "mgmtOperCode");
             return (Criteria) this;
         }
 
-        public Criteria andOperateTypeLessThanOrEqualTo(Integer value) {
-            addCriterion("operate_type <=", value, "operateType");
+        public Criteria andMgmtOperCodeLessThanOrEqualTo(String value) {
+            addCriterion("mgmt_oper_code <=", value, "mgmtOperCode");
             return (Criteria) this;
         }
 
-        public Criteria andOperateTypeIn(List<Integer> values) {
-            addCriterion("operate_type in", values, "operateType");
+        public Criteria andMgmtOperCodeLike(String value) {
+            addCriterion("mgmt_oper_code like", value, "mgmtOperCode");
             return (Criteria) this;
         }
 
-        public Criteria andOperateTypeNotIn(List<Integer> values) {
-            addCriterion("operate_type not in", values, "operateType");
+        public Criteria andMgmtOperCodeNotLike(String value) {
+            addCriterion("mgmt_oper_code not like", value, "mgmtOperCode");
             return (Criteria) this;
         }
 
-        public Criteria andOperateTypeBetween(Integer value1, Integer value2) {
-            addCriterion("operate_type between", value1, value2, "operateType");
+        public Criteria andMgmtOperCodeIn(List<String> values) {
+            addCriterion("mgmt_oper_code in", values, "mgmtOperCode");
             return (Criteria) this;
         }
 
-        public Criteria andOperateTypeNotBetween(Integer value1, Integer value2) {
-            addCriterion("operate_type not between", value1, value2, "operateType");
+        public Criteria andMgmtOperCodeNotIn(List<String> values) {
+            addCriterion("mgmt_oper_code not in", values, "mgmtOperCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andMgmtOperCodeBetween(String value1, String value2) {
+            addCriterion("mgmt_oper_code between", value1, value2, "mgmtOperCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andMgmtOperCodeNotBetween(String value1, String value2) {
+            addCriterion("mgmt_oper_code not between", value1, value2, "mgmtOperCode");
             return (Criteria) this;
         }
 
@@ -742,133 +753,373 @@ public class OrderOperationHistoryExample {
             return (Criteria) this;
         }
 
-        public Criteria andOperatorIdIsNull() {
-            addCriterion("operator_id is null");
+        public Criteria andCalcAmountIsNull() {
+            addCriterion("calc_amount is null");
             return (Criteria) this;
         }
 
-        public Criteria andOperatorIdIsNotNull() {
-            addCriterion("operator_id is not null");
+        public Criteria andCalcAmountIsNotNull() {
+            addCriterion("calc_amount is not null");
             return (Criteria) this;
         }
 
-        public Criteria andOperatorIdEqualTo(String value) {
-            addCriterion("operator_id =", value, "operatorId");
+        public Criteria andCalcAmountEqualTo(BigDecimal value) {
+            addCriterion("calc_amount =", value, "calcAmount");
             return (Criteria) this;
         }
 
-        public Criteria andOperatorIdNotEqualTo(String value) {
-            addCriterion("operator_id <>", value, "operatorId");
+        public Criteria andCalcAmountNotEqualTo(BigDecimal value) {
+            addCriterion("calc_amount <>", value, "calcAmount");
             return (Criteria) this;
         }
 
-        public Criteria andOperatorIdGreaterThan(String value) {
-            addCriterion("operator_id >", value, "operatorId");
+        public Criteria andCalcAmountGreaterThan(BigDecimal value) {
+            addCriterion("calc_amount >", value, "calcAmount");
             return (Criteria) this;
         }
 
-        public Criteria andOperatorIdGreaterThanOrEqualTo(String value) {
-            addCriterion("operator_id >=", value, "operatorId");
+        public Criteria andCalcAmountGreaterThanOrEqualTo(BigDecimal value) {
+            addCriterion("calc_amount >=", value, "calcAmount");
             return (Criteria) this;
         }
 
-        public Criteria andOperatorIdLessThan(String value) {
-            addCriterion("operator_id <", value, "operatorId");
+        public Criteria andCalcAmountLessThan(BigDecimal value) {
+            addCriterion("calc_amount <", value, "calcAmount");
             return (Criteria) this;
         }
 
-        public Criteria andOperatorIdLessThanOrEqualTo(String value) {
-            addCriterion("operator_id <=", value, "operatorId");
+        public Criteria andCalcAmountLessThanOrEqualTo(BigDecimal value) {
+            addCriterion("calc_amount <=", value, "calcAmount");
             return (Criteria) this;
         }
 
-        public Criteria andOperatorIdLike(String value) {
-            addCriterion("operator_id like", value, "operatorId");
+        public Criteria andCalcAmountIn(List<BigDecimal> values) {
+            addCriterion("calc_amount in", values, "calcAmount");
             return (Criteria) this;
         }
 
-        public Criteria andOperatorIdNotLike(String value) {
-            addCriterion("operator_id not like", value, "operatorId");
+        public Criteria andCalcAmountNotIn(List<BigDecimal> values) {
+            addCriterion("calc_amount not in", values, "calcAmount");
             return (Criteria) this;
         }
 
-        public Criteria andOperatorIdIn(List<String> values) {
-            addCriterion("operator_id in", values, "operatorId");
+        public Criteria andCalcAmountBetween(BigDecimal value1, BigDecimal value2) {
+            addCriterion("calc_amount between", value1, value2, "calcAmount");
             return (Criteria) this;
         }
 
-        public Criteria andOperatorIdNotIn(List<String> values) {
-            addCriterion("operator_id not in", values, "operatorId");
+        public Criteria andCalcAmountNotBetween(BigDecimal value1, BigDecimal value2) {
+            addCriterion("calc_amount not between", value1, value2, "calcAmount");
             return (Criteria) this;
         }
 
-        public Criteria andOperatorIdBetween(String value1, String value2) {
-            addCriterion("operator_id between", value1, value2, "operatorId");
+        public Criteria andAdjustAmountIsNull() {
+            addCriterion("adjust_amount is null");
             return (Criteria) this;
         }
 
-        public Criteria andOperatorIdNotBetween(String value1, String value2) {
-            addCriterion("operator_id not between", value1, value2, "operatorId");
+        public Criteria andAdjustAmountIsNotNull() {
+            addCriterion("adjust_amount is not null");
             return (Criteria) this;
         }
 
-        public Criteria andOperateTimeIsNull() {
-            addCriterion("operate_time is null");
+        public Criteria andAdjustAmountEqualTo(BigDecimal value) {
+            addCriterion("adjust_amount =", value, "adjustAmount");
             return (Criteria) this;
         }
 
-        public Criteria andOperateTimeIsNotNull() {
-            addCriterion("operate_time is not null");
+        public Criteria andAdjustAmountNotEqualTo(BigDecimal value) {
+            addCriterion("adjust_amount <>", value, "adjustAmount");
             return (Criteria) this;
         }
 
-        public Criteria andOperateTimeEqualTo(Date value) {
-            addCriterion("operate_time =", value, "operateTime");
+        public Criteria andAdjustAmountGreaterThan(BigDecimal value) {
+            addCriterion("adjust_amount >", value, "adjustAmount");
             return (Criteria) this;
         }
 
-        public Criteria andOperateTimeNotEqualTo(Date value) {
-            addCriterion("operate_time <>", value, "operateTime");
+        public Criteria andAdjustAmountGreaterThanOrEqualTo(BigDecimal value) {
+            addCriterion("adjust_amount >=", value, "adjustAmount");
             return (Criteria) this;
         }
 
-        public Criteria andOperateTimeGreaterThan(Date value) {
-            addCriterion("operate_time >", value, "operateTime");
+        public Criteria andAdjustAmountLessThan(BigDecimal value) {
+            addCriterion("adjust_amount <", value, "adjustAmount");
             return (Criteria) this;
         }
 
-        public Criteria andOperateTimeGreaterThanOrEqualTo(Date value) {
-            addCriterion("operate_time >=", value, "operateTime");
+        public Criteria andAdjustAmountLessThanOrEqualTo(BigDecimal value) {
+            addCriterion("adjust_amount <=", value, "adjustAmount");
             return (Criteria) this;
         }
 
-        public Criteria andOperateTimeLessThan(Date value) {
-            addCriterion("operate_time <", value, "operateTime");
+        public Criteria andAdjustAmountIn(List<BigDecimal> values) {
+            addCriterion("adjust_amount in", values, "adjustAmount");
             return (Criteria) this;
         }
 
-        public Criteria andOperateTimeLessThanOrEqualTo(Date value) {
-            addCriterion("operate_time <=", value, "operateTime");
+        public Criteria andAdjustAmountNotIn(List<BigDecimal> values) {
+            addCriterion("adjust_amount not in", values, "adjustAmount");
             return (Criteria) this;
         }
 
-        public Criteria andOperateTimeIn(List<Date> values) {
-            addCriterion("operate_time in", values, "operateTime");
+        public Criteria andAdjustAmountBetween(BigDecimal value1, BigDecimal value2) {
+            addCriterion("adjust_amount between", value1, value2, "adjustAmount");
             return (Criteria) this;
         }
 
-        public Criteria andOperateTimeNotIn(List<Date> values) {
-            addCriterion("operate_time not in", values, "operateTime");
+        public Criteria andAdjustAmountNotBetween(BigDecimal value1, BigDecimal value2) {
+            addCriterion("adjust_amount not between", value1, value2, "adjustAmount");
             return (Criteria) this;
         }
 
-        public Criteria andOperateTimeBetween(Date value1, Date value2) {
-            addCriterion("operate_time between", value1, value2, "operateTime");
+        public Criteria andPayRefundTypeIsNull() {
+            addCriterion("pay_refund_type is null");
             return (Criteria) this;
         }
 
-        public Criteria andOperateTimeNotBetween(Date value1, Date value2) {
-            addCriterion("operate_time not between", value1, value2, "operateTime");
+        public Criteria andPayRefundTypeIsNotNull() {
+            addCriterion("pay_refund_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPayRefundTypeEqualTo(Integer value) {
+            addCriterion("pay_refund_type =", value, "payRefundType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPayRefundTypeNotEqualTo(Integer value) {
+            addCriterion("pay_refund_type <>", value, "payRefundType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPayRefundTypeGreaterThan(Integer value) {
+            addCriterion("pay_refund_type >", value, "payRefundType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPayRefundTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("pay_refund_type >=", value, "payRefundType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPayRefundTypeLessThan(Integer value) {
+            addCriterion("pay_refund_type <", value, "payRefundType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPayRefundTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("pay_refund_type <=", value, "payRefundType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPayRefundTypeIn(List<Integer> values) {
+            addCriterion("pay_refund_type in", values, "payRefundType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPayRefundTypeNotIn(List<Integer> values) {
+            addCriterion("pay_refund_type not in", values, "payRefundType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPayRefundTypeBetween(Integer value1, Integer value2) {
+            addCriterion("pay_refund_type between", value1, value2, "payRefundType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPayRefundTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("pay_refund_type not between", value1, value2, "payRefundType");
+            return (Criteria) this;
+        }
+
+        public Criteria andMgmtEmpIdIsNull() {
+            addCriterion("mgmt_emp_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMgmtEmpIdIsNotNull() {
+            addCriterion("mgmt_emp_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMgmtEmpIdEqualTo(String value) {
+            addCriterion("mgmt_emp_id =", value, "mgmtEmpId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMgmtEmpIdNotEqualTo(String value) {
+            addCriterion("mgmt_emp_id <>", value, "mgmtEmpId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMgmtEmpIdGreaterThan(String value) {
+            addCriterion("mgmt_emp_id >", value, "mgmtEmpId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMgmtEmpIdGreaterThanOrEqualTo(String value) {
+            addCriterion("mgmt_emp_id >=", value, "mgmtEmpId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMgmtEmpIdLessThan(String value) {
+            addCriterion("mgmt_emp_id <", value, "mgmtEmpId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMgmtEmpIdLessThanOrEqualTo(String value) {
+            addCriterion("mgmt_emp_id <=", value, "mgmtEmpId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMgmtEmpIdLike(String value) {
+            addCriterion("mgmt_emp_id like", value, "mgmtEmpId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMgmtEmpIdNotLike(String value) {
+            addCriterion("mgmt_emp_id not like", value, "mgmtEmpId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMgmtEmpIdIn(List<String> values) {
+            addCriterion("mgmt_emp_id in", values, "mgmtEmpId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMgmtEmpIdNotIn(List<String> values) {
+            addCriterion("mgmt_emp_id not in", values, "mgmtEmpId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMgmtEmpIdBetween(String value1, String value2) {
+            addCriterion("mgmt_emp_id between", value1, value2, "mgmtEmpId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMgmtEmpIdNotBetween(String value1, String value2) {
+            addCriterion("mgmt_emp_id not between", value1, value2, "mgmtEmpId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustOperTimeIsNull() {
+            addCriterion("cust_oper_time is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustOperTimeIsNotNull() {
+            addCriterion("cust_oper_time is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustOperTimeEqualTo(Date value) {
+            addCriterion("cust_oper_time =", value, "custOperTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustOperTimeNotEqualTo(Date value) {
+            addCriterion("cust_oper_time <>", value, "custOperTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustOperTimeGreaterThan(Date value) {
+            addCriterion("cust_oper_time >", value, "custOperTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustOperTimeGreaterThanOrEqualTo(Date value) {
+            addCriterion("cust_oper_time >=", value, "custOperTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustOperTimeLessThan(Date value) {
+            addCriterion("cust_oper_time <", value, "custOperTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustOperTimeLessThanOrEqualTo(Date value) {
+            addCriterion("cust_oper_time <=", value, "custOperTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustOperTimeIn(List<Date> values) {
+            addCriterion("cust_oper_time in", values, "custOperTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustOperTimeNotIn(List<Date> values) {
+            addCriterion("cust_oper_time not in", values, "custOperTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustOperTimeBetween(Date value1, Date value2) {
+            addCriterion("cust_oper_time between", value1, value2, "custOperTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustOperTimeNotBetween(Date value1, Date value2) {
+            addCriterion("cust_oper_time not between", value1, value2, "custOperTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andMgmtOperTimeIsNull() {
+            addCriterion("mgmt_oper_time is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMgmtOperTimeIsNotNull() {
+            addCriterion("mgmt_oper_time is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMgmtOperTimeEqualTo(Date value) {
+            addCriterion("mgmt_oper_time =", value, "mgmtOperTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andMgmtOperTimeNotEqualTo(Date value) {
+            addCriterion("mgmt_oper_time <>", value, "mgmtOperTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andMgmtOperTimeGreaterThan(Date value) {
+            addCriterion("mgmt_oper_time >", value, "mgmtOperTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andMgmtOperTimeGreaterThanOrEqualTo(Date value) {
+            addCriterion("mgmt_oper_time >=", value, "mgmtOperTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andMgmtOperTimeLessThan(Date value) {
+            addCriterion("mgmt_oper_time <", value, "mgmtOperTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andMgmtOperTimeLessThanOrEqualTo(Date value) {
+            addCriterion("mgmt_oper_time <=", value, "mgmtOperTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andMgmtOperTimeIn(List<Date> values) {
+            addCriterion("mgmt_oper_time in", values, "mgmtOperTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andMgmtOperTimeNotIn(List<Date> values) {
+            addCriterion("mgmt_oper_time not in", values, "mgmtOperTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andMgmtOperTimeBetween(Date value1, Date value2) {
+            addCriterion("mgmt_oper_time between", value1, value2, "mgmtOperTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andMgmtOperTimeNotBetween(Date value1, Date value2) {
+            addCriterion("mgmt_oper_time not between", value1, value2, "mgmtOperTime");
             return (Criteria) this;
         }
     }

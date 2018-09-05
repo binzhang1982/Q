@@ -186,6 +186,7 @@ public class StoreController {
     @CrossOrigin
 //    public String wxPayBack (HttpServletRequest request,HttpServletResponse response){
     public String wxPayBack (@RequestBody String bean) {
+		logger.info("post api: /order/wxpay/notify");
     	String resXml="";
         try{
 //        	InputStream is = request.getInputStream();
@@ -211,6 +212,20 @@ public class StoreController {
         	resXml = bean;
         	logger.info(resXml);
             asyncService.executeNotifyOrderPay(resXml);
+            return "<xml><return_code><![CDATA[SUCCESS]]></return_code> <return_msg><![CDATA[OK]]></return_msg></xml>";
+        } catch (Exception e){
+            logger.error("手机支付回调通知失败",e);
+            String result = "<xml>" + "<return_code><![CDATA[FAIL]]></return_code>" + "<return_msg><![CDATA[报文为空]]></return_msg>" + "</xml> ";
+            return result;
+        }
+    }
+    
+    @PostMapping(value="/order/wxrefund/notify")
+    @CrossOrigin
+    public String wxRefundBack (@RequestBody String bean) {
+		logger.info("post api: /order/wxrefund/notify");
+        try{
+        	logger.info(bean);
             return "<xml><return_code><![CDATA[SUCCESS]]></return_code> <return_msg><![CDATA[OK]]></return_msg></xml>";
         } catch (Exception e){
             logger.error("手机支付回调通知失败",e);

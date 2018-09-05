@@ -1,5 +1,6 @@
 package com.cn.zbin.store.controller;
 
+import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang.time.DateUtils;
@@ -105,10 +106,10 @@ public class OrderController {
 		MsgData ret = new MsgData();
 		try {
 			for (OrderOperationHistory operation : operationList) {
-				operation.setOperateCode(StoreKeyConstants.ORDER_OPERATION_CANCEL);
-				operation.setOperateType(StoreKeyConstants.OPERATION_TYPE_CUSTOMER);
-				operation.setOperatorId(customerid);
-				orderService.operateOrder(operation);
+				operation.setCustOperCode(StoreKeyConstants.ORDER_OPERATION_CANCEL);
+				operation.setCustOperTime(new Date());
+				orderService.operateOrder(operation, customerid, 
+						StoreKeyConstants.OPERATION_TYPE_CUSTOMER);
 			}
 		} catch (BusinessException be) {
 			ret.setStatus(MsgData.status_ng);
@@ -131,11 +132,12 @@ public class OrderController {
 			List<GuestOrderInfo> orderList = orderService.getExpiredUnpaidOrderList();
 			for (GuestOrderInfo order : orderList) {
 				OrderOperationHistory operation = new OrderOperationHistory();
-				operation.setOperateCode(StoreKeyConstants.ORDER_OPERATION_CANCEL);
-				operation.setOperateType(StoreKeyConstants.OPERATION_TYPE_MANAGEMENT);
-				operation.setOperatorId(StoreKeyConstants.SYSTEM_EMP_ID);
+				operation.setMgmtOperCode(StoreKeyConstants.ORDER_OPERATION_CANCEL);
+				operation.setMgmtEmpId(StoreKeyConstants.SYSTEM_EMP_ID);
 				operation.setOrderId(order.getOrderId());
-				orderService.operateOrder(operation);
+				operation.setMgmtOperTime(new Date());
+				orderService.operateOrder(operation, StoreKeyConstants.SYSTEM_EMP_ID, 
+						StoreKeyConstants.OPERATION_TYPE_MANAGEMENT);
 			}
 		} catch (BusinessException be) {
 			ret.setStatus(MsgData.status_ng);
@@ -147,7 +149,7 @@ public class OrderController {
 		
 		return ret;
 	}
-
+	
 	@RequestMapping(value = "/pay/unified", 
 			produces = {"application/json;charset=UTF-8"}, 
 			method = { RequestMethod.GET })
@@ -329,6 +331,31 @@ public class OrderController {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+		}
+		return ret;
+	}
+	
+
+	@RequestMapping(value = "/order/return/agree", 
+			produces = {"application/json;charset=UTF-8"}, 
+			method = { RequestMethod.GET })
+	public MsgData agreeReturn(
+			@RequestParam(value = "orderoperid", required = true) String orderoperid,
+			@RequestParam(value = "empid", required = true) String empid,
+			@RequestParam(value = "appid", required = true) String appid) {
+		MsgData ret = new MsgData();
+		try {
+			hist = orderService.applyPayUnified(orderId, customerId, 
+					spbillCreateIp, appid, StoreKeyConstants.MCHID, StoreKeyConstants.PAYSECRET);
+		} catch (BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getMessage());
+			return ret;
+		} catch (Exception e) {
+			e.printStackTrace();
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(StoreConstants.CHK_ERR_99999);
+			return ret;
 		}
 		return ret;
 	}

@@ -113,4 +113,17 @@ public class Utils {
         }
         return new String(nonceChars) + time;
     }
+    
+    public static String getRefundNo() {
+    	Calendar cal = Calendar.getInstance(); 
+    	Date date = cal.getTime();
+    	//20160505010134364
+    	String time = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(date);
+
+        char[] nonceChars = new char[35];
+        for (int index = 0; index < nonceChars.length; ++index) {
+            nonceChars[index] = SYMBOLS.charAt(RANDOM.nextInt(SYMBOLS.length()));
+        }
+        return new String(nonceChars) + time;
+    }
 }
