@@ -573,6 +573,76 @@ public class OrderProductExample {
             return (Criteria) this;
         }
 
+        public Criteria andStatusCodeIsNull() {
+            addCriterion("status_code is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusCodeIsNotNull() {
+            addCriterion("status_code is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusCodeEqualTo(String value) {
+            addCriterion("status_code =", value, "statusCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusCodeNotEqualTo(String value) {
+            addCriterion("status_code <>", value, "statusCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusCodeGreaterThan(String value) {
+            addCriterion("status_code >", value, "statusCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusCodeGreaterThanOrEqualTo(String value) {
+            addCriterion("status_code >=", value, "statusCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusCodeLessThan(String value) {
+            addCriterion("status_code <", value, "statusCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusCodeLessThanOrEqualTo(String value) {
+            addCriterion("status_code <=", value, "statusCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusCodeLike(String value) {
+            addCriterion("status_code like", value, "statusCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusCodeNotLike(String value) {
+            addCriterion("status_code not like", value, "statusCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusCodeIn(List<String> values) {
+            addCriterion("status_code in", values, "statusCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusCodeNotIn(List<String> values) {
+            addCriterion("status_code not in", values, "statusCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusCodeBetween(String value1, String value2) {
+            addCriterion("status_code between", value1, value2, "statusCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusCodeNotBetween(String value1, String value2) {
+            addCriterion("status_code not between", value1, value2, "statusCode");
+            return (Criteria) this;
+        }
+
         public Criteria andIsDeleteIsNull() {
             addCriterion("is_delete is null");
             return (Criteria) this;
