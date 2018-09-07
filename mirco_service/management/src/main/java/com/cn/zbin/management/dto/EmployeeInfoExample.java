@@ -832,6 +832,206 @@ public class EmployeeInfoExample {
             return (Criteria) this;
         }
 
+        public Criteria andErrorCountIsNull() {
+            addCriterion("error_count is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorCountIsNotNull() {
+            addCriterion("error_count is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorCountEqualTo(Integer value) {
+            addCriterion("error_count =", value, "errorCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorCountNotEqualTo(Integer value) {
+            addCriterion("error_count <>", value, "errorCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorCountGreaterThan(Integer value) {
+            addCriterion("error_count >", value, "errorCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorCountGreaterThanOrEqualTo(Integer value) {
+            addCriterion("error_count >=", value, "errorCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorCountLessThan(Integer value) {
+            addCriterion("error_count <", value, "errorCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorCountLessThanOrEqualTo(Integer value) {
+            addCriterion("error_count <=", value, "errorCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorCountIn(List<Integer> values) {
+            addCriterion("error_count in", values, "errorCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorCountNotIn(List<Integer> values) {
+            addCriterion("error_count not in", values, "errorCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorCountBetween(Integer value1, Integer value2) {
+            addCriterion("error_count between", value1, value2, "errorCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorCountNotBetween(Integer value1, Integer value2) {
+            addCriterion("error_count not between", value1, value2, "errorCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidCodeIsNull() {
+            addCriterion("valid_code is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidCodeIsNotNull() {
+            addCriterion("valid_code is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidCodeEqualTo(String value) {
+            addCriterion("valid_code =", value, "validCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidCodeNotEqualTo(String value) {
+            addCriterion("valid_code <>", value, "validCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidCodeGreaterThan(String value) {
+            addCriterion("valid_code >", value, "validCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidCodeGreaterThanOrEqualTo(String value) {
+            addCriterion("valid_code >=", value, "validCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidCodeLessThan(String value) {
+            addCriterion("valid_code <", value, "validCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidCodeLessThanOrEqualTo(String value) {
+            addCriterion("valid_code <=", value, "validCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidCodeLike(String value) {
+            addCriterion("valid_code like", value, "validCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidCodeNotLike(String value) {
+            addCriterion("valid_code not like", value, "validCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidCodeIn(List<String> values) {
+            addCriterion("valid_code in", values, "validCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidCodeNotIn(List<String> values) {
+            addCriterion("valid_code not in", values, "validCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidCodeBetween(String value1, String value2) {
+            addCriterion("valid_code between", value1, value2, "validCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidCodeNotBetween(String value1, String value2) {
+            addCriterion("valid_code not between", value1, value2, "validCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andLoginAddressIsNull() {
+            addCriterion("login_address is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andLoginAddressIsNotNull() {
+            addCriterion("login_address is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andLoginAddressEqualTo(String value) {
+            addCriterion("login_address =", value, "loginAddress");
+            return (Criteria) this;
+        }
+
+        public Criteria andLoginAddressNotEqualTo(String value) {
+            addCriterion("login_address <>", value, "loginAddress");
+            return (Criteria) this;
+        }
+
+        public Criteria andLoginAddressGreaterThan(String value) {
+            addCriterion("login_address >", value, "loginAddress");
+            return (Criteria) this;
+        }
+
+        public Criteria andLoginAddressGreaterThanOrEqualTo(String value) {
+            addCriterion("login_address >=", value, "loginAddress");
+            return (Criteria) this;
+        }
+
+        public Criteria andLoginAddressLessThan(String value) {
+            addCriterion("login_address <", value, "loginAddress");
+            return (Criteria) this;
+        }
+
+        public Criteria andLoginAddressLessThanOrEqualTo(String value) {
+            addCriterion("login_address <=", value, "loginAddress");
+            return (Criteria) this;
+        }
+
+        public Criteria andLoginAddressLike(String value) {
+            addCriterion("login_address like", value, "loginAddress");
+            return (Criteria) this;
+        }
+
+        public Criteria andLoginAddressNotLike(String value) {
+            addCriterion("login_address not like", value, "loginAddress");
+            return (Criteria) this;
+        }
+
+        public Criteria andLoginAddressIn(List<String> values) {
+            addCriterion("login_address in", values, "loginAddress");
+            return (Criteria) this;
+        }
+
+        public Criteria andLoginAddressNotIn(List<String> values) {
+            addCriterion("login_address not in", values, "loginAddress");
+            return (Criteria) this;
+        }
+
+        public Criteria andLoginAddressBetween(String value1, String value2) {
+            addCriterion("login_address between", value1, value2, "loginAddress");
+            return (Criteria) this;
+        }
+
+        public Criteria andLoginAddressNotBetween(String value1, String value2) {
+            addCriterion("login_address not between", value1, value2, "loginAddress");
+            return (Criteria) this;
+        }
+
         public Criteria andActiveFlagIsNull() {
             addCriterion("active_flag is null");
             return (Criteria) this;

@@ -10,7 +10,10 @@ public class MgmtConstants {
 	public final static String CHK_ERR_80007 = "80007:手机号码已被注册!";
 	public final static String CHK_ERR_80008 = "80008:手机验证码不正确,请稍后再试!";
 	public final static String CHK_ERR_80009 = "80009:该疾病不存在,请重新选择!";
-	public final static String CHK_ERR_80010 = "80010:更新密码失败!";
+	public final static String CHK_ERR_80010 = "80010:员工不存在!";
+	public final static String CHK_ERR_80011 = "80011:员工已经离职!";
+	public final static String CHK_ERR_80012 = "80012:密码错误!";
+	public final static String CHK_ERR_80013 = "80013:尝试次数过多!";
 	
 	public final static String CHK_ERR_99999 = "99999:系统出错,请联系我们!";
 }

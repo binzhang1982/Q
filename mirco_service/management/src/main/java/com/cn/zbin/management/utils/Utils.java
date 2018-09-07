@@ -1,7 +1,10 @@
 package com.cn.zbin.management.utils;
 
 import java.security.MessageDigest;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -78,6 +81,11 @@ public class Utils {
 		newString = newString + srcStr;
 		return newString;
 	}
+    
+    public static Date getChinaCurrentTime() {
+    	Calendar calendar = Calendar.getInstance(Locale.CHINA);
+        return calendar.getTime();
+    }
 
 	public static String MD5(String data) throws Exception {
 		MessageDigest md = MessageDigest.getInstance("MD5");

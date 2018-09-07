@@ -35,8 +35,9 @@ public class EmployeeController {
 			@RequestBody EmployeeInfo emp) {
 		MsgData ret = new MsgData();
 		try {
-			if (employeeService.updatePassword(emp.getEmployeeId(), emp.getPassword(), newpwd) > 0) {
-				throw new BusinessException(MgmtConstants.CHK_ERR_80010);
+			String msg = employeeService.updatePassword(emp.getEmployeeId(), emp.getPassword(), newpwd);
+			if (!"".equals(msg)) {
+				throw new BusinessException(msg);
 			}
 		} catch (BusinessException be) {
 			ret.setStatus(MsgData.status_ng);

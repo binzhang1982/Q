@@ -8,6 +8,7 @@ import com.cn.zbin.management.dto.EmployeeInfo;
 import com.cn.zbin.management.dto.EmployeeInfoExample;
 import com.cn.zbin.management.exception.BusinessException;
 import com.cn.zbin.management.mapper.EmployeeInfoMapper;
+import com.cn.zbin.management.utils.MgmtConstants;
 import com.cn.zbin.management.utils.Utils;
 
 @Service
@@ -16,22 +17,38 @@ public class EmployeeService {
 	private EmployeeInfoMapper employeeInfoMapper;
 	
 	@Transactional
-	public Integer updatePassword(String empid, String oldpwd, String newpwd) 
+	public String updatePassword(String empid, String oldpwd, String newpwd) 
 			throws BusinessException, Exception {
+		String ret = "";
 		String oldPwdSha = Utils.HMACSHA256(oldpwd);
-		EmployeeInfoExample exam_ei = new EmployeeInfoExample();
-		exam_ei.createCriteria().andEmployeeIdEqualTo(empid)
-								.andPasswordEqualTo(oldPwdSha)
-								.andActiveFlagEqualTo(Boolean.TRUE);
-
-		Integer ret = employeeInfoMapper.countByExample(exam_ei);
-		if (ret > 0) {
+		EmployeeInfo emp = employeeInfoMapper.selectByPrimaryKey(empid);
+		if (emp != null) {
 			EmployeeInfo record = new EmployeeInfo();
-			record.setEmployeeId(empid);
-			record.setPassword(Utils.HMACSHA256(newpwd));
-			employeeInfoMapper.updateByPrimaryKeySelective(record);
+			if (emp.getActiveFlag() && 
+				emp.getLeaveDate().compareTo(Utils.getChinaCurrentTime()) >= 0 &&
+				emp.getPassword().equals(oldPwdSha) &&
+				emp.getErrorCount() <= 3) {
+				
+				record.setEmployeeId(empid);
+				record.setPassword(Utils.HMACSHA256(newpwd));
+				record.setErrorCount(0);
+				employeeInfoMapper.updateByPrimaryKeySelective(record);
+			} else {
+				record.setEmployeeId(empid);
+				record.setErrorCount(emp.getErrorCount() + 1);
+				employeeInfoMapper.updateByPrimaryKeySelective(record);
+				
+				if (!emp.getActiveFlag()) 
+					ret = MgmtConstants.CHK_ERR_80011;
+				if (emp.getLeaveDate().compareTo(Utils.getChinaCurrentTime()) < 0) 
+					ret = MgmtConstants.CHK_ERR_80011;
+				if (!emp.getPassword().equals(oldPwdSha)) 
+					ret = MgmtConstants.CHK_ERR_80012;
+				if (emp.getErrorCount() > 3)
+					ret = MgmtConstants.CHK_ERR_80013;
+			}
 		} else {
-			
+			ret = MgmtConstants.CHK_ERR_80010;
 		}
 		
 		return ret;
