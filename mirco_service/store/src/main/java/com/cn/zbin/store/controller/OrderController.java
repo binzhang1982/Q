@@ -345,8 +345,8 @@ public class OrderController {
 			@RequestParam(value = "appid", required = true) String appid) {
 		MsgData ret = new MsgData();
 		try {
-			hist = orderService.applyPayUnified(orderId, customerId, 
-					spbillCreateIp, appid, StoreKeyConstants.MCHID, StoreKeyConstants.PAYSECRET);
+//			hist = orderService.applyPayUnified(orderId, customerId, 
+//					spbillCreateIp, appid, StoreKeyConstants.MCHID, StoreKeyConstants.PAYSECRET);
 		} catch (BusinessException be) {
 			ret.setStatus(MsgData.status_ng);
 			ret.setMessage(be.getMessage());
