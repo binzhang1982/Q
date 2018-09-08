@@ -1,6 +1,7 @@
 package com.cn.zbin.management.utils;
 
 import java.security.MessageDigest;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -8,6 +9,8 @@ import java.util.Locale;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+
+import org.apache.commons.lang.time.DateUtils;
 
 public class Utils {
     public static boolean stringNotEmpty(String res) {
@@ -110,4 +113,45 @@ public class Utils {
 		}
 		return sb.toString().toUpperCase();
 	}
+    
+    public static boolean isToday(Date chkDay) {
+    	Calendar calendar = Calendar.getInstance();
+    	SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+    	String strToday = formatter.format(calendar.getTime());
+    	String strDay = formatter.format(chkDay);
+    	if (strToday.equals(strDay)) return true;
+    	else return false;
+    }
+    
+    public static boolean isFuture(Date chk) {
+	    Calendar calendar = Calendar.getInstance();
+	    return (calendar.getTimeInMillis() - chk.getTime()) < 0;
+    }
+    
+    public static final String INTERVAL_TYPE_SEC = "s";
+    public static final String INTERVAL_TYPE_MIN = "mi";
+    public static final String INTERVAL_TYPE_HOUR = "h";
+    public static final String INTERVAL_TYPE_DAY = "d";
+    public static final String INTERVAL_TYPE_MON = "mm";
+    public static final String INTERVAL_TYPE_YEAR = "y";
+    
+    public static boolean isOverDue(Date chk, Integer interval, String intervalType) {
+    	Calendar calendar = Calendar.getInstance();
+    	switch(intervalType) {
+	    	case INTERVAL_TYPE_SEC:
+	    		return DateUtils.addSeconds(calendar.getTime(), 0 - interval).compareTo(chk) > 0;
+	    	case INTERVAL_TYPE_MIN:
+	    		return DateUtils.addMinutes(calendar.getTime(), 0 - interval).compareTo(chk) > 0;
+	    	case INTERVAL_TYPE_HOUR:
+	    		return DateUtils.addHours(calendar.getTime(), 0 - interval).compareTo(chk) > 0;
+	    	case INTERVAL_TYPE_DAY:
+	    		return DateUtils.addDays(calendar.getTime(), 0 - interval).compareTo(chk) > 0;
+	    	case INTERVAL_TYPE_MON:
+	    		return DateUtils.addMonths(calendar.getTime(), 0 - interval).compareTo(chk) > 0;
+	    	case INTERVAL_TYPE_YEAR:
+	    		return DateUtils.addYears(calendar.getTime(), 0 - interval).compareTo(chk) > 0;
+	    	default:
+	    		return false;
+    	}
+    }
 }

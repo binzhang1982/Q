@@ -14,6 +14,9 @@ public class MgmtConstants {
 	public final static String CHK_ERR_80011 = "80011:员工已经离职!";
 	public final static String CHK_ERR_80012 = "80012:密码错误!";
 	public final static String CHK_ERR_80013 = "80013:尝试次数过多!";
+	public final static String CHK_ERR_80014 = "80014:员工重名!";
+	public final static String CHK_ERR_80015 = "80015:登陆过期，请重新登陆!";
+	public final static String CHK_ERR_80016 = "80016:无权限访问!";
 	
 	public final static String CHK_ERR_99999 = "99999:系统出错,请联系我们!";
 }
