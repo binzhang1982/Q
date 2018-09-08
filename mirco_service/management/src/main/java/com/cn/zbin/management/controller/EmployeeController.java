@@ -5,7 +5,6 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -33,7 +32,9 @@ public class EmployeeController {
 	public MsgData updEmpPwd(
 			@RequestParam("name") String empname,
 			@RequestParam("old") String oldpwd,
-			@PathVariable("new") String newpwd) {
+			@RequestParam("new") String newpwd) {
+		logger.info("post api: /emp/pwd || name: " + empname 
+				+ " || old: " + oldpwd + " || new: " + newpwd);
 		MsgData ret = new MsgData();
 		try {
 			EmployeeInfo emp = employeeService.getEmployeeByPwd(empname, oldpwd);
@@ -57,12 +58,15 @@ public class EmployeeController {
 			method = {RequestMethod.GET})
 	public EmployeeMsgData access(
 			@RequestParam("name") String empname,
-			@RequestParam("old") String oldpwd) {
+			@RequestParam("old") String oldpwd,
+			@RequestParam("ip") String ip) {
+		logger.info("get api: /emp/access || name: " + empname 
+				+ " || old: " + oldpwd + " || ip: " + ip);
 		EmployeeMsgData ret = new EmployeeMsgData();
 		try {
 			EmployeeInfo emp = employeeService.getEmployeeByPwd(empname, oldpwd);
 			ret.setEmp(employeeService.updateToken(emp.getEmployeeId(), 
-					Utils.MD5(UUID.randomUUID().toString())));
+					Utils.MD5(UUID.randomUUID().toString()), ip));
 		} catch (BusinessException be) {
 			ret.setStatus(MsgData.status_ng);
 			ret.setMessage(be.getMessage());
@@ -83,10 +87,12 @@ public class EmployeeController {
 	public MsgData chkToken(
 			@RequestParam("empid") String empid,
 			@RequestParam("token") String token) {
+		logger.info("get api: /emp/token || empid: " + empid 
+				+ " || token: " + token);
 		MsgData ret = new MsgData();
 		try {
 			EmployeeInfo emp = employeeService.getEmployeeByToken(empid, token);
-			employeeService.updateToken(emp.getEmployeeId(),emp.getToken());
+			employeeService.updateToken(emp.getEmployeeId(),emp.getToken(), null);
 		} catch (BusinessException be) {
 			ret.setStatus(MsgData.status_ng);
 			ret.setMessage(be.getMessage());
@@ -101,13 +107,14 @@ public class EmployeeController {
 		return ret;
 	}
 
-
 	@RequestMapping(value = "/auth",
 			produces = {"application/json;charset=UTF-8"},
 			method = {RequestMethod.GET})
 	public MsgData chkAuth(
 			@RequestParam("empid") String empid,
 			@RequestParam("auth") String auth) {
+		logger.info("get api: /emp/auth || empid: " + empid 
+				+ " || auth: " + auth);
 		MsgData ret = new MsgData();
 		try {
 			employeeService.checkAuth(empid, auth);

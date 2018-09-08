@@ -201,4 +201,31 @@ public class ManagementService {
 	public String updateTokenError(String bean) {
 		return "failed";
 	}
+	
+    @HystrixCommand(fallbackMethod = "updatePasswordError")
+    public String updatePassword(String empname, String oldpwd, String newpwd) {
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("name", empname);
+    	uriVariables.put("old", oldpwd);
+    	uriVariables.put("new", newpwd);
+        return restTemplate.postForObject("http://SERVICE-MGMT/emp/pwd?name={name}" 
+				+ "&old={old}&new={new}", null, String.class, uriVariables);
+    }
+    public String updatePasswordError(String openid, Integer registerType) {
+        return "failed";
+    }
+
+    @HystrixCommand(fallbackMethod = "getEmployeeByPwdError")
+    public String getEmployeeByPwd(String empname, String oldpwd, String ip) {
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("name", empname);
+    	uriVariables.put("old", oldpwd);
+    	uriVariables.put("ip", ip);
+    	String url = "http://SERVICE-MGMT/emp/access?name={name}" 
+				+ "&old={old}&ip={ip}";
+    	return restTemplate.getForObject(url, String.class, uriVariables);
+    }
+    public String getEmployeeByPwdError(String empname, String oldpwd, String ip) {
+    	return "failed";
+    }
 }

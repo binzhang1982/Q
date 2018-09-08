@@ -111,11 +111,12 @@ public class EmployeeService {
 		employeeInfoMapper.updateByPrimaryKeySelective(record);
 	}
 	
-	public EmployeeInfo updateToken(String empid, String token) 
+	public EmployeeInfo updateToken(String empid, String token, String ip) 
 			throws Exception {
 		EmployeeInfo record = new EmployeeInfo();
 		record.setEmployeeId(empid);
 		record.setToken(token);
+		record.setLoginAddress(ip);
 		record.setExpiredTime(Utils.getChinaCurrentTime());
 		employeeInfoMapper.updateByPrimaryKeySelective(record);
 		return record;

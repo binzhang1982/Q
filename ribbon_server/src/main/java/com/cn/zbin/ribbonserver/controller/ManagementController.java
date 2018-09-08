@@ -1,5 +1,8 @@
 package com.cn.zbin.ribbonserver.controller;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -135,5 +138,29 @@ public class ManagementController {
 				+ " || customerid: " + customerid
 				+ " || validcode: " + validcode); 
     	return managementService.comfirmValidCode(customerid, validcode);
+    }
+    
+    @PostMapping(value = "/emp/pwd")
+    @CrossOrigin
+    public String changePassword(
+    		@RequestParam("name") String empname,
+			@RequestParam("old") String oldpwd,
+			@RequestParam("new") String newpwd) {
+		logger.info("post api: /mgmt/emp/pwd || name: " + empname
+				+ " || old: " + oldpwd + " || new: " + newpwd); 
+    	return managementService.updatePassword(empname, oldpwd, newpwd);
+    }
+    
+    @GetMapping(value="/emp/access")
+    @CrossOrigin
+    public String access(
+    		HttpServletRequest request,
+			@RequestParam("name") String empname,
+			@RequestParam("old") String oldpwd) {
+		logger.info("get api: /mgmt/emp/access || name: " + empname
+				+ " || old: " + oldpwd);
+        String ip = request.getRemoteAddr();
+		logger.info("get api: /mgmt/emp/access || ip: " + ip);
+    	return managementService.getEmployeeByPwd(empname, oldpwd, ip);
     }
 }
