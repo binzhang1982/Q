@@ -211,7 +211,7 @@ public class ManagementService {
         return restTemplate.postForObject("http://SERVICE-MGMT/emp/pwd?name={name}" 
 				+ "&old={old}&new={new}", null, String.class, uriVariables);
     }
-    public String updatePasswordError(String openid, Integer registerType) {
+    public String updatePasswordError(String empname, String oldpwd, String newpwd) {
         return "failed";
     }
 

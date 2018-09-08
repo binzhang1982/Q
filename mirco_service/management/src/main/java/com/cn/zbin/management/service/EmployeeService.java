@@ -42,7 +42,7 @@ public class EmployeeService {
 					throw new BusinessException(MgmtConstants.CHK_ERR_80011);
 				if (!emp.getPassword().equals(oldPwdSha)) 
 					throw new BusinessException(MgmtConstants.CHK_ERR_80012);
-				if (errCnt > 3)
+				if (errCnt != null && errCnt > 3)
 					throw new BusinessException(MgmtConstants.CHK_ERR_80013);
 			} catch(BusinessException be) {
 				updateErrorCount(emp.getEmployeeId(), errCnt);
@@ -66,9 +66,9 @@ public class EmployeeService {
 				if (emp.getLeaveDate().compareTo(Utils.getChinaCurrentTime()) < 0) 
 					throw new BusinessException(MgmtConstants.CHK_ERR_80011);
 				if (emp.getToken() == null) 
-					throw new BusinessException(MgmtConstants.CHK_ERR_80012);
+					throw new BusinessException(MgmtConstants.CHK_ERR_80015);
 				if (emp.getToken() != null && !emp.getToken().equals(token)) 
-					throw new BusinessException(MgmtConstants.CHK_ERR_80012);
+					throw new BusinessException(MgmtConstants.CHK_ERR_80015);
 				if (Utils.isOverDue(emp.getExpiredTime(), 1, Utils.INTERVAL_TYPE_HOUR))
 					throw new BusinessException(MgmtConstants.CHK_ERR_80015);
 				if (errCnt > 3)
@@ -97,6 +97,7 @@ public class EmployeeService {
 	public void updateErrorCount(String empid, Integer errorCount) {
 		EmployeeInfo record = new EmployeeInfo();
 		record.setEmployeeId(empid);
+		if (errorCount == null) errorCount = 0;
 		record.setErrorCount(errorCount + 1);
 		employeeInfoMapper.updateByPrimaryKeySelective(record);
 	}
@@ -117,6 +118,7 @@ public class EmployeeService {
 		record.setEmployeeId(empid);
 		record.setToken(token);
 		record.setLoginAddress(ip);
+		record.setErrorCount(0);
 		record.setExpiredTime(Utils.getChinaCurrentTime());
 		employeeInfoMapper.updateByPrimaryKeySelective(record);
 		return record;

@@ -26,8 +26,6 @@ public class EmployeeController {
 	private EmployeeService employeeService;
 	
 	@RequestMapping(value = "/pwd",
-			consumes = {"application/json;charset=UTF-8"}, 
-			produces = {"application/json;charset=UTF-8"}, 
 			method = {RequestMethod.POST})
 	public MsgData updEmpPwd(
 			@RequestParam("name") String empname,

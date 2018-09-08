@@ -1,10 +1,5 @@
 package com.cn.zbin.ribbonserver.controller;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -184,30 +179,10 @@ public class StoreController {
     
     @PostMapping(value="/order/wxpay/notify")
     @CrossOrigin
-//    public String wxPayBack (HttpServletRequest request,HttpServletResponse response){
     public String wxPayBack (@RequestBody String bean) {
 		logger.info("post api: /order/wxpay/notify");
     	String resXml="";
         try{
-//        	InputStream is = request.getInputStream();
-//        	//将InputStream转换成String
-//        	BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-//        	StringBuilder sb = new StringBuilder();
-//        	String line = null;
-//        	try {
-//        		while ((line = reader.readLine()) != null) {
-//        			sb.append(line + "\n");
-//        		}
-//        	} catch (IOException e) {
-//        		e.printStackTrace();
-//        	} finally {
-//        		try {
-//        			is.close();
-//        		} catch (IOException e) {
-//        			e.printStackTrace();
-//        		}
-//        	}
-//        	resXml=sb.toString();
 
         	resXml = bean;
         	logger.info(resXml);
@@ -233,4 +208,6 @@ public class StoreController {
             return result;
         }
     }
+    
+    
 }
