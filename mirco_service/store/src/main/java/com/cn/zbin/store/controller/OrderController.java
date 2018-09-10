@@ -311,9 +311,9 @@ public class OrderController {
 	}
 	
 	@RequestMapping(value = "/wxpay/notify", 
-//			produces="text/html;charset=utf-8",
 			method = { RequestMethod.POST })
 	public MsgData notifyPay(@RequestBody String bean) {
+		logger.info("post api: /order/wxpay/notify || bean: " + bean);
 		MsgData ret = new MsgData();
 		WxPayHistory hist = new WxPayHistory();
 		try {
@@ -335,14 +335,15 @@ public class OrderController {
 		return ret;
 	}
 	
-
-	@RequestMapping(value = "/order/return/agree", 
+	@RequestMapping(value = "/return/agree", 
 			produces = {"application/json;charset=UTF-8"}, 
 			method = { RequestMethod.GET })
 	public MsgData agreeReturn(
 			@RequestParam(value = "orderoperid", required = true) String orderoperid,
 			@RequestParam(value = "empid", required = true) String empid,
 			@RequestParam(value = "appid", required = true) String appid) {
+		logger.info("get api: /order/return/agree || orderoperid: " + orderoperid +
+				" || empid: " + empid);
 		MsgData ret = new MsgData();
 		try {
 //			hist = orderService.applyPayUnified(orderId, customerId, 
@@ -356,6 +357,48 @@ public class OrderController {
 			ret.setStatus(MsgData.status_ng);
 			ret.setMessage(StoreConstants.CHK_ERR_99999);
 			return ret;
+		}
+		return ret;
+	}
+
+	@RequestMapping(value = "/delivery/confirm", 
+			method = { RequestMethod.POST })
+	public MsgData confirmDelivery(
+			@RequestParam(value = "orderid", required = true) String orderid, 
+			@RequestParam(value = "id", required = true) String id,
+			@RequestParam(value = "type") Integer type) {
+		logger.info("post api: /order/delivery/confirm || orderid: " + orderid +
+				" || id: " + id + " || type: " + type);
+		MsgData ret = new MsgData();
+		try {
+			orderService.confirmDelivery(orderid, id, type);
+		} catch (BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getMessage());
+		} catch (Exception e) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(StoreConstants.CHK_ERR_99999);
+		}
+		return ret;
+	}
+
+	@RequestMapping(value = "/courier", 
+			method = { RequestMethod.POST })
+	public MsgData setOrderCourierNumber(
+			@RequestParam(value = "empid", required = true) String empid,
+			@RequestParam(value = "orderid", required = true) String orderid, 
+			@RequestParam(value = "courierno", required = true) String courierno) {
+		logger.info("post api: /order/courier || empid: " + empid +
+				" || orderid: " + orderid + " || courierno: " + courierno);
+		MsgData ret = new MsgData();
+		try {
+			orderService.setOrderCourierNumber(empid, orderid, courierno);
+		} catch (BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getMessage());
+		} catch (Exception e) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(StoreConstants.CHK_ERR_99999);
 		}
 		return ret;
 	}

@@ -45,4 +45,34 @@ public class DesktopService {
     public String getOrderListError(String status, Integer offset, Integer limit) {
     	return "failed";
     }
+
+    @HystrixCommand(fallbackMethod = "setOrderCourierNumberError")
+    public String setOrderCourierNumber(String empid, String orderid, String courierno) {
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("empid", empid);
+    	uriVariables.put("orderid", orderid);
+    	uriVariables.put("courierno", courierno);
+
+        return restTemplate.postForObject("http://SERVICE-STORE/order/courier" 
+    			+ "?empid={empid}&orderid={orderid}&courierno={courierno}", null, String.class, 
+    			uriVariables);
+    }
+    public String setOrderCourierNumberError(String empid, String orderid, String courierno) {
+    	return "failed";
+    }
+    
+    @HystrixCommand(fallbackMethod = "confirmDeliveryError")
+    public String confirmDelivery(String orderid, String empid) {
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("orderid", orderid);
+    	uriVariables.put("id", empid);
+    	uriVariables.put("type", 2);
+
+        return restTemplate.postForObject("http://SERVICE-STORE/order/delivery/confirm" 
+				+ "?orderid={orderid}&id={id}&type={type}", null, String.class, 
+				uriVariables);
+    }
+    public String confirmDeliveryError(String orderId, String customerId) {
+    	return "failed";
+    }
 }

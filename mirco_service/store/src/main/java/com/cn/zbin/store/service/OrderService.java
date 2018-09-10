@@ -93,6 +93,56 @@ public class OrderService {
 	@Autowired
 	private WxPayHistoryMapper wxPayHistoryMapper;
 	
+	@Transactional
+	public void setOrderCourierNumber(String empid, String orderid, String courierno) 
+			throws BusinessException, Exception {
+		GuestOrderInfo order = guestOrderInfoMapper.selectByPrimaryKey(orderid);
+		if (order == null) throw new BusinessException(StoreConstants.CHK_ERR_90016);
+		if (order.getStatusCode().equals(StoreKeyConstants.ORDER_STATUS_WAIT_DELIVERY)) {
+			GuestOrderInfo record = new GuestOrderInfo();
+			record.setOrderId(orderid);
+			record.setUpdateEmpId(empid);
+			record.setCourierNumber(courierno);
+			guestOrderInfoMapper.updateByPrimaryKeySelective(record);
+		} else {
+			throw new BusinessException(StoreConstants.CHK_ERR_90018);
+		}
+	}
+	
+	@Transactional
+	public void confirmDelivery(String orderid, String id, Integer type) 
+			throws BusinessException, Exception {
+		GuestOrderInfo order = guestOrderInfoMapper.selectByPrimaryKey(orderid);
+		if (order == null) throw new BusinessException(StoreConstants.CHK_ERR_90016);
+		if (StoreKeyConstants.OPERATION_TYPE_CUSTOMER.equals(type) && !order.getCustomerId().equals(id))
+			throw new BusinessException(StoreConstants.CHK_ERR_90017);
+		if (order.getStatusCode().equals(StoreKeyConstants.ORDER_STATUS_WAIT_DELIVERY)) {
+			GuestOrderInfo record = new GuestOrderInfo();
+			record.setOrderId(orderid);
+			record.setStatusCode(StoreKeyConstants.ORDER_STATUS_WAIT_COMMENT);
+			if (StoreKeyConstants.OPERATION_TYPE_MANAGEMENT.equals(type))
+				record.setUpdateEmpId(id);
+			guestOrderInfoMapper.updateByPrimaryKeySelective(record);
+			
+			OrderProductExample exam_op = new OrderProductExample();
+			exam_op.createCriteria().andOrderIdEqualTo(orderid);
+			List<OrderProduct> prods = orderProductMapper.selectByExample(exam_op);
+			if (Utils.listNotNull(prods)) {
+				for (OrderProduct prod : prods) {
+					OrderProduct rec = new OrderProduct();
+					rec.setOrderProductId(prod.getOrderProductId());
+					rec.setStatusCode(StoreKeyConstants.ORDER_PROD_STATUS_USING);
+					rec.setActualSendDate(Utils.getChinaCurrentTime());
+					if (rec.getReservePendingDate() != null) 
+						rec.setActualPendingDate(Utils.getChinaCurrentTime());
+					orderProductMapper.updateByPrimaryKeySelective(rec);
+				}
+			}
+		} else {
+			throw new BusinessException(StoreConstants.CHK_ERR_90018);
+		}
+	}
+	
 	public WxRefundHistory applyRefund(WxPayHistory payHist, OrderOperationHistory operHist,
 			String appid, String mch_id, String key) throws BusinessException, Exception {
 		WxRefundHistory ret = new WxRefundHistory();
@@ -268,11 +318,11 @@ public class OrderService {
 	public WxPayHistory queryPay(String orderId, String customerid, String appid, 
 			String mch_id, String key) throws BusinessException, Exception {
 		GuestOrderInfo order = guestOrderInfoMapper.selectByPrimaryKey(orderId);
-		if (order == null) throw new BusinessException(StoreConstants.CHK_ERR_90020);
+		if (order == null) throw new BusinessException(StoreConstants.CHK_ERR_90016);
 		if (!order.getCustomerId().equals(customerid)) 
-			throw new BusinessException(StoreConstants.CHK_ERR_90022);
+			throw new BusinessException(StoreConstants.CHK_ERR_90017);
 		if (order.getPaymentVoucher() == null) 
-			throw new BusinessException(StoreConstants.CHK_ERR_90023);
+			throw new BusinessException(StoreConstants.CHK_ERR_90020);
         String outTradeNo = order.getPaymentVoucher();
 		return queryPay(outTradeNo, appid, mch_id, key);
 	}
@@ -317,11 +367,11 @@ public class OrderService {
 		if (openid == null) throw new BusinessException(StoreConstants.CHK_ERR_90004);
 		
 		GuestOrderInfo order = guestOrderInfoMapper.selectByPrimaryKey(orderId);
-		if (order == null) throw new BusinessException(StoreConstants.CHK_ERR_90020);
+		if (order == null) throw new BusinessException(StoreConstants.CHK_ERR_90016);
 		if (!order.getCustomerId().equals(customerid)) 
-			throw new BusinessException(StoreConstants.CHK_ERR_90022);
+			throw new BusinessException(StoreConstants.CHK_ERR_90017);
 		if (!StoreKeyConstants.ORDER_STATUS_UNPAID.equals(order.getStatusCode()))
-			throw new BusinessException(StoreConstants.CHK_ERR_90021);
+			throw new BusinessException(StoreConstants.CHK_ERR_90018);
 		BigDecimal totalAmount = order.getTotalAmount();
 		if (totalAmount == null) throw new BusinessException(StoreConstants.CHK_ERR_90013);
 		if (totalAmount.compareTo(new BigDecimal(0)) <= 0) 
@@ -336,7 +386,7 @@ public class OrderService {
 				} else if (StoreKeyConstants.PAY_STATE_CLOSED.equals(ret.getTradeState())) {
 					ret = new WxPayHistory();
 				} else {
-					throw new BusinessException(StoreConstants.CHK_ERR_90021);
+					throw new BusinessException(StoreConstants.CHK_ERR_90018);
 				}
 			} else {
 				ret = new WxPayHistory();
@@ -422,14 +472,15 @@ public class OrderService {
 				GuestOrderInfo record = new GuestOrderInfo();
 				record.setOrderId(operation.getOrderId());
 				record.setStatusCode(StoreKeyConstants.ORDER_STATUS_CANCELED);
-				record.setUpdateEmpId(operatorId);
+				if (opertionType == StoreKeyConstants.OPERATION_TYPE_MANAGEMENT)
+					record.setUpdateEmpId(operatorId);
 				guestOrderInfoMapper.updateByPrimaryKeySelective(record);
 				break;
 			case StoreKeyConstants.ORDER_OPERATION_CONF_RETURN:
 				if (!StoreKeyConstants.ORDER_STATUS_WAIT_DELIVERY.equals(orderStatus) &&
-					!StoreKeyConstants.ORDER_STATUS_LEASE.equals(orderStatus) &&
-					!StoreKeyConstants.ORDER_STATUS_WAIT_COMMENT.equals(orderStatus)) 
-					throw new BusinessException(StoreConstants.CHK_ERR_90024);
+					!StoreKeyConstants.ORDER_STATUS_WAIT_COMMENT.equals(orderStatus) &&
+					!StoreKeyConstants.ORDER_STATUS_COMMENT_CONFIRM.equals(orderStatus)) 
+					throw new BusinessException(StoreConstants.CHK_ERR_90018);
 				//TODO 7天无理由退货
 				
 				break;

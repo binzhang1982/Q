@@ -19,13 +19,9 @@ public class StoreConstants {
 	public final static String CHK_ERR_90015 = "90015:日期转换失败!";
 	public final static String CHK_ERR_90016 = "90016:订单不存在,不能操作!";
 	public final static String CHK_ERR_90017 = "90017:这不是您的订单,不能操作!";
-	public final static String CHK_ERR_90018 = "90018:订单状态不正确,不能取消!";
+	public final static String CHK_ERR_90018 = "90018:订单状态不正确,不能操作!";
 	public final static String CHK_ERR_90019 = "90019:无效操作,请联系我们!";
-	public final static String CHK_ERR_90020 = "90020:订单不存在,不能支付!";
-	public final static String CHK_ERR_90021 = "90021:订单状态不正确,不能支付!";
-	public final static String CHK_ERR_90022 = "90022:这不是您的订单,不能支付!";
-	public final static String CHK_ERR_90023 = "90023:订单支付信息不存在!";
-	public final static String CHK_ERR_90024 = "90024:订单状态不正确,不能退货!";
+	public final static String CHK_ERR_90020 = "90023:订单支付信息不存在!";
 
 	public final static String CHK_ERR_99996 = "99996:支付通知没有返回商户订单号!";
 	public final static String CHK_ERR_99997 = "99997:支付通知返回的商户订单号不存在!";

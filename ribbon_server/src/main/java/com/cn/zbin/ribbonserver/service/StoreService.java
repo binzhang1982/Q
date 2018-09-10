@@ -259,4 +259,19 @@ public class StoreService {
     public String unifiedOrderPayError(String orderid, String customerid, String ip) {
     	return "failed";
     }
+
+    @HystrixCommand(fallbackMethod = "confirmDeliveryError")
+    public String confirmDelivery(String orderid, String customerid) {
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("orderid", orderid);
+    	uriVariables.put("id", customerid);
+    	uriVariables.put("type", 1);
+
+        return restTemplate.postForObject("http://SERVICE-STORE/order/delivery/confirm" 
+				+ "?orderid={orderid}&id={id}&type={type}", null, String.class, 
+				uriVariables);
+    }
+    public String confirmDeliveryError(String orderId, String customerId) {
+    	return "failed";
+    }
 }

@@ -159,7 +159,7 @@ public class StoreController {
 	public String cancelOrderByCustomer(
 			@RequestParam(value = "customerid", required = true) String customerid,
 			@RequestBody String bean) {
-		logger.info("post api: /order/cancel/cust || customerid: " + customerid
+		logger.info("post api: /store/order/cancel/cust || customerid: " + customerid
 				+ " || bean: " + bean);
     	return storeService.cancelOrderByCustomer(customerid, bean);
     }
@@ -180,7 +180,7 @@ public class StoreController {
     @PostMapping(value="/order/wxpay/notify")
     @CrossOrigin
     public String wxPayBack (@RequestBody String bean) {
-		logger.info("post api: /order/wxpay/notify");
+		logger.info("post api: /store/order/wxpay/notify");
     	String resXml="";
         try{
 
@@ -198,7 +198,7 @@ public class StoreController {
     @PostMapping(value="/order/wxrefund/notify")
     @CrossOrigin
     public String wxRefundBack (@RequestBody String bean) {
-		logger.info("post api: /order/wxrefund/notify");
+		logger.info("post api: /store/order/wxrefund/notify");
         try{
         	logger.info(bean);
             return "<xml><return_code><![CDATA[SUCCESS]]></return_code> <return_msg><![CDATA[OK]]></return_msg></xml>";
@@ -208,6 +208,14 @@ public class StoreController {
             return result;
         }
     }
-    
-    
+
+    @PostMapping(value="/order/delivery/confirm")
+    @CrossOrigin
+    public String confirmDelivery(
+    		@RequestParam("orderid") String orderId, 
+			@RequestParam("customerid") String customerid) {
+    	logger.info("post api: /store/order/delivery/confirm || orderid: " + orderId +
+    			" || customerid: " + customerid);
+    	return storeService.confirmDelivery(orderId, customerid);
+    }
 }
