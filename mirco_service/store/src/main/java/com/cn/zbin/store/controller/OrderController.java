@@ -19,6 +19,7 @@ import com.cn.zbin.store.bto.MsgData;
 import com.cn.zbin.store.bto.WxPayOverView;
 import com.cn.zbin.store.dto.GuestOrderInfo;
 import com.cn.zbin.store.dto.OrderOperationHistory;
+import com.cn.zbin.store.dto.ProductComment;
 import com.cn.zbin.store.dto.ShoppingTrolleyInfo;
 import com.cn.zbin.store.dto.WxPayHistory;
 import com.cn.zbin.store.exception.BusinessException;
@@ -393,6 +394,52 @@ public class OrderController {
 		MsgData ret = new MsgData();
 		try {
 			orderService.setOrderCourierNumber(empid, orderid, courierno);
+		} catch (BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getMessage());
+		} catch (Exception e) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(StoreConstants.CHK_ERR_99999);
+		}
+		return ret;
+	}
+
+	@RequestMapping(value = "/comments", 
+			consumes = {"application/json;charset=UTF-8"}, 
+			produces = {"application/json;charset=UTF-8"}, 
+			method = { RequestMethod.POST })
+	public MsgData addOrderComments(
+			@RequestParam("customerid") String customerid,
+			@RequestParam("orderid") String orderid,
+			@RequestBody List<ProductComment> comments) {
+		logger.info("post api: /order/comment || customerid: " + customerid +
+				" || orderid: " + orderid + " || comments: " + comments);
+		MsgData ret = new MsgData();
+		try {
+			orderService.addOrderComments(customerid, orderid, comments);
+		} catch (BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getMessage());
+		} catch (Exception e) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(StoreConstants.CHK_ERR_99999);
+		}
+		
+		return ret;
+	}
+
+	@RequestMapping(value = "/comment/sys", 
+			method = { RequestMethod.POST })
+	public MsgData commentOrderBySystem() {
+		logger.info("post api: /order/comment/sys");
+		MsgData ret = new MsgData();
+		try {
+			List<GuestOrderInfo> guestOrderLst = orderService.getDefaultWaitCommentOrders();
+			if (Utils.listNotNull(guestOrderLst)) {
+				for (GuestOrderInfo order : guestOrderLst) {
+					orderService.addOrderDefaultComments(order.getOrderId());
+				}
+			}
 		} catch (BusinessException be) {
 			ret.setStatus(MsgData.status_ng);
 			ret.setMessage(be.getMessage());

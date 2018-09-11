@@ -33,6 +33,8 @@ import com.cn.zbin.store.dto.MasterProvince;
 import com.cn.zbin.store.dto.OrderOperationHistory;
 import com.cn.zbin.store.dto.OrderProduct;
 import com.cn.zbin.store.dto.OrderProductExample;
+import com.cn.zbin.store.dto.ProductComment;
+import com.cn.zbin.store.dto.ProductCommentExample;
 import com.cn.zbin.store.dto.ProductImage;
 import com.cn.zbin.store.dto.ProductImageExample;
 import com.cn.zbin.store.dto.ProductInfo;
@@ -52,6 +54,7 @@ import com.cn.zbin.store.mapper.MasterCityMapper;
 import com.cn.zbin.store.mapper.MasterProvinceMapper;
 import com.cn.zbin.store.mapper.OrderOperationHistoryMapper;
 import com.cn.zbin.store.mapper.OrderProductMapper;
+import com.cn.zbin.store.mapper.ProductCommentMapper;
 import com.cn.zbin.store.mapper.ProductImageMapper;
 import com.cn.zbin.store.mapper.ProductInfoMapper;
 import com.cn.zbin.store.mapper.ProductPriceMapper;
@@ -70,6 +73,8 @@ public class OrderService {
 	private ProductInfoMapper productInfoMapper;
 	@Autowired
 	private ProductPriceMapper productPriceMapper;
+	@Autowired
+	private ProductCommentMapper productCommentMapper;
 	@Autowired
 	private ShoppingTrolleyInfoMapper shoppingTrolleyInfoMapper;
 	@Autowired
@@ -92,6 +97,81 @@ public class OrderService {
 	private CustomerInfoMapper customerInfoMapper;
 	@Autowired
 	private WxPayHistoryMapper wxPayHistoryMapper;
+	
+	@Transactional
+	public void addOrderComments(String customerid, String orderid, List<ProductComment> comments) 
+			throws BusinessException, Exception {
+		GuestOrderInfo order = guestOrderInfoMapper.selectByPrimaryKey(orderid);
+		if (order == null) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90016);
+		if (order.getCustomerId().equals(customerid)) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90017);
+		if (!order.getStatusCode().equals(StoreKeyConstants.ORDER_STATUS_WAIT_COMMENT))
+			throw new BusinessException(StoreConstants.CHK_ERR_90018);
+		addOrderComments(orderid, comments);
+		
+		GuestOrderInfo record = new GuestOrderInfo();
+		record.setOrderId(orderid);
+		record.setStatusCode(StoreKeyConstants.ORDER_STATUS_COMMENT_CONFIRM);
+		guestOrderInfoMapper.updateByPrimaryKeySelective(record);
+	}
+	
+	public List<GuestOrderInfo> getDefaultWaitCommentOrders() {
+		GuestOrderInfoExample exam_goi = new GuestOrderInfoExample();
+		Date defaultCommentDate = DateUtils.addDays(Utils.getChinaCurrentTime(), 
+				0 - StoreKeyConstants.DEFAULT_COMMENT_DAYS);
+		exam_goi.createCriteria().andStatusCodeEqualTo(StoreKeyConstants.ORDER_STATUS_WAIT_COMMENT)
+								.andUpdateTimeLessThan(defaultCommentDate);
+		List<GuestOrderInfo> guestOrderLst = guestOrderInfoMapper.selectByExample(exam_goi);
+		return guestOrderLst;
+	} 
+	
+	@Transactional
+	public void addOrderDefaultComments(String orderid) throws BusinessException, Exception {
+		addOrderComments(orderid, null);
+		GuestOrderInfo record = new GuestOrderInfo();
+		record.setOrderId(orderid);
+		record.setStatusCode(StoreKeyConstants.ORDER_STATUS_COMMENT_CONFIRM);
+		guestOrderInfoMapper.updateByPrimaryKeySelective(record);
+	}
+	
+	private void addOrderComments(String orderid, List<ProductComment> comments) {
+		String commentContent = "";
+		BigDecimal commentLevel = new BigDecimal(0);
+		String prodid = "";
+		
+		OrderProductExample exam_op = new OrderProductExample();
+		exam_op.createCriteria().andOrderIdEqualTo(orderid);
+		List<OrderProduct> orderProdLst = orderProductMapper.selectByExample(exam_op);
+		if (Utils.listNotNull(orderProdLst)) {
+			for (OrderProduct prod : orderProdLst) {
+				commentContent = StoreKeyConstants.DEFAULT_COMMENT_CONTENT;
+				commentLevel = new BigDecimal(StoreKeyConstants.DEFAULT_COMMENT_LEVEL);
+				prodid = prod.getProductId();
+				if (comments != null) {
+					for (ProductComment comment : comments) {
+						if (prodid.equals(comment.getProductId())) {
+							commentContent = comment.getCommentContent();
+							commentLevel = comment.getCommentLevel();
+							break;
+						}
+					}
+				}		
+				ProductCommentExample exam_pc = new ProductCommentExample();
+				exam_pc.createCriteria().andOrderIdEqualTo(orderid)
+										.andProductIdEqualTo(prodid);
+				List<ProductComment> prodComments = productCommentMapper.selectByExample(exam_pc);
+				if (Utils.listNotNull(prodComments)) continue;
+				ProductComment record = new ProductComment();
+				record.setProductCommentId(UUID.randomUUID().toString());
+				record.setOrderId(orderid);
+				record.setProductId(prodid);
+				record.setCommentContent(commentContent);
+				record.setCommentLevel(commentLevel);
+				productCommentMapper.insertSelective(record);
+			}
+		}
+	}
 	
 	@Transactional
 	public void setOrderCourierNumber(String empid, String orderid, String courierno) 

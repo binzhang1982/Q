@@ -148,7 +148,7 @@
       )
     values (#{productCommentId,jdbcType=VARCHAR}, #{orderId,jdbcType=VARCHAR}, #{productId,jdbcType=VARCHAR}, 
       #{commentContent,jdbcType=VARCHAR}, #{commentLevel,jdbcType=DECIMAL}, #{imgUrl,jdbcType=VARCHAR}, 
-      #{commentReply,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+      #{commentReply,jdbcType=VARCHAR}, now(), now()}
       )
   </insert>
   <insert id="insertSelective" parameterType="com.cn.zbin.store.dto.ProductComment" >
@@ -179,12 +179,8 @@
       <if test="commentReply != null" >
         comment_reply,
       </if>
-      <if test="createTime != null" >
         create_time,
-      </if>
-      <if test="updateTime != null" >
         update_time,
-      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="productCommentId != null" >
@@ -208,12 +204,8 @@
       <if test="commentReply != null" >
         #{commentReply,jdbcType=VARCHAR},
       </if>
-      <if test="createTime != null" >
-        #{createTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="updateTime != null" >
-        #{updateTime,jdbcType=TIMESTAMP},
-      </if>
+        now(),
+        now(),
     </trim>
   </insert>
   <select id="countByExample" parameterType="com.cn.zbin.store.dto.ProductCommentExample" resultType="java.lang.Integer" >
@@ -257,9 +249,7 @@
       <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.updateTime != null" >
-        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      </if>
+        update_time = now(),
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -279,7 +269,7 @@
       img_url = #{record.imgUrl,jdbcType=VARCHAR},
       comment_reply = #{record.commentReply,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+      update_time = now()
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -312,9 +302,7 @@
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="updateTime != null" >
-        update_time = #{updateTime,jdbcType=TIMESTAMP},
-      </if>
+        update_time = now(),
     </set>
     where product_comment_id = #{productCommentId,jdbcType=VARCHAR}
   </update>
@@ -331,7 +319,7 @@
       img_url = #{imgUrl,jdbcType=VARCHAR},
       comment_reply = #{commentReply,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+      update_time = now()
     where product_comment_id = #{productCommentId,jdbcType=VARCHAR}
   </update>
   
