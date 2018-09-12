@@ -25,4 +25,10 @@ public class StoreOrderTask {
 	public void scanPayOrderTask() {
 		asyncService.executeScanPayOrderAsync();
 	}
+
+//	@Scheduled(cron="0 0/5 * * * ?")
+	@Scheduled(cron="0 0 1 * * ?")
+	public void commentDefaultOrderTask() {
+		asyncService.executeCommentDefaultOrderAsync();
+	}
 }

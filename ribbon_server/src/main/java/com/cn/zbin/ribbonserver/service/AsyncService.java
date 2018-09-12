@@ -56,6 +56,16 @@ public class AsyncService {
 			e.printStackTrace();
 		}
 	}
+	
+	@Async("asyncServiceExecutor")
+	public void executeCommentDefaultOrderAsync() {
+		try {
+	    	String urlOrder = "http://SERVICE-STORE/order/comment/sys";
+	        restTemplate.postForObject(urlOrder, null, String.class);
+		} catch (RestClientException e) {
+			e.printStackTrace();
+		}
+	}
 
 	@Async("asyncSingtonServiceExecutor")
 	public void executeScanPayOrderAsync() {

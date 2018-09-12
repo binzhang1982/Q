@@ -271,7 +271,26 @@ public class StoreService {
 				+ "?orderid={orderid}&id={id}&type={type}", null, String.class, 
 				uriVariables);
     }
-    public String confirmDeliveryError(String orderId, String customerId) {
+    public String confirmDeliveryError(String orderid, String customerid) {
+    	return "failed";
+    }
+    
+    @HystrixCommand(fallbackMethod = "commentOrderByCustomerError")
+    public String commentOrderByCustomer(String customerid, String orderid, String bean) {
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("orderid", orderid);
+    	uriVariables.put("customerid", customerid);
+    	
+        HttpHeaders headers =new HttpHeaders();
+        MediaType mtype = MediaType.parseMediaType("application/json; charset=UTF-8");
+        headers.setContentType(mtype);
+        HttpEntity<String> request = new HttpEntity<String>(bean, headers);
+
+        return restTemplate.postForObject("http://SERVICE-STORE/order/comment/customer" 
+				+ "?orderid={orderid}&customerid={customerid}", request, String.class, 
+				uriVariables);
+    }
+    public String commentOrderByCustomerError(String customerid, String orderid, String bean) {
     	return "failed";
     }
 }

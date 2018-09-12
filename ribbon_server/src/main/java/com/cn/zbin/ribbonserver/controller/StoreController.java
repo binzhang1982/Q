@@ -218,4 +218,15 @@ public class StoreController {
     			" || customerid: " + customerid);
     	return storeService.confirmDelivery(orderId, customerid);
     }
+    
+    @PostMapping(value="/order/comment")
+    @CrossOrigin
+    public String commentOrderByCustomer(
+        	@RequestParam("customerid") String customerid,
+    		@RequestParam("orderid") String orderid,
+    		@RequestBody String bean) {
+    	logger.info("post api: /store/order/comment || orderid: " + orderid +
+    			" || customerid: " + customerid + " || bean: " + bean);
+		return storeService.commentOrderByCustomer(customerid, orderid, bean);
+    }
 }

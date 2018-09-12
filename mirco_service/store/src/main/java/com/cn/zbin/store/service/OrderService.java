@@ -104,7 +104,7 @@ public class OrderService {
 		GuestOrderInfo order = guestOrderInfoMapper.selectByPrimaryKey(orderid);
 		if (order == null) 
 			throw new BusinessException(StoreConstants.CHK_ERR_90016);
-		if (order.getCustomerId().equals(customerid)) 
+		if (!order.getCustomerId().equals(customerid)) 
 			throw new BusinessException(StoreConstants.CHK_ERR_90017);
 		if (!order.getStatusCode().equals(StoreKeyConstants.ORDER_STATUS_WAIT_COMMENT))
 			throw new BusinessException(StoreConstants.CHK_ERR_90018);

@@ -404,15 +404,15 @@ public class OrderController {
 		return ret;
 	}
 
-	@RequestMapping(value = "/comments", 
+	@RequestMapping(value = "/comment/customer", 
 			consumes = {"application/json;charset=UTF-8"}, 
 			produces = {"application/json;charset=UTF-8"}, 
 			method = { RequestMethod.POST })
-	public MsgData addOrderComments(
+	public MsgData commentOrderByCustomer(
 			@RequestParam("customerid") String customerid,
 			@RequestParam("orderid") String orderid,
 			@RequestBody List<ProductComment> comments) {
-		logger.info("post api: /order/comment || customerid: " + customerid +
+		logger.info("post api: /order/comment/customer || customerid: " + customerid +
 				" || orderid: " + orderid + " || comments: " + comments);
 		MsgData ret = new MsgData();
 		try {
