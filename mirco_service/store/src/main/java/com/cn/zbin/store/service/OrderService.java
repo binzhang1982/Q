@@ -218,6 +218,19 @@ public class OrderService {
 					orderProductMapper.updateByPrimaryKeySelective(rec);
 				}
 			}
+			
+			OrderOperationHistory operation = new OrderOperationHistory();
+			operation.setOrderOperId(UUID.randomUUID().toString());
+			if (StoreKeyConstants.OPERATION_TYPE_MANAGEMENT.equals(type)) {
+				operation.setMgmtOperCode(StoreKeyConstants.ORDER_OPERATION_CONFIRM);
+				operation.setMgmtEmpId(id);
+				operation.setMgmtOperTime(Utils.getChinaCurrentTime());
+			} else {
+				operation.setCustOperCode(StoreKeyConstants.ORDER_OPERATION_CONFIRM);
+				operation.setCustOperTime(Utils.getChinaCurrentTime());
+			}
+			operation.setOrderId(orderid);
+			orderOperationHistoryMapper.insertSelective(operation);
 		} else {
 			throw new BusinessException(StoreConstants.CHK_ERR_90018);
 		}

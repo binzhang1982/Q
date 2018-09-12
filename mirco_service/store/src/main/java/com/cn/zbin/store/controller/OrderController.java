@@ -363,6 +363,7 @@ public class OrderController {
 	}
 
 	@RequestMapping(value = "/delivery/confirm", 
+			produces = {"application/json;charset=UTF-8"}, 
 			method = { RequestMethod.POST })
 	public MsgData confirmDelivery(
 			@RequestParam(value = "orderid", required = true) String orderid, 
@@ -384,6 +385,7 @@ public class OrderController {
 	}
 
 	@RequestMapping(value = "/courier", 
+			produces = {"application/json;charset=UTF-8"}, 
 			method = { RequestMethod.POST })
 	public MsgData setOrderCourierNumber(
 			@RequestParam(value = "empid", required = true) String empid,
