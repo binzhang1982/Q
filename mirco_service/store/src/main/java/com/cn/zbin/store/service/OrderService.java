@@ -99,6 +99,38 @@ public class OrderService {
 	private WxPayHistoryMapper wxPayHistoryMapper;
 	
 	@Transactional
+	public void askEndLeaseProd(String customerid, OrderOperationHistory orderOperation) {
+		if (orderOperation.getOrderId() == null)
+			throw new BusinessException(StoreConstants.CHK_ERR_90016);
+		GuestOrderInfo order = guestOrderInfoMapper.selectByPrimaryKey(orderOperation.getOrderId());
+		if (order == null) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90016);
+		if (!order.getCustomerId().equals(customerid)) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90017);
+		if (!order.getStatusCode().equals(StoreKeyConstants.ORDER_STATUS_COMMENT_CONFIRM) && 
+				!order.getStatusCode().equals(StoreKeyConstants.ORDER_STATUS_WAIT_COMMENT))
+			throw new BusinessException(StoreConstants.CHK_ERR_90018);
+		
+		if (orderOperation.getPendingEndDate() == null) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90021);
+		if (DateUtils.addDays(Utils.getChinaCurrentTime(), StoreKeyConstants.END_PENDING_DAYS)
+				.compareTo(orderOperation.getPendingEndDate()) > 0 ) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90022);
+		
+		if (orderOperation.getOrderProductId() == null)
+			throw new BusinessException(StoreConstants.CHK_ERR_90023);
+		OrderProduct orderProd = orderProductMapper.selectByPrimaryKey(
+				orderOperation.getOrderProductId());
+		if (orderProd == null) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90023);
+		if (!orderProd.getOrderId().equals(orderOperation.getOrderId()))
+			throw new BusinessException(StoreConstants.CHK_ERR_90023);
+		if (orderProd.getActualPendingEndDate().compareTo(orderOperation.getPendingEndDate()) < 0)
+			throw new BusinessException(StoreConstants.CHK_ERR_90024);
+		
+	}
+	
+	@Transactional
 	public void addOrderComments(String customerid, String orderid, List<ProductComment> comments) 
 			throws BusinessException, Exception {
 		GuestOrderInfo order = guestOrderInfoMapper.selectByPrimaryKey(orderid);

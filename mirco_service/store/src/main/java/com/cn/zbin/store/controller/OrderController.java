@@ -451,4 +451,16 @@ public class OrderController {
 		}
 		return ret;
 	}
+	
+	@RequestMapping(value = "/lease/ask/end",
+			consumes = {"application/json;charset=UTF-8"}, 
+			produces = {"application/json;charset=UTF-8"}, 
+			method = {RequestMethod.POST})
+	public MsgData askEndLeaseProd(
+			@RequestParam("customerid") String customerid, 
+			@RequestBody OrderOperationHistory orderOperation) {
+		MsgData ret = new MsgData();
+		
+		return ret;
+	}
 }

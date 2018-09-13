@@ -22,7 +22,11 @@ public class StoreConstants {
 	public final static String CHK_ERR_90018 = "90018:订单状态不正确,不能操作!";
 	public final static String CHK_ERR_90019 = "90019:无效操作,请联系我们!";
 	public final static String CHK_ERR_90020 = "90020:订单支付信息不存在!";
-
+	public final static String CHK_ERR_90021 = "90021:没有填写结租日期!";
+	public final static String CHK_ERR_90022 = "90022:结租日期必须订在现在起三天之后!";
+	public final static String CHK_ERR_90023 = "90023:选中结束租赁的商品不存在!";
+	public final static String CHK_ERR_90024 = "90024:选中结束租赁日大于实际租赁结束时间，请重新选择。";
+	
 	public final static String CHK_ERR_99996 = "99996:支付通知没有返回商户订单号!";
 	public final static String CHK_ERR_99997 = "99997:支付通知返回的商户订单号不存在!";
 	public final static String CHK_ERR_99998 = "99998:支付通知返回的签名不合法!";
