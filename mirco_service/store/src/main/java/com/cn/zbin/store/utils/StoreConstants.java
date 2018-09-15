@@ -25,7 +25,9 @@ public class StoreConstants {
 	public final static String CHK_ERR_90021 = "90021:没有填写结租日期!";
 	public final static String CHK_ERR_90022 = "90022:结租日期必须订在现在起三天之后!";
 	public final static String CHK_ERR_90023 = "90023:选中结束租赁的商品不存在!";
-	public final static String CHK_ERR_90024 = "90024:选中结束租赁日大于实际租赁结束时间，请重新选择。";
+	public final static String CHK_ERR_90024 = "90024:选中结束租赁日大于实际租赁结束时间，请选择续租功能!";
+	public final static String CHK_ERR_90025 = "90025:已处于售后状态,无法继续操作!";
+	
 	
 	public final static String CHK_ERR_99996 = "99996:支付通知没有返回商户订单号!";
 	public final static String CHK_ERR_99997 = "99997:支付通知返回的商户订单号不存在!";

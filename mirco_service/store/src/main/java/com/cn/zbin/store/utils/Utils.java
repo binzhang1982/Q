@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
+import org.apache.commons.lang.time.DateUtils;
+
 public class Utils {
 
     private static final String SYMBOLS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -89,6 +91,39 @@ public class Utils {
     public static Date getChinaCurrentTime() {
     	Calendar calendar = Calendar.getInstance(Locale.CHINA);
         return calendar.getTime();
+    }
+
+    public static final String INTERVAL_TYPE_SEC = "s";
+    public static final String INTERVAL_TYPE_MIN = "mi";
+    public static final String INTERVAL_TYPE_HOUR = "h";
+    public static final String INTERVAL_TYPE_DAY = "d";
+    public static final String INTERVAL_TYPE_MON = "mm";
+    public static final String INTERVAL_TYPE_YEAR = "y";
+    
+    public static Date addTimeFromCurrentTime(String calendarField, Integer amount) {
+    	Calendar calendar = Calendar.getInstance(Locale.CHINA);
+    	Date now = calendar.getTime();
+    	switch(calendarField) {
+	    	case INTERVAL_TYPE_SEC:
+	    		return DateUtils.addSeconds(DateUtils.ceiling(now, Calendar.SECOND), amount);
+	    	case INTERVAL_TYPE_MIN:
+	    		return DateUtils.addMinutes(DateUtils.ceiling(now, Calendar.MINUTE), amount);
+	    	case INTERVAL_TYPE_HOUR:
+	    		return DateUtils.addHours(DateUtils.ceiling(now, Calendar.HOUR), amount);
+	    	case INTERVAL_TYPE_DAY:
+	    		return DateUtils.addDays(DateUtils.ceiling(now, Calendar.DATE), amount);
+	    	case INTERVAL_TYPE_MON:
+	    		return DateUtils.addMonths(DateUtils.ceiling(now, Calendar.MONTH), amount);
+	    	case INTERVAL_TYPE_YEAR:
+	    		return DateUtils.addYears(DateUtils.ceiling(now, Calendar.YEAR), amount);
+	    	default:
+	    		return now;
+    	}
+    }
+    
+    public static Date getChinaCurrentTimeInDay() {
+    	Calendar calendar = Calendar.getInstance(Locale.CHINA);
+        return DateUtils.truncate(calendar.getTime(), Calendar.DATE);
     }
     
     public static Long getChinaCurrentTimeInMillis() {

@@ -3,6 +3,7 @@ package com.cn.zbin.store.controller;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +20,7 @@ import com.cn.zbin.store.bto.MsgData;
 import com.cn.zbin.store.bto.WxPayOverView;
 import com.cn.zbin.store.dto.GuestOrderInfo;
 import com.cn.zbin.store.dto.OrderOperationHistory;
+import com.cn.zbin.store.dto.OrderProduct;
 import com.cn.zbin.store.dto.ProductComment;
 import com.cn.zbin.store.dto.ShoppingTrolleyInfo;
 import com.cn.zbin.store.dto.WxPayHistory;
@@ -460,7 +462,58 @@ public class OrderController {
 			@RequestParam("customerid") String customerid, 
 			@RequestBody OrderOperationHistory orderOperation) {
 		MsgData ret = new MsgData();
+		try {
+			orderService.askEndLeaseProd(customerid, orderOperation);
+		} catch (BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getMessage());
+		} catch (Exception e) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(StoreConstants.CHK_ERR_99999);
+		}
+		return ret;
+	}
+	
+	@RequestMapping(value = "/proc/notify",
+			method = {RequestMethod.POST})
+	public MsgData notifyDesktop(
+			@RequestParam("rolecode") String roleCode) {
+		MsgData ret = new MsgData();
+		//给顾客:即将租赁到期
+		try {
+			List<OrderProduct> dueOrderProds = orderService.getOverDueLeaseProd();
+			for (OrderProduct prod : dueOrderProds) {
+				try {
+					orderService.askEndLeaseProdSys(prod);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		//给客服:回收中,换货中,退货中
+		try {
+			String msg = orderService.getDesktopProcNotifyMessage();
+			if (StringUtils.isNotBlank(msg)) {
+				List<String> openIds = orderService.getOrderDesktopOpenID(roleCode);
+				for (String openid : openIds) {
+					try {
+						orderService.addDesktopProcNotifyMessage(openid, msg);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		
 		return ret;
+	}
+	
+	public void calcLeaseRefund() {
+		
 	}
 }

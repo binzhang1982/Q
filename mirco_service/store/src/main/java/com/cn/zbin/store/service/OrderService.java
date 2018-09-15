@@ -26,11 +26,15 @@ import com.cn.zbin.store.bto.WxPayOverView;
 import com.cn.zbin.store.dto.CustomerAddress;
 import com.cn.zbin.store.dto.CustomerInfo;
 import com.cn.zbin.store.dto.CustomerInvoice;
+import com.cn.zbin.store.dto.EmployeeInfo;
+import com.cn.zbin.store.dto.EmployeeRole;
+import com.cn.zbin.store.dto.EmployeeRoleExample;
 import com.cn.zbin.store.dto.GuestOrderInfo;
 import com.cn.zbin.store.dto.GuestOrderInfoExample;
 import com.cn.zbin.store.dto.MasterCity;
 import com.cn.zbin.store.dto.MasterProvince;
 import com.cn.zbin.store.dto.OrderOperationHistory;
+import com.cn.zbin.store.dto.OrderOperationHistoryExample;
 import com.cn.zbin.store.dto.OrderProduct;
 import com.cn.zbin.store.dto.OrderProductExample;
 import com.cn.zbin.store.dto.ProductComment;
@@ -42,6 +46,7 @@ import com.cn.zbin.store.dto.ProductPrice;
 import com.cn.zbin.store.dto.ProductPriceExample;
 import com.cn.zbin.store.dto.ShoppingTrolleyInfo;
 import com.cn.zbin.store.dto.ShoppingTrolleyInfoExample;
+import com.cn.zbin.store.dto.WeChatMessageHistory;
 import com.cn.zbin.store.dto.WxPayHistory;
 import com.cn.zbin.store.dto.WxPayHistoryExample;
 import com.cn.zbin.store.dto.WxRefundHistory;
@@ -49,6 +54,8 @@ import com.cn.zbin.store.exception.BusinessException;
 import com.cn.zbin.store.mapper.CustomerAddressMapper;
 import com.cn.zbin.store.mapper.CustomerInfoMapper;
 import com.cn.zbin.store.mapper.CustomerInvoiceMapper;
+import com.cn.zbin.store.mapper.EmployeeInfoMapper;
+import com.cn.zbin.store.mapper.EmployeeRoleMapper;
 import com.cn.zbin.store.mapper.GuestOrderInfoMapper;
 import com.cn.zbin.store.mapper.MasterCityMapper;
 import com.cn.zbin.store.mapper.MasterProvinceMapper;
@@ -59,6 +66,7 @@ import com.cn.zbin.store.mapper.ProductImageMapper;
 import com.cn.zbin.store.mapper.ProductInfoMapper;
 import com.cn.zbin.store.mapper.ProductPriceMapper;
 import com.cn.zbin.store.mapper.ShoppingTrolleyInfoMapper;
+import com.cn.zbin.store.mapper.WeChatMessageHistoryMapper;
 import com.cn.zbin.store.mapper.WxPayHistoryMapper;
 import com.cn.zbin.store.utils.QLHWXPayConfig;
 import com.cn.zbin.store.utils.StoreConstants;
@@ -97,6 +105,98 @@ public class OrderService {
 	private CustomerInfoMapper customerInfoMapper;
 	@Autowired
 	private WxPayHistoryMapper wxPayHistoryMapper;
+	@Autowired
+	private WeChatMessageHistoryMapper wechatMessageHistoryMapper;
+	@Autowired
+	private EmployeeInfoMapper employeeInfoMapper;
+	@Autowired
+	private EmployeeRoleMapper employeeRoleMapper;
+	
+	public List<String> getOrderDesktopOpenID(String roleCode) {
+		List<String> ret = new ArrayList<String>();
+		EmployeeRoleExample exam_er = new EmployeeRoleExample();
+		exam_er.createCriteria().andRoleCodeEqualTo(roleCode);
+		List<EmployeeRole> roles = employeeRoleMapper.selectByExample(exam_er);
+		if (Utils.listNotNull(roles)) {
+			for (EmployeeRole role : roles) {
+				if (role.getEmployeeId() != null) {
+					EmployeeInfo emp = employeeInfoMapper.selectByPrimaryKey(role.getEmployeeId());
+					if (emp != null && emp.getRegisterId() != null) ret.add(emp.getRegisterId()); 
+				}
+			}
+		}
+		return ret;
+	}
+	
+	public String getDesktopProcNotifyMessage() {
+		String ret = "";
+		OrderProductExample exam_op = new OrderProductExample();
+		exam_op.createCriteria().andStatusCodeEqualTo(StoreKeyConstants.ORDER_PROD_STATUS_WAIT_RETURN);
+		Integer waitReturningCnt = orderProductMapper.countByExample(exam_op);
+		
+		List<String> statusLst = new ArrayList<String>();
+		statusLst.add(StoreKeyConstants.ORDER_STATUS_CHANGE);
+		statusLst.add(StoreKeyConstants.ORDER_STATUS_RETURN);
+		GuestOrderInfoExample exam_goi = new GuestOrderInfoExample();
+		exam_goi.createCriteria().andStatusCodeIn(statusLst);
+		Integer waitChgRetCnt = guestOrderInfoMapper.countByExample(exam_goi);
+		
+		if (waitReturningCnt != 0 || waitChgRetCnt != 0) 
+			ret = StringUtils.replaceEachRepeatedly(
+					StoreKeyConstants.LEASE_DUE_MESSAGE_2_CUSTOMER, 
+					new String[] {"{1}", "{2}"}, 
+					new String[] {String.valueOf(waitReturningCnt), String.valueOf(waitChgRetCnt)});
+		
+		return ret;
+	}
+
+	@Transactional
+	public void addDesktopProcNotifyMessage(String openId, String msg) {
+		addWechatMessage(openId, msg);
+	}
+	
+	public List<OrderProduct> getOverDueLeaseProd() {
+		Date dueTime = Utils.addTimeFromCurrentTime(Utils.INTERVAL_TYPE_DAY
+				, StoreKeyConstants.END_PENDING_DAYS);
+		OrderProductExample exam_op = new OrderProductExample();
+		exam_op.createCriteria().andActualPendingEndDateLessThanOrEqualTo(dueTime)
+								.andStatusCodeEqualTo(StoreKeyConstants.ORDER_PROD_STATUS_USING)
+								.andPendingCountGreaterThan(new Long(0));
+		List<OrderProduct> ret = orderProductMapper.selectByExample(exam_op);
+		if (!Utils.listNotNull(ret)) ret = new ArrayList<OrderProduct>();
+		return ret;
+	}
+	
+	@Transactional
+	public void askEndLeaseProdSys(OrderProduct dueOrderProd) {
+		OrderOperationHistory orderOperation = new OrderOperationHistory();
+		orderOperation.setPendingEndDate(dueOrderProd.getActualPendingEndDate());
+		orderOperation.setOrderId(dueOrderProd.getOrderId());
+		orderOperation.setOrderProductId(dueOrderProd.getOrderProductId());
+		
+		askEndLeaseProd(orderOperation, StoreKeyConstants.OPERATION_TYPE_MANAGEMENT);
+		
+		GuestOrderInfo order = guestOrderInfoMapper.selectByPrimaryKey(dueOrderProd.getOrderId());
+		if (order == null) return;
+		CustomerInfo cust = customerInfoMapper.selectByPrimaryKey(order.getCustomerId());
+		if (cust == null) return;
+		
+		String msg = StringUtils.replaceEachRepeatedly(
+				StoreKeyConstants.LEASE_DUE_MESSAGE_2_CUSTOMER, 
+				new String[] {"{1}", "{2}"}, 
+				new String[] {dueOrderProd.getOrderId(), new SimpleDateFormat("yyyy-MM-dd")
+						.format(dueOrderProd.getActualPendingEndDate())});
+		
+		addWechatMessage(cust.getRegisterId(), msg);
+	}
+	
+	private void addWechatMessage(String openId, String msg) {
+		WeChatMessageHistory record = new WeChatMessageHistory();
+		record.setMessageId(UUID.randomUUID().toString());
+		record.setMessageContent(msg);
+		record.setRecvOpenId(openId);
+		wechatMessageHistoryMapper.insertSelective(record);
+	}
 	
 	@Transactional
 	public void askEndLeaseProd(String customerid, OrderOperationHistory orderOperation) {
@@ -113,7 +213,7 @@ public class OrderService {
 		
 		if (orderOperation.getPendingEndDate() == null) 
 			throw new BusinessException(StoreConstants.CHK_ERR_90021);
-		if (DateUtils.addDays(Utils.getChinaCurrentTime(), StoreKeyConstants.END_PENDING_DAYS)
+		if (Utils.addTimeFromCurrentTime(Utils.INTERVAL_TYPE_DAY, StoreKeyConstants.END_PENDING_DAYS)
 				.compareTo(orderOperation.getPendingEndDate()) > 0 ) 
 			throw new BusinessException(StoreConstants.CHK_ERR_90022);
 		
@@ -127,7 +227,43 @@ public class OrderService {
 			throw new BusinessException(StoreConstants.CHK_ERR_90023);
 		if (orderProd.getActualPendingEndDate().compareTo(orderOperation.getPendingEndDate()) < 0)
 			throw new BusinessException(StoreConstants.CHK_ERR_90024);
+		if (!orderProd.getStatusCode().equals(StoreKeyConstants.ORDER_PROD_STATUS_USING)
+				&& !orderProd.getStatusCode().equals(StoreKeyConstants.ORDER_PROD_STATUS_RELET))
+			throw new BusinessException(StoreConstants.CHK_ERR_90025);
 		
+		askEndLeaseProd(orderOperation, StoreKeyConstants.OPERATION_TYPE_CUSTOMER);
+	}
+	
+	private void askEndLeaseProd(OrderOperationHistory orderOperation, Integer type) {
+		OrderOperationHistory record = new OrderOperationHistory();
+		record.setOrderOperId(UUID.randomUUID().toString());
+		record.setOrderId(orderOperation.getOrderId());
+		record.setOrderProductId(orderOperation.getOrderProductId());
+		record.setPendingEndDate(orderOperation.getPendingEndDate());
+		if (StoreKeyConstants.OPERATION_TYPE_CUSTOMER.equals(type)) {
+			record.setCustOperCode(StoreKeyConstants.ORDER_OPERATION_ASK_END);
+			record.setCustOperTime(Utils.getChinaCurrentTime());
+		} else {
+			record.setMgmtOperCode(StoreKeyConstants.ORDER_OPERATION_ASK_END);
+			record.setMgmtOperTime(Utils.getChinaCurrentTime());
+			record.setMgmtEmpId(StoreKeyConstants.SYSTEM_EMP_ID);
+		}
+		orderOperationHistoryMapper.insertSelective(record);
+		
+		OrderProduct rec = new OrderProduct();
+		rec.setOrderProductId(orderOperation.getOrderProductId());
+		rec.setStatusCode(StoreKeyConstants.ORDER_PROD_STATUS_WAIT_RETURN);
+		orderProductMapper.updateByPrimaryKeySelective(rec);
+	}
+	
+	private BigDecimal calcLeaseAmount(Date startDate, Date endDate, String prodId, 
+			BigDecimal paid, BigDecimal bail) {
+		BigDecimal ret = new BigDecimal(0);
+		Long pendingCount = TimeUnit.MILLISECONDS.toDays(endDate.getTime() - startDate.getTime());
+		ProductPrice unitPrice = getUnitPrice(Boolean.TRUE, pendingCount, prodId);
+		ret = ret.add(bail).add(paid)
+				.subtract(unitPrice.getRealPrice().multiply(new BigDecimal(pendingCount)));
+		return ret;
 	}
 	
 	@Transactional
@@ -244,9 +380,12 @@ public class OrderService {
 					OrderProduct rec = new OrderProduct();
 					rec.setOrderProductId(prod.getOrderProductId());
 					rec.setStatusCode(StoreKeyConstants.ORDER_PROD_STATUS_USING);
-					rec.setActualSendDate(Utils.getChinaCurrentTime());
-					if (rec.getReservePendingDate() != null) 
-						rec.setActualPendingDate(Utils.getChinaCurrentTime());
+					rec.setActualSendDate(Utils.getChinaCurrentTimeInDay());
+					if (rec.getReservePendingDate() != null) {
+						rec.setActualPendingDate(Utils.getChinaCurrentTimeInDay());
+						rec.setActualPendingEndDate(DateUtils.addDays(
+								rec.getActualPendingDate(), prod.getPendingCount().intValue()));
+					}
 					orderProductMapper.updateByPrimaryKeySelective(rec);
 				}
 			}
