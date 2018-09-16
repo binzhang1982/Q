@@ -142,7 +142,7 @@ public class WechatUserController {
 		try {
 	    	Map<String, Object> uriVariables = new HashMap<String, Object>();
 	    	uriVariables.put("atk", URLEncoder.encode(atk, "UTF-8"));
-			String url = "https://api.weixin.qq.com/cgi-bin/message/mass/send?access_token={atk}";
+			String url = "https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token={atk}";
 			
 			List<WeChatMessageHistory> msgList = wechatUserService.getUnsendMessageList();
 			for (WeChatMessageHistory msg : msgList) {
@@ -150,7 +150,7 @@ public class WechatUserController {
 					HttpHeaders headers = new HttpHeaders();
 					MediaType type = MediaType.parseMediaType("application/json; charset=UTF-8");
 					headers.setContentType(type);
-					String requestJson = "{\"touser\": [\"" + msg.getRecvOpenId() + "\"], "
+					String requestJson = "{\"touser\": \"" + msg.getRecvOpenId() + "\", "
 							+ "\"msgtype\": \""+ WechatKeyConstants.MSG_TYPE_TEXT + "\", "
 							+ "\"text\": {\"content\": \"" + msg.getMessageContent() + "\"}}";
 					HttpEntity<String> entity = new HttpEntity<String>(requestJson,headers);
@@ -162,12 +162,11 @@ public class WechatUserController {
 					if ("0".equals(msgRes.getErrcode())) {
 						msg.setSendFlag(Boolean.TRUE);
 					}
+					wechatUserService.updateMessage(msg);
 				} catch(Exception e) {
 					e.printStackTrace();
 				}
 			}
-			
-			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

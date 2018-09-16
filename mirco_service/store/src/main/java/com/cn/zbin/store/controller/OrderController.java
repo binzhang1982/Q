@@ -474,10 +474,9 @@ public class OrderController {
 		return ret;
 	}
 	
-	@RequestMapping(value = "/proc/notify",
+	@RequestMapping(value = "/due/notify",
 			method = {RequestMethod.POST})
-	public MsgData notifyDesktop(
-			@RequestParam("rolecode") String roleCode) {
+	public MsgData notifyDue() {
 		MsgData ret = new MsgData();
 		//给顾客:即将租赁到期
 		try {
@@ -493,22 +492,22 @@ public class OrderController {
 			e.printStackTrace();
 		}
 
-		//给客服:回收中,换货中,退货中
-		try {
-			String msg = orderService.getDesktopProcNotifyMessage();
-			if (StringUtils.isNotBlank(msg)) {
-				List<String> openIds = orderService.getOrderDesktopOpenID(roleCode);
-				for (String openid : openIds) {
-					try {
-						orderService.addDesktopProcNotifyMessage(openid, msg);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+//		//给客服:回收中,换货中,退货中
+//		try {
+//			String msg = orderService.getDesktopProcNotifyMessage();
+//			if (StringUtils.isNotBlank(msg)) {
+//				List<String> openIds = orderService.getOrderDesktopOpenID(roleCode);
+//				for (String openid : openIds) {
+//					try {
+//						orderService.addDesktopProcNotifyMessage(openid, msg);
+//					} catch (Exception e) {
+//						e.printStackTrace();
+//					}
+//				}
+//			}
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
 		
 		return ret;
 	}

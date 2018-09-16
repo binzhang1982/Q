@@ -1,6 +1,8 @@
 package com.cn.zbin.management.service;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.lang.time.DateUtils;
@@ -27,6 +29,7 @@ import com.cn.zbin.management.mapper.CustomerInfoMapper;
 import com.cn.zbin.management.mapper.MessageHistoryMapper;
 import com.cn.zbin.management.utils.MgmtConstants;
 import com.cn.zbin.management.utils.MgmtKeyConstants;
+import com.cn.zbin.management.utils.Utils;
 
 @Service
 public class SmsService {
@@ -51,8 +54,13 @@ public class SmsService {
 				smsMsgData.setMessage(MgmtConstants.CHK_ERR_80007);
 				return smsMsgData;
 			}
+			
+			List<String> templates = new ArrayList<String>();
+			templates.add(MgmtKeyConstants.SMS_NEWINFO_TEMPLATE_ID);
+			templates.add(MgmtKeyConstants.SMS_UPDINFO_TEMPLATE_ID);
 			MessageHistoryExample exam_mh = new MessageHistoryExample();
 			exam_mh.createCriteria().andCreateTimeBetween(d_yesterday, d_now)
+									.andTemplateParamsIn(templates)
 									.andPhoneNumberEqualTo(phonenumber);
 			if (messageHistoryMapper.countByExample(exam_mh) >= MgmtKeyConstants.SMS_MAX) {
 				smsMsgData.setStatus(MsgData.status_ng);
@@ -93,16 +101,26 @@ public class SmsService {
 		}
 	}
 	
+	public List<MessageHistory> getDueMessageList() {
+		MessageHistoryExample exam_mh = new MessageHistoryExample();
+		exam_mh.createCriteria().andTemplateCodeEqualTo(MgmtKeyConstants.SMS_LEASEEND_TEMPLATE_ID)
+								.andSentTimeIsNull();
+		List<MessageHistory> ret = messageHistoryMapper.selectOnePageByExample(exam_mh, 
+				0, MgmtKeyConstants.MSG_SEND_LIMIT, "create_time asc");
+		if (!Utils.listNotNull(ret)) ret = new ArrayList<MessageHistory>();
+		return ret;
+	}
+	
 	@Async
 	@Transactional
-	public void sendSms(String customerid, MessageHistory sms) {
+	public void sendSms(MessageHistory sms) {
         if (sms != null) {
             sms.setReturnCode(sendShortMessage(sms));
-            updateMessageHistory(customerid, sms);
+            updateMessageHistory(sms);
         }
 	}
 
-	private void updateMessageHistory(String customerid, MessageHistory sms) {
+	private void updateMessageHistory(MessageHistory sms) {
 		MessageHistory record = new MessageHistory();
 		record.setMessageId(sms.getMessageId());
 		record.setReturnCode(sms.getReturnCode());

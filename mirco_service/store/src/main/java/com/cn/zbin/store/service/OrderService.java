@@ -23,6 +23,7 @@ import com.cn.zbin.store.bto.MsgData;
 import com.cn.zbin.store.bto.OrderProductOverView;
 import com.cn.zbin.store.bto.WxPayH5Param;
 import com.cn.zbin.store.bto.WxPayOverView;
+import com.cn.zbin.store.dto.CodeDictInfo;
 import com.cn.zbin.store.dto.CustomerAddress;
 import com.cn.zbin.store.dto.CustomerInfo;
 import com.cn.zbin.store.dto.CustomerInvoice;
@@ -33,6 +34,7 @@ import com.cn.zbin.store.dto.GuestOrderInfo;
 import com.cn.zbin.store.dto.GuestOrderInfoExample;
 import com.cn.zbin.store.dto.MasterCity;
 import com.cn.zbin.store.dto.MasterProvince;
+import com.cn.zbin.store.dto.MessageHistory;
 import com.cn.zbin.store.dto.OrderOperationHistory;
 import com.cn.zbin.store.dto.OrderOperationHistoryExample;
 import com.cn.zbin.store.dto.OrderProduct;
@@ -51,6 +53,7 @@ import com.cn.zbin.store.dto.WxPayHistory;
 import com.cn.zbin.store.dto.WxPayHistoryExample;
 import com.cn.zbin.store.dto.WxRefundHistory;
 import com.cn.zbin.store.exception.BusinessException;
+import com.cn.zbin.store.mapper.CodeDictInfoMapper;
 import com.cn.zbin.store.mapper.CustomerAddressMapper;
 import com.cn.zbin.store.mapper.CustomerInfoMapper;
 import com.cn.zbin.store.mapper.CustomerInvoiceMapper;
@@ -59,6 +62,7 @@ import com.cn.zbin.store.mapper.EmployeeRoleMapper;
 import com.cn.zbin.store.mapper.GuestOrderInfoMapper;
 import com.cn.zbin.store.mapper.MasterCityMapper;
 import com.cn.zbin.store.mapper.MasterProvinceMapper;
+import com.cn.zbin.store.mapper.MessageHistoryMapper;
 import com.cn.zbin.store.mapper.OrderOperationHistoryMapper;
 import com.cn.zbin.store.mapper.OrderProductMapper;
 import com.cn.zbin.store.mapper.ProductCommentMapper;
@@ -111,6 +115,10 @@ public class OrderService {
 	private EmployeeInfoMapper employeeInfoMapper;
 	@Autowired
 	private EmployeeRoleMapper employeeRoleMapper;
+	@Autowired
+	private CodeDictInfoMapper codeDictInfoMapper;
+	@Autowired
+	private MessageHistoryMapper messageHistoryMapper;
 	
 	public List<String> getOrderDesktopOpenID(String roleCode) {
 		List<String> ret = new ArrayList<String>();
@@ -143,7 +151,7 @@ public class OrderService {
 		
 		if (waitReturningCnt != 0 || waitChgRetCnt != 0) 
 			ret = StringUtils.replaceEachRepeatedly(
-					StoreKeyConstants.LEASE_DUE_MESSAGE_2_CUSTOMER, 
+					"回收中:{1},退换中:{2}", 
 					new String[] {"{1}", "{2}"}, 
 					new String[] {String.valueOf(waitReturningCnt), String.valueOf(waitChgRetCnt)});
 		
@@ -181,13 +189,18 @@ public class OrderService {
 		CustomerInfo cust = customerInfoMapper.selectByPrimaryKey(order.getCustomerId());
 		if (cust == null) return;
 		
-		String msg = StringUtils.replaceEachRepeatedly(
-				StoreKeyConstants.LEASE_DUE_MESSAGE_2_CUSTOMER, 
-				new String[] {"{1}", "{2}"}, 
-				new String[] {dueOrderProd.getOrderId(), new SimpleDateFormat("yyyy-MM-dd")
-						.format(dueOrderProd.getActualPendingEndDate())});
-		
-		addWechatMessage(cust.getRegisterId(), msg);
+		MessageHistory sms = new MessageHistory();
+		sms.setMessageId(UUID.randomUUID().toString());
+		sms.setPhoneNumber(cust.getTelephone());
+		sms.setSignName(StoreKeyConstants.SMS_SIGN_NAME);
+		sms.setTemplateCode(StoreKeyConstants.SMS_LEASEEND_TEMPLATE_ID);
+		String end = new SimpleDateFormat("yyyy-MM-dd").format(dueOrderProd.getActualPendingEndDate());
+		String phone = StoreKeyConstants.DEFAULT_COMPANY_PHONE;
+		CodeDictInfo cd = codeDictInfoMapper.selectByPrimaryKey(StoreKeyConstants.CODE_DICT_COMPANY_PHONE);
+		if (cd != null && cd.getCodename() != null) phone = cd.getCodename(); 
+		String params = "{\"end\":\"" + end + "\", \"phone\":\"" + phone + "\"}";
+		sms.setTemplateParams(params);
+		messageHistoryMapper.insertSelective(sms);
 	}
 	
 	private void addWechatMessage(String openId, String msg) {

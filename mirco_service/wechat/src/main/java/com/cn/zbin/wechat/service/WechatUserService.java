@@ -40,9 +40,10 @@ public class WechatUserService {
     	if (!Utils.listNotNull(ret)) ret = new ArrayList<WeChatMessageHistory>();
     	return ret;
     }
-    
+
+	@Transactional
     public void updateMessage(WeChatMessageHistory msg) {
-//    	weChatMessageHistoryMapper.update
+    	weChatMessageHistoryMapper.updateByPrimaryKeySelective(msg);
     }
 	
 	@Transactional

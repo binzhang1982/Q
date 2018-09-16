@@ -23,6 +23,7 @@ import com.cn.zbin.management.dto.CustomerAddress;
 import com.cn.zbin.management.dto.CustomerDiseaseHistory;
 import com.cn.zbin.management.dto.CustomerInfo;
 import com.cn.zbin.management.dto.CustomerInvoice;
+import com.cn.zbin.management.dto.MessageHistory;
 import com.cn.zbin.management.exception.BusinessException;
 import com.cn.zbin.management.service.CustomerService;
 import com.cn.zbin.management.service.SmsService;
@@ -140,7 +141,7 @@ public class CustomerController {
 		MessageHistoryMsgData smsMsgData = smsService.addMessageHistory(customerid, phonenumber);
 		msg.setMessage(smsMsgData.getMessage());
 		msg.setStatus(smsMsgData.getStatus());
-		smsService.sendSms(customerid, smsMsgData.getSms());
+		smsService.sendSms(smsMsgData.getSms());
     	return msg;
     }
 
@@ -212,6 +213,25 @@ public class CustomerController {
 		} catch (Exception e) {
 			ret.setStatus(MsgData.status_ng);
 			ret.setMessage(MgmtConstants.CHK_ERR_99999);
+		}
+		return ret;
+	}
+	
+	@RequestMapping(value = "/due/notify", 
+			method = { RequestMethod.GET })
+	public MsgData notifyDueMsg() {
+		MsgData ret = new MsgData();
+		try {
+			List<MessageHistory> smsLst = smsService.getDueMessageList();
+			for (MessageHistory sms : smsLst) {
+				try {
+					smsService.sendSms(sms);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		return ret;
 	}

@@ -1,10 +1,8 @@
-package com.cn.zbin.management.mapper;
+package com.cn.zbin.store.mapper;
 
-import com.cn.zbin.management.dto.MessageHistory;
-import com.cn.zbin.management.dto.MessageHistoryExample;
-
+import com.cn.zbin.store.dto.MessageHistory;
+import com.cn.zbin.store.dto.MessageHistoryExample;
 import java.util.List;
-
 import org.apache.ibatis.annotations.Param;
 
 public interface MessageHistoryMapper {
@@ -95,9 +93,4 @@ public interface MessageHistoryMapper {
      * @mbggenerated
      */
     int updateByPrimaryKey(MessageHistory record);
-    
-    
-    List<MessageHistory> selectOnePageByExample(@Param("example") MessageHistoryExample example,
-    		@Param("offset") Integer offset, @Param("limit") Integer limit, 
-    		@Param("orderByClause") String orderByClause);
 }

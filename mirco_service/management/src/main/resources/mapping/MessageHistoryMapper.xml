@@ -146,7 +146,7 @@
       create_time, sent_time)
     values (#{messageId,jdbcType=VARCHAR}, #{templateCode,jdbcType=VARCHAR}, #{signName,jdbcType=VARCHAR}, 
       #{templateParams,jdbcType=VARCHAR}, #{phoneNumber,jdbcType=VARCHAR}, #{returnCode,jdbcType=VARCHAR}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{sentTime,jdbcType=TIMESTAMP})
+      now(), #{sentTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.cn.zbin.management.dto.MessageHistory" >
     <!--
@@ -173,9 +173,7 @@
       <if test="returnCode != null" >
         return_code,
       </if>
-      <if test="createTime != null" >
         create_time,
-      </if>
       <if test="sentTime != null" >
         sent_time,
       </if>
@@ -199,9 +197,7 @@
       <if test="returnCode != null" >
         #{returnCode,jdbcType=VARCHAR},
       </if>
-      <if test="createTime != null" >
-        #{createTime,jdbcType=TIMESTAMP},
-      </if>
+        now(),
       <if test="sentTime != null" >
         #{sentTime,jdbcType=TIMESTAMP},
       </if>
@@ -317,4 +313,23 @@
       sent_time = #{sentTime,jdbcType=TIMESTAMP}
     where message_id = #{messageId,jdbcType=VARCHAR}
   </update>
+  
+  
+  
+    
+  <select id="selectOnePageByExample" resultMap="BaseResultMap" parameterType="map" >
+    select
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from messagehistory
+    <if test="example != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+    <if test="limit != null">
+      limit ${offset},${limit}
+    </if>
+  </select>
 </mapper>
