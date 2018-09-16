@@ -1,5 +1,7 @@
 package com.cn.zbin.wechat.service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,11 +11,17 @@ import org.springframework.transaction.annotation.Transactional;
 import com.cn.zbin.wechat.bto.WeChatUserBaseInfo;
 import com.cn.zbin.wechat.dto.PromotionPartnerInfo;
 import com.cn.zbin.wechat.dto.PromotionPartnerInfoExample;
+import com.cn.zbin.wechat.dto.WeChatMessageHistory;
+import com.cn.zbin.wechat.dto.WeChatMessageHistoryExample;
 import com.cn.zbin.wechat.dto.WeChatUserInfo;
 import com.cn.zbin.wechat.dto.WeChatUserInfoExample;
 import com.cn.zbin.wechat.exception.BusinessException;
 import com.cn.zbin.wechat.mapper.PromotionPartnerInfoMapper;
+import com.cn.zbin.wechat.mapper.WeChatMessageHistoryMapper;
 import com.cn.zbin.wechat.mapper.WeChatUserInfoMapper;
+import com.cn.zbin.wechat.utils.Utils;
+import com.cn.zbin.wechat.utils.WechatConstants;
+import com.cn.zbin.wechat.utils.WechatKeyConstants;
 
 @Service
 public class WechatUserService {
@@ -21,6 +29,21 @@ public class WechatUserService {
 	private WeChatUserInfoMapper wechatUserInfoMapper;
 	@Autowired
 	private PromotionPartnerInfoMapper promotionPartnerInfoMapper;
+    @Autowired
+    private WeChatMessageHistoryMapper weChatMessageHistoryMapper;
+    
+    public List<WeChatMessageHistory> getUnsendMessageList() {
+    	WeChatMessageHistoryExample exam_wmh = new WeChatMessageHistoryExample();
+    	exam_wmh.createCriteria().andSendFlagEqualTo(Boolean.FALSE);
+    	List<WeChatMessageHistory> ret = weChatMessageHistoryMapper
+    			.selectOnePageByExample(exam_wmh, 0, WechatKeyConstants.MSG_SEND_LIMIT, "create_time asc");
+    	if (!Utils.listNotNull(ret)) ret = new ArrayList<WeChatMessageHistory>();
+    	return ret;
+    }
+    
+    public void updateMessage(WeChatMessageHistory msg) {
+//    	weChatMessageHistoryMapper.update
+    }
 	
 	@Transactional
 	public void createPartner(PromotionPartnerInfo partner) 

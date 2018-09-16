@@ -195,6 +195,7 @@ public class OrderService {
 		record.setMessageId(UUID.randomUUID().toString());
 		record.setMessageContent(msg);
 		record.setRecvOpenId(openId);
+		record.setSendFlag(Boolean.FALSE);
 		wechatMessageHistoryMapper.insertSelective(record);
 	}
 	

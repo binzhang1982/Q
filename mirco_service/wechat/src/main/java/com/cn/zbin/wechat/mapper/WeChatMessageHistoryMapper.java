@@ -61,4 +61,9 @@ public interface WeChatMessageHistoryMapper {
      * @mbggenerated
      */
     int updateByExample(@Param("record") WeChatMessageHistory record, @Param("example") WeChatMessageHistoryExample example);
+    
+    
+    List<WeChatMessageHistory> selectOnePageByExample(@Param("example") WeChatMessageHistoryExample example,
+    		@Param("offset") Integer offset, @Param("limit") Integer limit, 
+    		@Param("orderByClause") String orderByClause);
 }

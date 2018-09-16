@@ -3,11 +3,15 @@ package com.cn.zbin.wechat.controller;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -18,10 +22,14 @@ import org.springframework.web.client.RestTemplate;
 import com.cn.zbin.wechat.bto.MsgData;
 import com.cn.zbin.wechat.bto.OAuthUserBaseInfo;
 import com.cn.zbin.wechat.bto.OauthAccessToken;
+import com.cn.zbin.wechat.bto.SendMsgReturn;
 import com.cn.zbin.wechat.bto.WeChatUserBaseInfo;
+import com.cn.zbin.wechat.dto.WeChatMessageHistory;
 import com.cn.zbin.wechat.exception.BusinessException;
 import com.cn.zbin.wechat.service.WechatUserService;
+import com.cn.zbin.wechat.utils.Utils;
 import com.cn.zbin.wechat.utils.WechatConstants;
+import com.cn.zbin.wechat.utils.WechatKeyConstants;
 import com.google.gson.Gson;
 
 @RestController
@@ -122,6 +130,48 @@ public class WechatUserController {
 			ret.setStatus(MsgData.status_ng);
 			ret.setMessage(WechatConstants.CHK_ERR_99999);
 		}
+		return ret;
+	}
+
+	@RequestMapping(value = "/msg/notify", 
+			method = { RequestMethod.GET })
+	public MsgData sendTextMsg(
+			@RequestParam("atk") String atk) {
+		MsgData ret = new MsgData();
+    	
+		try {
+	    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+	    	uriVariables.put("atk", URLEncoder.encode(atk, "UTF-8"));
+			String url = "https://api.weixin.qq.com/cgi-bin/message/mass/send?access_token={atk}";
+			
+			List<WeChatMessageHistory> msgList = wechatUserService.getUnsendMessageList();
+			for (WeChatMessageHistory msg : msgList) {
+				try {
+					HttpHeaders headers = new HttpHeaders();
+					MediaType type = MediaType.parseMediaType("application/json; charset=UTF-8");
+					headers.setContentType(type);
+					String requestJson = "{\"touser\": [\"" + msg.getRecvOpenId() + "\"], "
+							+ "\"msgtype\": \""+ WechatKeyConstants.MSG_TYPE_TEXT + "\", "
+							+ "\"text\": {\"content\": \"" + msg.getMessageContent() + "\"}}";
+					HttpEntity<String> entity = new HttpEntity<String>(requestJson,headers);
+					String result = restTemplate.postForObject(url, entity, String.class, uriVariables);
+					msg.setReturnCode(result);
+					msg.setSentTime(Utils.getChinaCurrentTime());
+					Gson gson = new Gson();
+					SendMsgReturn msgRes = gson.fromJson(result, SendMsgReturn.class);
+					if ("0".equals(msgRes.getErrcode())) {
+						msg.setSendFlag(Boolean.TRUE);
+					}
+				} catch(Exception e) {
+					e.printStackTrace();
+				}
+			}
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 		return ret;
 	}
 }
