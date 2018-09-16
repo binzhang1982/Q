@@ -66,6 +66,26 @@ public class AsyncService {
 			e.printStackTrace();
 		}
 	}
+	
+	@Async("asyncServiceExecutor")
+	public void executDueLeaseOrderAsync() {
+		try {
+	    	String urlOrder = "http://SERVICE-STORE/order/lease/due/sys";
+	        restTemplate.postForObject(urlOrder, null, String.class);
+		} catch (RestClientException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Async("asyncServiceExecutor")
+	public void executDueNotifyAsync() {
+		try {
+	    	String urlMgmt = "http://SERVICE-MGMT/customer/due/notify/sys";
+	        restTemplate.getForObject(urlMgmt, String.class);
+		} catch (RestClientException e) {
+			e.printStackTrace();
+		}
+	}
 
 	@Async("asyncSingtonServiceExecutor")
 	public void executeScanPayOrderAsync() {

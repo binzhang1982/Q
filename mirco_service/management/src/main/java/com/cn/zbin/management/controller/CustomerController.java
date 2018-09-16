@@ -217,9 +217,10 @@ public class CustomerController {
 		return ret;
 	}
 	
-	@RequestMapping(value = "/due/notify", 
+	@RequestMapping(value = "/due/notify/sys", 
 			method = { RequestMethod.GET })
 	public MsgData notifyDueMsg() {
+		logger.info("get api: /customer/due/notify/sys");
 		MsgData ret = new MsgData();
 		try {
 			List<MessageHistory> smsLst = smsService.getDueMessageList();

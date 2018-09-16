@@ -3,7 +3,6 @@ package com.cn.zbin.store.controller;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -461,6 +460,7 @@ public class OrderController {
 	public MsgData askEndLeaseProd(
 			@RequestParam("customerid") String customerid, 
 			@RequestBody OrderOperationHistory orderOperation) {
+		logger.info("post api: /order/lease/ask/end || customerid: " + customerid);
 		MsgData ret = new MsgData();
 		try {
 			orderService.askEndLeaseProd(customerid, orderOperation);
@@ -474,9 +474,10 @@ public class OrderController {
 		return ret;
 	}
 	
-	@RequestMapping(value = "/due/notify",
+	@RequestMapping(value = "/lease/due/sys",
 			method = {RequestMethod.POST})
 	public MsgData notifyDue() {
+		logger.info("post api: /order/lease/due/sys");
 		MsgData ret = new MsgData();
 		//给顾客:即将租赁到期
 		try {
@@ -491,24 +492,6 @@ public class OrderController {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
-//		//给客服:回收中,换货中,退货中
-//		try {
-//			String msg = orderService.getDesktopProcNotifyMessage();
-//			if (StringUtils.isNotBlank(msg)) {
-//				List<String> openIds = orderService.getOrderDesktopOpenID(roleCode);
-//				for (String openid : openIds) {
-//					try {
-//						orderService.addDesktopProcNotifyMessage(openid, msg);
-//					} catch (Exception e) {
-//						e.printStackTrace();
-//					}
-//				}
-//			}
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-		
 		return ret;
 	}
 	

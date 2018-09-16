@@ -26,9 +26,18 @@ public class StoreOrderTask {
 		asyncService.executeScanPayOrderAsync();
 	}
 
-//	@Scheduled(cron="0 0/5 * * * ?")
 	@Scheduled(cron="0 0 1 * * ?")
 	public void commentDefaultOrderTask() {
 		asyncService.executeCommentDefaultOrderAsync();
+	}
+
+	@Scheduled(cron="0 0 7 * * ?")
+	public void dueLeaseOrderTask() {
+		asyncService.executDueLeaseOrderAsync();
+	}
+	
+	@Scheduled(cron="0 0 0/1 * * ?")
+	public void dueNotifyTask() {
+		asyncService.executDueNotifyAsync();
 	}
 }
