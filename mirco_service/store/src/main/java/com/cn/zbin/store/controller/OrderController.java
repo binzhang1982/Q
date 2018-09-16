@@ -460,7 +460,8 @@ public class OrderController {
 	public MsgData askEndLeaseProd(
 			@RequestParam("customerid") String customerid, 
 			@RequestBody OrderOperationHistory orderOperation) {
-		logger.info("post api: /order/lease/ask/end || customerid: " + customerid);
+		logger.info("post api: /order/lease/ask/end || customerid: " + customerid +
+				" || orderOperation: " + orderOperation);
 		MsgData ret = new MsgData();
 		try {
 			orderService.askEndLeaseProd(customerid, orderOperation);

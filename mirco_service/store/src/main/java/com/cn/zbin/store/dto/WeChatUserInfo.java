@@ -91,6 +91,7 @@ public class WeChatUserInfo {
      *
      * @mbggenerated
      */
+    @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Long subscribeTime;
 
     /**

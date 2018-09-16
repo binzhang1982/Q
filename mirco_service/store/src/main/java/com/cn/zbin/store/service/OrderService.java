@@ -241,6 +241,8 @@ public class OrderService {
 			throw new BusinessException(StoreConstants.CHK_ERR_90023);
 		if (orderProd.getActualPendingEndDate().compareTo(orderOperation.getPendingEndDate()) < 0)
 			throw new BusinessException(StoreConstants.CHK_ERR_90024);
+		if (orderProd.getStatusCode() == null) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90025);
 		if (!orderProd.getStatusCode().equals(StoreKeyConstants.ORDER_PROD_STATUS_USING)
 				&& !orderProd.getStatusCode().equals(StoreKeyConstants.ORDER_PROD_STATUS_RELET))
 			throw new BusinessException(StoreConstants.CHK_ERR_90025);

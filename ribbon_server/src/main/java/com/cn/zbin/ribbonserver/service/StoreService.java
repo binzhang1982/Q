@@ -293,4 +293,22 @@ public class StoreService {
     public String commentOrderByCustomerError(String customerid, String orderid, String bean) {
     	return "failed";
     }
+
+    @HystrixCommand(fallbackMethod = "askEndLeaseProdError")
+    public String askEndLeaseProd(String customerid, String bean) {
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("customerid", customerid);
+    	
+        HttpHeaders headers =new HttpHeaders();
+        MediaType mtype = MediaType.parseMediaType("application/json; charset=UTF-8");
+        headers.setContentType(mtype);
+        HttpEntity<String> request = new HttpEntity<String>(bean, headers);
+
+        return restTemplate.postForObject("http://SERVICE-STORE/order/lease/ask/end" 
+				+ "?customerid={customerid}", request, String.class, uriVariables);
+    	
+    }
+    public String askEndLeaseProdError(String customerid, String bean) {
+    	return "failed";
+    }
 }

@@ -229,4 +229,14 @@ public class StoreController {
     			" || customerid: " + customerid + " || bean: " + bean);
 		return storeService.commentOrderByCustomer(customerid, orderid, bean);
     }
+    
+    @PostMapping(value="/order/lease/ask/end")
+    @CrossOrigin
+    public String askEndLeaseProd(
+			@RequestParam("customerid") String customerid, 
+			@RequestBody String bean) {
+    	logger.info("post api: /store/order/comment || customerid: " + customerid +
+    			" || bean: " + bean);
+    	return storeService.askEndLeaseProd(customerid, bean);
+    }
 }
