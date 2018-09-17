@@ -19,10 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.cn.zbin.store.bto.CustomerAddressOverView;
 import com.cn.zbin.store.bto.CustomerInvoiceOverView;
 import com.cn.zbin.store.bto.GuestOrderOverView;
+import com.cn.zbin.store.bto.LeaseCalcAmountMsgData;
 import com.cn.zbin.store.bto.MsgData;
 import com.cn.zbin.store.bto.OrderProductOverView;
 import com.cn.zbin.store.bto.WxPayH5Param;
-import com.cn.zbin.store.bto.WxPayOverView;
 import com.cn.zbin.store.dto.CodeDictInfo;
 import com.cn.zbin.store.dto.CustomerAddress;
 import com.cn.zbin.store.dto.CustomerInfo;
@@ -36,7 +36,6 @@ import com.cn.zbin.store.dto.MasterCity;
 import com.cn.zbin.store.dto.MasterProvince;
 import com.cn.zbin.store.dto.MessageHistory;
 import com.cn.zbin.store.dto.OrderOperationHistory;
-import com.cn.zbin.store.dto.OrderOperationHistoryExample;
 import com.cn.zbin.store.dto.OrderProduct;
 import com.cn.zbin.store.dto.OrderProductExample;
 import com.cn.zbin.store.dto.ProductComment;
@@ -246,6 +245,13 @@ public class OrderService {
 		if (!orderProd.getStatusCode().equals(StoreKeyConstants.ORDER_PROD_STATUS_USING)
 				&& !orderProd.getStatusCode().equals(StoreKeyConstants.ORDER_PROD_STATUS_RELET))
 			throw new BusinessException(StoreConstants.CHK_ERR_90025);
+
+		Long pendingCount = 
+				TimeUnit.MILLISECONDS.toDays(orderOperation.getPendingEndDate().getTime() - 
+						orderProd.getActualPendingEndDate().getTime());
+		ProductInfo prod = productInfoMapper.selectByPrimaryKey(orderProd.getProductId());
+		if (pendingCount < prod.getLeaseMinDays()) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90008);
 		
 		askEndLeaseProd(orderOperation, StoreKeyConstants.OPERATION_TYPE_CUSTOMER);
 	}
@@ -272,13 +278,51 @@ public class OrderService {
 		orderProductMapper.updateByPrimaryKeySelective(rec);
 	}
 	
-	private BigDecimal calcLeaseAmount(Date startDate, Date endDate, String prodId, 
-			BigDecimal paid, BigDecimal bail) {
-		BigDecimal ret = new BigDecimal(0);
-		Long pendingCount = TimeUnit.MILLISECONDS.toDays(endDate.getTime() - startDate.getTime());
-		ProductPrice unitPrice = getUnitPrice(Boolean.TRUE, pendingCount, prodId);
-		ret = ret.add(bail).add(paid)
+	public LeaseCalcAmountMsgData calcLeaseAmount(String orderOperId, Date recycleDate) {
+		OrderOperationHistory operation = orderOperationHistoryMapper.selectByPrimaryKey(orderOperId);
+		if (operation == null) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90026);
+		Date maxRecycle = DateUtils.addDays(operation.getPendingEndDate(), StoreKeyConstants.QA_INTERVAL_DAYS);
+		Date minRecycle = DateUtils.addDays(operation.getPendingEndDate(), 0 - StoreKeyConstants.QA_INTERVAL_DAYS);
+		if (maxRecycle.compareTo(recycleDate) < 0 || minRecycle.compareTo(recycleDate) > 0)
+			throw new BusinessException(StoreConstants.CHK_ERR_90027);
+		
+		String orderProductId = operation.getOrderProductId();
+		OrderProduct prod = orderProductMapper.selectByPrimaryKey(orderProductId);
+		if (prod == null) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90023);
+		if (prod.getStatusCode() == null) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90025);
+		if (!StoreKeyConstants.ORDER_PROD_STATUS_WAIT_RETURN.equals(prod.getStatusCode())) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90025);
+		if (recycleDate.compareTo(prod.getActualPendingEndDate()) > 0) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90024);
+		
+		LeaseCalcAmountMsgData ret = new LeaseCalcAmountMsgData();
+		ret.setOrderProductId(orderProductId);
+		BigDecimal amount = new BigDecimal(0);
+		BigDecimal paid = prod.getPrePayAmount(); 
+		BigDecimal bail = prod.getBail();
+		ret.setBail(bail);
+		ret.setPaid(paid);
+		ret.setStartDate(prod.getActualPendingDate());
+		ret.setOrginEndDate(prod.getActualPendingEndDate());
+		ret.setRecycleDate(recycleDate);
+		
+		Date startDate = prod.getActualPendingDate();
+		Long pendingCount = TimeUnit.MILLISECONDS.toDays(recycleDate.getTime() - startDate.getTime());
+		ProductPrice unitPrice = getUnitPrice(Boolean.TRUE, pendingCount, prod.getProductId());
+		if (unitPrice == null) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90008);
+		amount = amount.add(paid).add(bail)
 				.subtract(unitPrice.getRealPrice().multiply(new BigDecimal(pendingCount)));
+
+		ret.setUnitPrice(unitPrice.getRealPrice());
+		ret.setAmount(amount);
+		ret.setPendingCount(pendingCount);
+		if (amount.compareTo(new BigDecimal(0)) > 0) ret.setType("待退款");
+		else ret.setType("待缴款");
+		
 		return ret;
 	}
 	

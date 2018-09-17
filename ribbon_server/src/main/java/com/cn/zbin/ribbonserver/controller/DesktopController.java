@@ -78,6 +78,26 @@ public class DesktopController {
     	return desktopService.confirmDelivery(orderid, empid);
     }
     
+    @GetMapping(value = "/order/lease/recycle/calc")
+    @CrossOrigin
+    public String calcRecycleAmount(
+			@RequestParam(value = "empid", required = true) String empid,
+			@RequestParam(value = "token", required = true) String token,
+    		@RequestParam(value = "orderoperid", required = true) String orderOperId,
+    		@RequestParam(value = "recycledate", required = true) String recycleDate) {
+    	logger.info("get api /desktop/order/lease/recycle/calc || empid: " + empid
+				+ " || token: " + token + " || orderoperid: " + orderOperId
+				+ " || recycledate: " + recycleDate);
+    	String strToken = checkToken(empid, token);
+    	if (!"".equals(strToken)) return strToken;
+    	String strAuth = checkAuth(empid, RibbonKeyConstants.AUTH_ORDER);
+    	if (!"".equals(strAuth)) return strAuth;
+    	
+    	return desktopService.calcRecycleAmount(orderOperId, recycleDate);
+    }
+    
+    
+    
     private String checkToken(String empid, String token) {
     	Gson gson = new Gson();
     	String json = desktopService.checkToken(empid, token);

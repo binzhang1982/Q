@@ -75,4 +75,18 @@ public class DesktopService {
     public String confirmDeliveryError(String orderId, String customerId) {
     	return "failed";
     }
+    
+    @HystrixCommand(fallbackMethod = "calcRecycleAmountError")
+    public String calcRecycleAmount(String orderOperId, String recycleDate) {
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("orderoperid", orderOperId);
+    	uriVariables.put("recycledate", recycleDate);
+
+        return restTemplate.getForObject("http://SERVICE-STORE/order/lease/recycle/calc" 
+				+ "?orderoperid={orderoperid}&recycledate={recycledate}", String.class, 
+				uriVariables);
+    }
+    public String calcRecycleAmountError(String orderOperId, String recycleDate) {
+    	return "failed";
+    }
 }

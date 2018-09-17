@@ -7,14 +7,15 @@ import org.apache.commons.lang.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 
 import com.cn.zbin.store.bto.GuestOrderOverView;
+import com.cn.zbin.store.bto.LeaseCalcAmountMsgData;
 import com.cn.zbin.store.bto.MsgData;
 import com.cn.zbin.store.bto.WxPayOverView;
 import com.cn.zbin.store.dto.GuestOrderInfo;
@@ -35,8 +36,6 @@ public class OrderController {
 	protected static final Logger logger = LoggerFactory.getLogger(OrderController.class);
 	@Autowired
 	private OrderService orderService;
-	@Autowired
-    private RestTemplate restTemplate;
 
 	@RequestMapping(value = "/init", 
 			consumes = {"application/json;charset=UTF-8"}, 
@@ -496,7 +495,32 @@ public class OrderController {
 		return ret;
 	}
 	
-	public void calcLeaseRefund() {
+	@RequestMapping(value = "/lease/recycle/calc", 
+			produces = {"application/json;charset=UTF-8"}, 
+			method = { RequestMethod.GET })
+	public LeaseCalcAmountMsgData calcRecycleAmount(
+			@RequestParam("orderoperid") String orderOperId, 
+			@RequestParam("recycledate") @DateTimeFormat(pattern="yyyy-MM-dd") Date recycleDate) {
+		logger.info("get api: /order/lease/recycle/calc || orderoperid: " + orderOperId +
+				" || recycledate: " + recycleDate);
+		LeaseCalcAmountMsgData ret = new LeaseCalcAmountMsgData();
+		try {
+			ret = orderService.calcLeaseAmount(orderOperId, recycleDate);
+		} catch (BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getMessage());
+		} catch (Exception e) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(StoreConstants.CHK_ERR_99999);
+		}
+		
+		return ret;
+	}
+
+	@RequestMapping(value = "/lease/recycle", 
+			produces = {"application/json;charset=UTF-8"}, 
+			method = { RequestMethod.GET })
+	public void getRecycleOrders() {
 		
 	}
 }
