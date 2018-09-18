@@ -107,9 +107,10 @@ public class OrderController {
 		MsgData ret = new MsgData();
 		try {
 			for (OrderOperationHistory operation : operationList) {
-				operation.setCustOperCode(StoreKeyConstants.ORDER_OPERATION_CANCEL);
-				operation.setCustOperTime(new Date());
-				orderService.operateOrder(operation, customerid, 
+				operation.setAskOperCode(StoreKeyConstants.ORDER_OPERATION_CANCEL);
+				operation.setAskTime(Utils.getChinaCurrentTime());
+				operation.setAskErId(customerid);
+				orderService.cancelOrder(operation, customerid, 
 						StoreKeyConstants.OPERATION_TYPE_CUSTOMER);
 			}
 		} catch (BusinessException be) {
@@ -133,11 +134,11 @@ public class OrderController {
 			List<GuestOrderInfo> orderList = orderService.getExpiredUnpaidOrderList();
 			for (GuestOrderInfo order : orderList) {
 				OrderOperationHistory operation = new OrderOperationHistory();
-				operation.setMgmtOperCode(StoreKeyConstants.ORDER_OPERATION_CANCEL);
-				operation.setMgmtEmpId(StoreKeyConstants.SYSTEM_EMP_ID);
+				operation.setAskOperCode(StoreKeyConstants.ORDER_OPERATION_CANCEL);
+				operation.setAskErId(StoreKeyConstants.SYSTEM_EMP_ID);
 				operation.setOrderId(order.getOrderId());
-				operation.setMgmtOperTime(new Date());
-				orderService.operateOrder(operation, StoreKeyConstants.SYSTEM_EMP_ID, 
+				operation.setAskTime(Utils.getChinaCurrentTime());
+				orderService.cancelOrder(operation, StoreKeyConstants.SYSTEM_EMP_ID, 
 						StoreKeyConstants.OPERATION_TYPE_MANAGEMENT);
 			}
 		} catch (BusinessException be) {

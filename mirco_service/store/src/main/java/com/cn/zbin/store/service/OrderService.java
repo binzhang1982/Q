@@ -182,7 +182,7 @@ public class OrderService {
 		orderOperation.setOrderId(dueOrderProd.getOrderId());
 		orderOperation.setOrderProductId(dueOrderProd.getOrderProductId());
 		
-		askEndLeaseProd(orderOperation);
+		askEndLease(StoreKeyConstants.SYSTEM_EMP_ID, orderOperation);
 		
 		GuestOrderInfo order = guestOrderInfoMapper.selectByPrimaryKey(dueOrderProd.getOrderId());
 		if (order == null) return;
@@ -196,7 +196,8 @@ public class OrderService {
 		sms.setTemplateCode(StoreKeyConstants.SMS_LEASEEND_TEMPLATE_ID);
 		String end = new SimpleDateFormat("yyyy-MM-dd").format(dueOrderProd.getActualPendingEndDate());
 		String phone = StoreKeyConstants.DEFAULT_COMPANY_PHONE;
-		CodeDictInfo cd = codeDictInfoMapper.selectByPrimaryKey(StoreKeyConstants.CODE_DICT_COMPANY_PHONE);
+		CodeDictInfo cd = codeDictInfoMapper.selectByPrimaryKey(
+				StoreKeyConstants.CODE_DICT_COMPANY_PHONE);
 		if (cd != null && cd.getCodename() != null) phone = cd.getCodename(); 
 		String params = "{\"end\":\"" + end + "\", \"phone\":\"" + phone + "\"}";
 		sms.setTemplateParams(params);
@@ -253,15 +254,15 @@ public class OrderService {
 		if (pendingCount < prod.getLeaseMinDays()) 
 			throw new BusinessException(StoreConstants.CHK_ERR_90008);
 		
-		askEndLeaseProd(orderOperation);
+		askEndLease(customerid, orderOperation);
 	}
 	
-	private void askEndLeaseProd(OrderOperationHistory orderOperation) {
+	private void askEndLease(String id, OrderOperationHistory orderOperation) {
 		OrderOperationHistoryExample exam_ooh = new OrderOperationHistoryExample();
 		exam_ooh.createCriteria().andOrderIdEqualTo(orderOperation.getOrderId())
 								.andOrderProductIdEqualTo(orderOperation.getOrderProductId())
-								.andCustOperCodeIsNotNull()
-								.andMgmtOperCodeIsNull();
+								.andAskOperCodeIsNotNull()
+								.andAnsOperCodeIsNull();
 		if (orderOperationHistoryMapper.countByExample(exam_ooh) > 0) 
 			throw new BusinessException(StoreConstants.CHK_ERR_90028);
 		
@@ -270,8 +271,10 @@ public class OrderService {
 		record.setOrderId(orderOperation.getOrderId());
 		record.setOrderProductId(orderOperation.getOrderProductId());
 		record.setPendingEndDate(orderOperation.getPendingEndDate());
-		record.setCustOperCode(StoreKeyConstants.ORDER_OPERATION_ASK_END);
-		record.setCustOperTime(Utils.getChinaCurrentTime());
+		record.setAskOperCode(StoreKeyConstants.ORDER_OPERATION_ASK_END);
+		record.setAskErId(id);
+		record.setAskComment(orderOperation.getAskComment());
+		record.setAskTime(Utils.getChinaCurrentTime());
 		orderOperationHistoryMapper.insertSelective(record);
 		
 		OrderProduct rec = new OrderProduct();
@@ -424,7 +427,8 @@ public class OrderService {
 			throws BusinessException, Exception {
 		GuestOrderInfo order = guestOrderInfoMapper.selectByPrimaryKey(orderid);
 		if (order == null) throw new BusinessException(StoreConstants.CHK_ERR_90016);
-		if (StoreKeyConstants.OPERATION_TYPE_CUSTOMER.equals(type) && !order.getCustomerId().equals(id))
+		if (StoreKeyConstants.OPERATION_TYPE_CUSTOMER.equals(type) && 
+				!order.getCustomerId().equals(id))
 			throw new BusinessException(StoreConstants.CHK_ERR_90017);
 		if (order.getStatusCode().equals(StoreKeyConstants.ORDER_STATUS_WAIT_DELIVERY)) {
 			GuestOrderInfo record = new GuestOrderInfo();
@@ -454,14 +458,9 @@ public class OrderService {
 			
 			OrderOperationHistory operation = new OrderOperationHistory();
 			operation.setOrderOperId(UUID.randomUUID().toString());
-			if (StoreKeyConstants.OPERATION_TYPE_MANAGEMENT.equals(type)) {
-				operation.setMgmtOperCode(StoreKeyConstants.ORDER_OPERATION_CONFIRM);
-				operation.setMgmtEmpId(id);
-				operation.setMgmtOperTime(Utils.getChinaCurrentTime());
-			} else {
-				operation.setCustOperCode(StoreKeyConstants.ORDER_OPERATION_CONFIRM);
-				operation.setCustOperTime(Utils.getChinaCurrentTime());
-			}
+			operation.setAskOperCode(StoreKeyConstants.ORDER_OPERATION_CONFIRM);
+			operation.setAskErId(id);
+			operation.setAskTime(Utils.getChinaCurrentTime());
 			operation.setOrderId(orderid);
 			orderOperationHistoryMapper.insertSelective(operation);
 		} else {
@@ -730,9 +729,7 @@ public class OrderService {
         String totalFee = String.valueOf(totalAmount.multiply(new BigDecimal(100)).intValue());
         data.put("total_fee", totalFee);
         data.put("spbill_create_ip",spbillCreateIp);
-        //TODO 异步通知地址（请注意必须是外网）
         data.put("notify_url", "http://106.15.88.109/store/order/wxpay/notify");
-//        data.put("notify_url", "http://52.231.194.85/store/order/wxpay/notify");
         data.put("trade_type", "JSAPI");
         data.put("openid", openid);
         Map<String, String> resp = wxpay.unifiedOrder(data);
@@ -768,12 +765,8 @@ public class OrderService {
 	}
 	
 	@Transactional
-	public void operateOrder(OrderOperationHistory operation, String operatorId, 
+	public void cancelOrder(OrderOperationHistory operation, String operatorId, 
 			Integer opertionType) throws BusinessException, Exception {
-		String operationCode = operation.getCustOperCode();
-		if (opertionType == StoreKeyConstants.OPERATION_TYPE_MANAGEMENT)
-			operationCode = operation.getMgmtOperCode();
-
 		GuestOrderInfo guestOrder = guestOrderInfoMapper.selectByPrimaryKey(
 				operation.getOrderId());
 		if (guestOrder == null) 
@@ -781,40 +774,23 @@ public class OrderService {
 		if (!guestOrder.getCustomerId().equals(operatorId) &&
 				opertionType == StoreKeyConstants.OPERATION_TYPE_CUSTOMER)
 			throw new BusinessException(StoreConstants.CHK_ERR_90017);
-
 		String orderStatus = guestOrder.getStatusCode();
-		
-		switch (operationCode) {
-			case StoreKeyConstants.ORDER_OPERATION_CANCEL:
-				if (!StoreKeyConstants.ORDER_STATUS_UNPAID.equals(orderStatus)) 
-					throw new BusinessException(StoreConstants.CHK_ERR_90018);
+		if (!StoreKeyConstants.ORDER_STATUS_UNPAID.equals(orderStatus)) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90018);
 	
-				operation.setOrderOperId(UUID.randomUUID().toString());
-				operation.setOrderProductId(null);
-				operation.setDeferDate(null);
-				operation.setPendingEndDate(null);
-				operation.setReturnCount(null);
-
-				GuestOrderInfo record = new GuestOrderInfo();
-				record.setOrderId(operation.getOrderId());
-				record.setStatusCode(StoreKeyConstants.ORDER_STATUS_CANCELED);
-				if (opertionType == StoreKeyConstants.OPERATION_TYPE_MANAGEMENT)
-					record.setUpdateEmpId(operatorId);
-				guestOrderInfoMapper.updateByPrimaryKeySelective(record);
-				break;
-			case StoreKeyConstants.ORDER_OPERATION_CONF_RETURN:
-				if (!StoreKeyConstants.ORDER_STATUS_WAIT_DELIVERY.equals(orderStatus) &&
-					!StoreKeyConstants.ORDER_STATUS_WAIT_COMMENT.equals(orderStatus) &&
-					!StoreKeyConstants.ORDER_STATUS_COMMENT_CONFIRM.equals(orderStatus)) 
-					throw new BusinessException(StoreConstants.CHK_ERR_90018);
-				//TODO 7天无理由退货
-				
-				break;
-			default:
-				throw new BusinessException(StoreConstants.CHK_ERR_90019);
-		}
-		
+		operation.setOrderOperId(UUID.randomUUID().toString());
+		operation.setOrderProductId(null);
+		operation.setDeferDate(null);
+		operation.setPendingEndDate(null);
+		operation.setReturnCount(null);
 		orderOperationHistoryMapper.insertSelective(operation);
+
+		GuestOrderInfo record = new GuestOrderInfo();
+		record.setOrderId(operation.getOrderId());
+		record.setStatusCode(StoreKeyConstants.ORDER_STATUS_CANCELED);
+		if (opertionType == StoreKeyConstants.OPERATION_TYPE_MANAGEMENT)
+			record.setUpdateEmpId(operatorId);
+		guestOrderInfoMapper.updateByPrimaryKeySelective(record);
 	}
 	
 	public List<GuestOrderOverView> getGuestOrderList(String customerid,
