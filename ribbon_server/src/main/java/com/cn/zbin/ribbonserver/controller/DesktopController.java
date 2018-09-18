@@ -96,7 +96,25 @@ public class DesktopController {
     	return desktopService.calcRecycleAmount(orderOperId, recycleDate);
     }
     
+    @PostMapping(value = "/order/lease/recycle/agree")
+    @CrossOrigin
+    public String agreeRecycleLeaseProduct(
+    		@RequestParam(value = "empid", required = true) String empid,
+			@RequestParam(value = "token", required = true) String token,
+    		@RequestParam(value = "orderoperid", required = true) String orderOperId) {
+    	
+    	return "";
+    }
     
+    @PostMapping(value = "/order/lease/recyle/reject")
+    @CrossOrigin
+    public String rejectRecycleLeaseProduct(
+    		@RequestParam(value = "empid", required = true) String empid,
+			@RequestParam(value = "token", required = true) String token,
+    		@RequestParam(value = "orderoperid", required = true) String orderOperId) {
+    	
+    	return "";
+    }
     
     private String checkToken(String empid, String token) {
     	Gson gson = new Gson();

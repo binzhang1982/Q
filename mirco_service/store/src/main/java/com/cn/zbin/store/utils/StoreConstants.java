@@ -29,6 +29,7 @@ public class StoreConstants {
 	public final static String CHK_ERR_90025 = "90025:订单商品状态不正确,不能操作!";
 	public final static String CHK_ERR_90026 = "90026:不存在待回收订单商品!";
 	public final static String CHK_ERR_90027 = "90027:回收日离顾客请求的结租日有点距离，请再次确认!";
+	public final static String CHK_ERR_90028 = "90028:订单商品的申请正在处理中,请耐心等待!";
 	
 	public final static String CHK_ERR_99996 = "99996:支付通知没有返回商户订单号!";
 	public final static String CHK_ERR_99997 = "99997:支付通知返回的商户订单号不存在!";

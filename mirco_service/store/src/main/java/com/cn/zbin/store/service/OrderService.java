@@ -36,6 +36,7 @@ import com.cn.zbin.store.dto.MasterCity;
 import com.cn.zbin.store.dto.MasterProvince;
 import com.cn.zbin.store.dto.MessageHistory;
 import com.cn.zbin.store.dto.OrderOperationHistory;
+import com.cn.zbin.store.dto.OrderOperationHistoryExample;
 import com.cn.zbin.store.dto.OrderProduct;
 import com.cn.zbin.store.dto.OrderProductExample;
 import com.cn.zbin.store.dto.ProductComment;
@@ -181,7 +182,7 @@ public class OrderService {
 		orderOperation.setOrderId(dueOrderProd.getOrderId());
 		orderOperation.setOrderProductId(dueOrderProd.getOrderProductId());
 		
-		askEndLeaseProd(orderOperation, StoreKeyConstants.OPERATION_TYPE_MANAGEMENT);
+		askEndLeaseProd(orderOperation);
 		
 		GuestOrderInfo order = guestOrderInfoMapper.selectByPrimaryKey(dueOrderProd.getOrderId());
 		if (order == null) return;
@@ -242,8 +243,7 @@ public class OrderService {
 			throw new BusinessException(StoreConstants.CHK_ERR_90024);
 		if (orderProd.getStatusCode() == null) 
 			throw new BusinessException(StoreConstants.CHK_ERR_90025);
-		if (!orderProd.getStatusCode().equals(StoreKeyConstants.ORDER_PROD_STATUS_USING)
-				&& !orderProd.getStatusCode().equals(StoreKeyConstants.ORDER_PROD_STATUS_RELET))
+		if (!orderProd.getStatusCode().equals(StoreKeyConstants.ORDER_PROD_STATUS_USING))
 			throw new BusinessException(StoreConstants.CHK_ERR_90025);
 
 		Long pendingCount = 
@@ -253,23 +253,25 @@ public class OrderService {
 		if (pendingCount < prod.getLeaseMinDays()) 
 			throw new BusinessException(StoreConstants.CHK_ERR_90008);
 		
-		askEndLeaseProd(orderOperation, StoreKeyConstants.OPERATION_TYPE_CUSTOMER);
+		askEndLeaseProd(orderOperation);
 	}
 	
-	private void askEndLeaseProd(OrderOperationHistory orderOperation, Integer type) {
+	private void askEndLeaseProd(OrderOperationHistory orderOperation) {
+		OrderOperationHistoryExample exam_ooh = new OrderOperationHistoryExample();
+		exam_ooh.createCriteria().andOrderIdEqualTo(orderOperation.getOrderId())
+								.andOrderProductIdEqualTo(orderOperation.getOrderProductId())
+								.andCustOperCodeIsNotNull()
+								.andMgmtOperCodeIsNull();
+		if (orderOperationHistoryMapper.countByExample(exam_ooh) > 0) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90028);
+		
 		OrderOperationHistory record = new OrderOperationHistory();
 		record.setOrderOperId(UUID.randomUUID().toString());
 		record.setOrderId(orderOperation.getOrderId());
 		record.setOrderProductId(orderOperation.getOrderProductId());
 		record.setPendingEndDate(orderOperation.getPendingEndDate());
-		if (StoreKeyConstants.OPERATION_TYPE_CUSTOMER.equals(type)) {
-			record.setCustOperCode(StoreKeyConstants.ORDER_OPERATION_ASK_END);
-			record.setCustOperTime(Utils.getChinaCurrentTime());
-		} else {
-			record.setMgmtOperCode(StoreKeyConstants.ORDER_OPERATION_ASK_END);
-			record.setMgmtOperTime(Utils.getChinaCurrentTime());
-			record.setMgmtEmpId(StoreKeyConstants.SYSTEM_EMP_ID);
-		}
+		record.setCustOperCode(StoreKeyConstants.ORDER_OPERATION_ASK_END);
+		record.setCustOperTime(Utils.getChinaCurrentTime());
 		orderOperationHistoryMapper.insertSelective(record);
 		
 		OrderProduct rec = new OrderProduct();

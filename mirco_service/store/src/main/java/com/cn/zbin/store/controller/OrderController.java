@@ -485,6 +485,8 @@ public class OrderController {
 			for (OrderProduct prod : dueOrderProds) {
 				try {
 					orderService.askEndLeaseProdSys(prod);
+				} catch (BusinessException be) {
+					logger.info(prod.getOrderProductId() + " || " + be.getMessage());
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
