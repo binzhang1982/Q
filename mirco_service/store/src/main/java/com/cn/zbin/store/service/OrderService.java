@@ -143,7 +143,7 @@ public class OrderService {
 		BigDecimal realPrice = getLeaseRealPrice(pendingCount, orderProd.getProductId());
 		BigDecimal preLeaseAmount = getLeaseAmount(pendingCount, realPrice);
 		
-		
+		//TODO
 		return "";
 	}
 	
