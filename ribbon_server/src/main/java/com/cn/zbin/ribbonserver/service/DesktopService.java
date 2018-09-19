@@ -4,6 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -87,6 +90,40 @@ public class DesktopService {
 				uriVariables);
     }
     public String calcRecycleAmountError(String orderOperId, String recycleDate) {
+    	return "failed";
+    }
+    
+    @HystrixCommand(fallbackMethod = "agreeRecycleLeaseProductError")
+    public String agreeRecycleLeaseProduct(String empid, String bean) {
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("empid", empid);
+    	
+        HttpHeaders headers =new HttpHeaders();
+        MediaType mtype = MediaType.parseMediaType("application/json; charset=UTF-8");
+        headers.setContentType(mtype);
+        HttpEntity<String> request = new HttpEntity<String>(bean, headers);
+
+        return restTemplate.postForObject("http://SERVICE-STORE/order/lease/recycle/agree" 
+    			+ "?empid={empid}", request, String.class, uriVariables);
+    }
+    public String agreeRecycleLeaseProductError(String empid, String bean) {
+    	return "failed";
+    }
+    
+    @HystrixCommand(fallbackMethod = "rejectRecycleLeaseProductError")
+    public String rejectRecycleLeaseProduct(String empid, String bean) {
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("empid", empid);
+    	
+        HttpHeaders headers =new HttpHeaders();
+        MediaType mtype = MediaType.parseMediaType("application/json; charset=UTF-8");
+        headers.setContentType(mtype);
+        HttpEntity<String> request = new HttpEntity<String>(bean, headers);
+
+        return restTemplate.postForObject("http://SERVICE-STORE/order/lease/recycle/reject" 
+    			+ "?empid={empid}", request, String.class, uriVariables);
+    }
+    public String rejectRecycleLeaseProductError(String empid, String bean) {
     	return "failed";
     }
 }

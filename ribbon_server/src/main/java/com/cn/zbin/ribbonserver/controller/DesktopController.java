@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -101,9 +102,15 @@ public class DesktopController {
     public String agreeRecycleLeaseProduct(
     		@RequestParam(value = "empid", required = true) String empid,
 			@RequestParam(value = "token", required = true) String token,
-    		@RequestParam(value = "orderoperid", required = true) String orderOperId) {
-    	
-    	return "";
+			@RequestBody String bean) {
+    	logger.info("post api /desktop/order/lease/recycle/agree || empid: " + empid
+				+ " || token: " + token + " || bean: " + bean);
+    	String strToken = checkToken(empid, token);
+    	if (!"".equals(strToken)) return strToken;
+    	String strAuth = checkAuth(empid, RibbonKeyConstants.AUTH_ORDER);
+    	if (!"".equals(strAuth)) return strAuth;
+
+    	return desktopService.agreeRecycleLeaseProduct(empid, bean);
     }
     
     @PostMapping(value = "/order/lease/recyle/reject")
@@ -111,9 +118,15 @@ public class DesktopController {
     public String rejectRecycleLeaseProduct(
     		@RequestParam(value = "empid", required = true) String empid,
 			@RequestParam(value = "token", required = true) String token,
-    		@RequestParam(value = "orderoperid", required = true) String orderOperId) {
+			@RequestBody String bean) {
+    	logger.info("post api /desktop/order/lease/recycle/reject || empid: " + empid
+				+ " || token: " + token + " || bean: " + bean);
+    	String strToken = checkToken(empid, token);
+    	if (!"".equals(strToken)) return strToken;
+    	String strAuth = checkAuth(empid, RibbonKeyConstants.AUTH_ORDER);
+    	if (!"".equals(strAuth)) return strAuth;
     	
-    	return "";
+    	return desktopService.rejectRecycleLeaseProduct(empid, bean);
     }
     
     private String checkToken(String empid, String token) {

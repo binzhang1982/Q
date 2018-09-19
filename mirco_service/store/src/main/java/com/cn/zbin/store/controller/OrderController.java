@@ -337,6 +337,7 @@ public class OrderController {
 		return ret;
 	}
 	
+	//TODO
 	@RequestMapping(value = "/return/agree", 
 			produces = {"application/json;charset=UTF-8"}, 
 			method = { RequestMethod.GET })
@@ -457,14 +458,14 @@ public class OrderController {
 			consumes = {"application/json;charset=UTF-8"}, 
 			produces = {"application/json;charset=UTF-8"}, 
 			method = {RequestMethod.POST})
-	public MsgData askEndLeaseProd(
+	public MsgData askEndLeaseProdCust(
 			@RequestParam("customerid") String customerid, 
 			@RequestBody OrderOperationHistory orderOperation) {
 		logger.info("post api: /order/lease/ask/end || customerid: " + customerid +
-				" || orderOperation: " + orderOperation);
+				" || orderProductId: " + orderOperation.getOrderProductId());
 		MsgData ret = new MsgData();
 		try {
-			orderService.askEndLeaseProd(customerid, orderOperation);
+			orderService.askEndLeaseProdCust(customerid, orderOperation);
 		} catch (BusinessException be) {
 			ret.setStatus(MsgData.status_ng);
 			ret.setMessage(be.getMessage());
@@ -520,10 +521,76 @@ public class OrderController {
 		return ret;
 	}
 
-	@RequestMapping(value = "/lease/recycle", 
+	@RequestMapping(value = "/lease/recycle/", 
 			produces = {"application/json;charset=UTF-8"}, 
 			method = { RequestMethod.GET })
 	public void getRecycleOrders() {
-		
+		//TODO
+	}
+
+	@RequestMapping(value = "/lease/recycle/reject", 
+			consumes = {"application/json;charset=UTF-8"}, 
+			produces = {"application/json;charset=UTF-8"}, 
+			method = { RequestMethod.POST })
+	public MsgData rejectRecycleOrders(
+			@RequestParam(value = "empid", required = true) String empid,
+			@RequestBody OrderOperationHistory orderOperation) {
+		logger.info("post api: /order/lease/recycle/reject || empid: " + empid +
+				" || orderOperationID: " + orderOperation.getOrderOperId());
+		MsgData ret = new MsgData();
+		try {
+			orderService.rejectRecycleOrders(empid, orderOperation);
+		} catch(BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getMessage());
+		} catch(Exception e) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(StoreConstants.CHK_ERR_99999);
+		}
+		return ret;
+	}
+	
+	@RequestMapping(value = "/lease/recycle/agree", 
+			consumes = {"application/json;charset=UTF-8"}, 
+			produces = {"application/json;charset=UTF-8"}, 
+			method = { RequestMethod.POST })
+	public MsgData agreeRecycleOrders(
+			@RequestParam(value = "empid", required = true) String empid,
+			@RequestBody OrderOperationHistory orderOperation) {
+		logger.info("post api: /order/lease/recycle/agree || empid: " + empid +
+				" || orderOperationID: " + orderOperation.getOrderOperId());
+		MsgData ret = new MsgData();
+		try {
+			orderService.agreeRecycleOrders(empid, orderOperation);
+		} catch(BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getMessage());
+		} catch(Exception e) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(StoreConstants.CHK_ERR_99999);
+		}
+		return ret;
+	}
+	
+	@RequestMapping(value = "/lease/ask/defer",
+			consumes = {"application/json;charset=UTF-8"}, 
+			produces = {"application/json;charset=UTF-8"}, 
+			method = { RequestMethod.POST })
+	public MsgData askDeferLeaseProdCust(
+			@RequestParam("customerid") String customerid, 
+			@RequestBody OrderOperationHistory orderOperation) {
+		logger.info("post api: /order/lease/ask/defer || customerid: " + customerid +
+				" || orderOperationID: " + orderOperation.getOrderOperId());
+		MsgData ret = new MsgData();
+		try {
+			ret.setMessage(orderService.askDeferLeaseProdCust(customerid, orderOperation));
+		} catch(BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getMessage());
+		} catch(Exception e) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(StoreConstants.CHK_ERR_99999);
+		}
+		return ret;
 	}
 }

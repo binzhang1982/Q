@@ -72,6 +72,7 @@ import com.cn.zbin.store.mapper.ProductPriceMapper;
 import com.cn.zbin.store.mapper.ShoppingTrolleyInfoMapper;
 import com.cn.zbin.store.mapper.WeChatMessageHistoryMapper;
 import com.cn.zbin.store.mapper.WxPayHistoryMapper;
+import com.cn.zbin.store.mapper.WxRefundHistoryMapper;
 import com.cn.zbin.store.utils.QLHWXPayConfig;
 import com.cn.zbin.store.utils.StoreConstants;
 import com.cn.zbin.store.utils.StoreKeyConstants;
@@ -119,6 +120,178 @@ public class OrderService {
 	private CodeDictInfoMapper codeDictInfoMapper;
 	@Autowired
 	private MessageHistoryMapper messageHistoryMapper;
+	@Autowired
+	private WxRefundHistoryMapper wxRefundHistoryMapper;
+	
+	@Transactional
+	public String askDeferLeaseProdCust(String customerid, OrderOperationHistory orderOperation) {
+		GuestOrderInfo order = checkPaidGuestOrder(orderOperation.getOrderId());
+		if (!order.getCustomerId().equals(customerid)) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90017);
+		
+		if (orderOperation.getDeferDate() == null) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90034);
+
+		OrderProduct orderProd = checkAskingOrderProduct(orderOperation.getOrderProductId(),
+				orderOperation.getOrderId(), StoreKeyConstants.ORDER_PROD_STATUS_USING);
+		if (orderOperation.getDeferDate()
+				.compareTo(orderProd.getActualPendingEndDate()) <= 0 ) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90035);
+
+		Long pendingCount = getPendingCount(orderProd.getActualPendingDate(), 
+				orderOperation.getDeferDate());
+		BigDecimal realPrice = getLeaseRealPrice(pendingCount, orderProd.getProductId());
+		BigDecimal preLeaseAmount = getLeaseAmount(pendingCount, realPrice);
+		
+		
+		return "";
+	}
+	
+	@Transactional
+	public void rejectRecycleOrders(String empid, OrderOperationHistory orderOperation) {
+		OrderOperationHistory operation = checkAskingOperation(
+				orderOperation.getOrderOperId(), StoreKeyConstants.ORDER_OPERATION_ASK_END);
+		OrderProduct orderProd = checkAskingOrderProduct(operation.getOrderProductId(),
+				operation.getOrderId(), StoreKeyConstants.ORDER_PROD_STATUS_WAIT_RETURN);
+		operation.setAnsErId(empid);
+		operation.setAnsComment(orderOperation.getAnsComment());
+		operation.setAnsOperCode(StoreKeyConstants.ORDER_OPERATION_REJECT_END);
+		operation.setAnsTime(Utils.getChinaCurrentTime());
+		orderOperationHistoryMapper.updateByPrimaryKey(operation);
+		orderProd.setStatusCode(StoreKeyConstants.ORDER_PROD_STATUS_USING);
+		orderProd.setUpdateEmpId(empid);
+		orderProductMapper.updateByPrimaryKey(orderProd);
+	}
+	
+	@Transactional
+	public void agreeRecycleOrders(String empid, OrderOperationHistory orderOperation) {
+		OrderOperationHistory operation = checkAskingOperation(
+				orderOperation.getOrderOperId(), StoreKeyConstants.ORDER_OPERATION_ASK_END);
+		OrderProduct orderProd = checkAskingOrderProduct(operation.getOrderProductId(),
+				operation.getOrderId(), StoreKeyConstants.ORDER_PROD_STATUS_WAIT_RETURN);
+		LeaseCalcAmountMsgData calcAmount = calcLeaseAmount(
+				orderOperation.getOrderOperId(), orderOperation.getPendingEndDate());
+		if (calcAmount.getAmount().compareTo(new BigDecimal(0)) < 0) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90032);
+		
+		operation.setAnsErId(empid);
+		operation.setAnsComment(orderOperation.getAnsComment());
+		operation.setAnsOperCode(StoreKeyConstants.ORDER_OPERATION_CONF_END);
+		operation.setAnsTime(Utils.getChinaCurrentTime());
+		operation.setCalcAmount(calcAmount.getAmount());
+		operation.setPayRefundType(StoreKeyConstants.REFUND_TYPE);
+		orderOperationHistoryMapper.updateByPrimaryKey(operation);
+		
+		//逐级退款
+		refundOrderProduct(orderProd, empid, calcAmount.getAmount(), orderOperation.getOrderOperId());
+	}
+	
+	private void refundOrderProduct(OrderProduct orderProd, String empid, BigDecimal calcAmount,
+			String orderOperId) {
+		orderProd.setUpdateEmpId(empid);
+		if (orderProd.getPaidAmount().compareTo(new BigDecimal(0)) == 0 && 
+				orderProd.getBail().compareTo(new BigDecimal(0)) == 0) {
+			orderProd.setRefundAmount(new BigDecimal(0));
+			orderProd.setRefundBail(new BigDecimal(0));
+			orderProd.setStatusCode(StoreKeyConstants.ORDER_PROD_STATUS_REFUNDED);
+		} else {
+			if (calcAmount.subtract(orderProd.getPaidAmount()).compareTo(new BigDecimal(0)) >= 0) {
+				orderProd.setRefundAmount(orderProd.getPaidAmount());
+				calcAmount = calcAmount.subtract(orderProd.getPaidAmount());
+			} else {
+				orderProd.setRefundAmount(calcAmount);
+				calcAmount = new BigDecimal(0);
+			}
+			if (calcAmount.subtract(orderProd.getBail()).compareTo(new BigDecimal(0)) >= 0) {
+				orderProd.setRefundAmount(orderProd.getBail());
+				calcAmount = calcAmount.subtract(orderProd.getBail());
+			} else {
+				orderProd.setRefundAmount(calcAmount);
+				calcAmount = new BigDecimal(0);
+			}
+			orderProd.setStatusCode(StoreKeyConstants.ORDER_PROD_STATUS_WAIT_REFUND);
+			
+			BigDecimal refundTotalAmount = orderProd.getRefundAmount().add(orderProd.getRefundBail());
+			if (refundTotalAmount.compareTo(new BigDecimal(0)) > 0) {
+				String orderId = orderProd.getOrderId();
+				GuestOrderInfo order = checkPaidGuestOrder(orderId);
+				WxPayHistory pay = checkPaidHistory(order.getPaymentVoucher(), orderId);
+				
+				WxRefundHistory refund = new WxRefundHistory();
+				refund.setOutRefundNo(Utils.getRefundNo());
+				refund.setOrderOperId(orderOperId);
+				refund.setOrderId(orderId);
+				refund.setTransactionId(pay.getTransactionId());
+				refund.setOutTradeNo(pay.getOutTradeNo());
+				refund.setTotalFee(pay.getTotalFee());
+				refund.setRefundFee(refundTotalAmount.multiply(new BigDecimal(100)).intValue());
+				refund.setRefundStatus(StoreKeyConstants.REFUND_STATE_NOREFUND);
+				refund.setWxApi("leaseEnd");
+				wxRefundHistoryMapper.insertSelective(refund);
+			}
+		}
+		orderProductMapper.updateByPrimaryKey(orderProd);
+		
+		String refOrderProductId = orderProd.getRefOrderProductId();
+		if (refOrderProductId== null) return;
+		OrderProduct record = orderProductMapper.selectByPrimaryKey(refOrderProductId);
+		refundOrderProduct(record, empid, calcAmount, orderOperId);
+	}
+	
+	private WxPayHistory checkPaidHistory(String outTradeNo, String orderId) {
+		WxPayHistory pay = wxPayHistoryMapper.selectByPrimaryKey(outTradeNo);
+		if (!orderId.equals(pay.getOrderId())) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90016);
+		if (!StoreKeyConstants.WXPAY_API_RC_SUCCESS.equals(pay.getTradeState()) ||
+				pay.getTransactionId() == null) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90020);
+	
+		return pay;
+	}
+	
+	private GuestOrderInfo checkPaidGuestOrder(String orderId) {
+		if (orderId == null)
+			throw new BusinessException(StoreConstants.CHK_ERR_90016);
+		GuestOrderInfo order = guestOrderInfoMapper.selectByPrimaryKey(orderId);
+		if (order == null) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90016);
+		if (!StoreKeyConstants.ORDER_STATUS_WAIT_COMMENT.equals(order.getStatusCode()) && 
+				!StoreKeyConstants.ORDER_STATUS_COMMENT_CONFIRM.equals(order.getStatusCode()))
+			throw new BusinessException(StoreConstants.CHK_ERR_90018);
+		if (order.getPaymentVoucher() == null)
+			throw new BusinessException(StoreConstants.CHK_ERR_90031);
+		
+		return order;
+	} 
+	
+	private OrderOperationHistory checkAskingOperation(String orderOperId, String status) {
+		if (orderOperId == null)
+			throw new BusinessException(StoreConstants.CHK_ERR_90029);
+		OrderOperationHistory operation = orderOperationHistoryMapper
+				.selectByPrimaryKey(orderOperId);
+		if (operation.getAnsOperCode() != null) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90030);
+		if (!status.equals(operation.getAskOperCode()))
+			throw new BusinessException(StoreConstants.CHK_ERR_90030);
+		return operation;
+	}
+	
+	private OrderProduct checkAskingOrderProduct(String orderProductId, String orderId, 
+			String status) {
+		if (orderProductId == null)
+			throw new BusinessException(StoreConstants.CHK_ERR_90026);
+		OrderProduct orderProd = orderProductMapper
+				.selectByPrimaryKey(orderProductId);
+		if (orderProd == null) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90023);
+		if (!orderProd.getOrderId().equals(orderId))
+			throw new BusinessException(StoreConstants.CHK_ERR_90023);
+		if (orderProd.getStatusCode() == null) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90025);
+		if (!status.equals(orderProd.getStatusCode()))
+			throw new BusinessException(StoreConstants.CHK_ERR_90025);
+		return orderProd;
+	}
 	
 	public List<String> getOrderDesktopOpenID(String roleCode) {
 		List<String> ret = new ArrayList<String>();
@@ -214,42 +387,24 @@ public class OrderService {
 	}
 	
 	@Transactional
-	public void askEndLeaseProd(String customerid, OrderOperationHistory orderOperation) {
-		if (orderOperation.getOrderId() == null)
-			throw new BusinessException(StoreConstants.CHK_ERR_90016);
-		GuestOrderInfo order = guestOrderInfoMapper.selectByPrimaryKey(orderOperation.getOrderId());
-		if (order == null) 
-			throw new BusinessException(StoreConstants.CHK_ERR_90016);
+	public void askEndLeaseProdCust(String customerid, OrderOperationHistory orderOperation) {
+		GuestOrderInfo order = checkPaidGuestOrder(orderOperation.getOrderId());
 		if (!order.getCustomerId().equals(customerid)) 
 			throw new BusinessException(StoreConstants.CHK_ERR_90017);
-		if (!order.getStatusCode().equals(StoreKeyConstants.ORDER_STATUS_COMMENT_CONFIRM) && 
-				!order.getStatusCode().equals(StoreKeyConstants.ORDER_STATUS_WAIT_COMMENT))
-			throw new BusinessException(StoreConstants.CHK_ERR_90018);
 		
 		if (orderOperation.getPendingEndDate() == null) 
 			throw new BusinessException(StoreConstants.CHK_ERR_90021);
 		if (Utils.addTimeFromCurrentTime(Utils.INTERVAL_TYPE_DAY, StoreKeyConstants.END_PENDING_DAYS)
 				.compareTo(orderOperation.getPendingEndDate()) > 0 ) 
 			throw new BusinessException(StoreConstants.CHK_ERR_90022);
-		
-		if (orderOperation.getOrderProductId() == null)
-			throw new BusinessException(StoreConstants.CHK_ERR_90023);
-		OrderProduct orderProd = orderProductMapper.selectByPrimaryKey(
-				orderOperation.getOrderProductId());
-		if (orderProd == null) 
-			throw new BusinessException(StoreConstants.CHK_ERR_90023);
-		if (!orderProd.getOrderId().equals(orderOperation.getOrderId()))
-			throw new BusinessException(StoreConstants.CHK_ERR_90023);
+
+		OrderProduct orderProd = checkAskingOrderProduct(orderOperation.getOrderProductId(),
+				orderOperation.getOrderId(), StoreKeyConstants.ORDER_PROD_STATUS_USING);
 		if (orderProd.getActualPendingEndDate().compareTo(orderOperation.getPendingEndDate()) < 0)
 			throw new BusinessException(StoreConstants.CHK_ERR_90024);
-		if (orderProd.getStatusCode() == null) 
-			throw new BusinessException(StoreConstants.CHK_ERR_90025);
-		if (!orderProd.getStatusCode().equals(StoreKeyConstants.ORDER_PROD_STATUS_USING))
-			throw new BusinessException(StoreConstants.CHK_ERR_90025);
 
-		Long pendingCount = 
-				TimeUnit.MILLISECONDS.toDays(orderOperation.getPendingEndDate().getTime() - 
-						orderProd.getActualPendingEndDate().getTime());
+		Long pendingCount = getPendingCount(orderProd.getActualPendingDate(), 
+				orderOperation.getPendingEndDate());
 		ProductInfo prod = productInfoMapper.selectByPrimaryKey(orderProd.getProductId());
 		if (pendingCount < prod.getLeaseMinDays()) 
 			throw new BusinessException(StoreConstants.CHK_ERR_90008);
@@ -306,29 +461,38 @@ public class OrderService {
 		LeaseCalcAmountMsgData ret = new LeaseCalcAmountMsgData();
 		ret.setOrderProductId(orderProductId);
 		BigDecimal amount = new BigDecimal(0);
-		BigDecimal paid = prod.getPrePayAmount(); 
-		BigDecimal bail = prod.getBail();
+		BigDecimal paid = prod.getPaidAmount()==null?new BigDecimal(0):prod.getPaidAmount(); 
+		BigDecimal bail = prod.getBail()==null?new BigDecimal(0):prod.getBail();
 		ret.setBail(bail);
 		ret.setPaid(paid);
 		ret.setStartDate(prod.getActualPendingDate());
 		ret.setOrginEndDate(prod.getActualPendingEndDate());
 		ret.setRecycleDate(recycleDate);
 		
-		Date startDate = prod.getActualPendingDate();
-		Long pendingCount = TimeUnit.MILLISECONDS.toDays(recycleDate.getTime() - startDate.getTime());
-		ProductPrice unitPrice = getUnitPrice(Boolean.TRUE, pendingCount, prod.getProductId());
-		if (unitPrice == null) 
-			throw new BusinessException(StoreConstants.CHK_ERR_90008);
-		amount = amount.add(paid).add(bail)
-				.subtract(unitPrice.getRealPrice().multiply(new BigDecimal(pendingCount)));
+		Long pendingCount = getPendingCount(prod.getActualPendingDate(), recycleDate);
+		BigDecimal realPrice = getLeaseRealPrice(pendingCount, prod.getProductId());
+		BigDecimal preLeaseAmount = getLeaseAmount(pendingCount, realPrice);
+		amount = amount.add(paid).add(bail).subtract(preLeaseAmount);
 
-		ret.setUnitPrice(unitPrice.getRealPrice());
+		ret.setUnitPrice(realPrice);
 		ret.setAmount(amount);
 		ret.setPendingCount(pendingCount);
 		if (amount.compareTo(new BigDecimal(0)) > 0) ret.setType("待退款");
 		else ret.setType("待缴款");
 		
 		return ret;
+	}
+	private BigDecimal getLeaseAmount(Long pendingCount, BigDecimal realPrice) {
+		return realPrice.multiply(new BigDecimal(pendingCount));
+	}
+	private BigDecimal getLeaseRealPrice(Long pendingCount, String prodId) {
+		ProductPrice unitPrice = getUnitPrice(Boolean.TRUE, pendingCount, prodId);
+		if (unitPrice == null) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90008);
+		return unitPrice.getRealPrice();
+	}
+	private Long getPendingCount(Date startDate, Date endDate) {
+		return TimeUnit.MILLISECONDS.toDays(endDate.getTime() - startDate.getTime());
 	}
 	
 	@Transactional
@@ -605,6 +769,17 @@ public class OrderService {
 				order.setPaymentVoucher(hist.getOutTradeNo());
 				order.setStatusCode(StoreKeyConstants.ORDER_STATUS_WAIT_DELIVERY);
 				guestOrderInfoMapper.updateByPrimaryKeySelective(order);
+				OrderProductExample exam_op = new OrderProductExample();
+				exam_op.createCriteria().andOrderIdEqualTo(hist.getOrderId());
+				List<OrderProduct> prods = orderProductMapper.selectByExample(exam_op);
+				if (Utils.listNotNull(prods)) {
+					for (OrderProduct prod : prods) {
+						OrderProduct record = new OrderProduct();
+						record.setOrderProductId(prod.getOrderProductId());
+						record.setPaidAmount(prod.getPrePayAmount());
+						orderProductMapper.updateByPrimaryKeySelective(record);
+					}
+				}
 				break;
 			case StoreKeyConstants.PAY_STATE_NOTPAY:
 				if (StoreKeyConstants.ORDER_STATUS_UNPAID.equals(order.getStatusCode())) {
@@ -893,8 +1068,8 @@ public class OrderService {
 		for (OrderProductOverView orderProduct : orderProductList) {
 			OrderProduct orderProd = orderProduct.getOrderProduct();
 			actualAmount = actualAmount.add(orderProd.getBail())
-					.add(orderProd.getPrePayAmount())
-					.subtract(orderProd.getPaidAmount());
+//					.subtract(orderProd.getPaidAmount())
+					.add(orderProd.getPrePayAmount());
 			ProductInfo prod = productInfoMapper.selectByPrimaryKey(orderProd.getProductId());
 			if (prod != null) {
 				ProductPrice unitPrice = getUnitPrice(prod.getLeaseFlag(), 
@@ -907,7 +1082,10 @@ public class OrderService {
 					throw new BusinessException(StoreConstants.CHK_ERR_90013);
 				}
 			}
-			
+			orderProd.setRefOrderProductId(null);
+			orderProd.setPaidAmount(null);
+			orderProd.setRefundAmount(null);
+			orderProd.setRefundBail(null);
 			orderProd.setIsDelete(Boolean.FALSE);
 			orderProd.setOrderId(order.getOrderId());
 			orderProd.setOrderProductId(UUID.randomUUID().toString());
@@ -1050,7 +1228,7 @@ public class OrderService {
 				orderProductOV.setFrontCoverImage(getFrontCoverImage(prod.getProductId()));
 				orderProductOV.setOrderProduct(new OrderProduct());
 				orderProductOV.getOrderProduct().setBail(prod.getBail()==null?new BigDecimal(0):prod.getBail());
-				orderProductOV.getOrderProduct().setRefundBail(new BigDecimal(0));
+//				orderProductOV.getOrderProduct().setRefundBail(new BigDecimal(0));
 				if (prod.getLeaseFlag()) {
 					orderProductOV.getOrderProduct().setPrePayAmount(
 							realUnitPrice.multiply(new BigDecimal(shoppingTrolley.getPendingCount())));
@@ -1062,24 +1240,25 @@ public class OrderService {
 					orderProductOV.getOrderProduct().setPrePayAmount(
 							realUnitPrice.multiply(new BigDecimal(shoppingTrolley.getSaleCount())));
 				}
-				orderProductOV.getOrderProduct().setPaidAmount(new BigDecimal(0));
-				orderProductOV.getOrderProduct().setRefundAmount(new BigDecimal(0));
+//				orderProductOV.getOrderProduct().setPaidAmount(new BigDecimal(0));
+//				orderProductOV.getOrderProduct().setRefundAmount(new BigDecimal(0));
 				orderProductOV.getOrderProduct().setProductId(shoppingTrolley.getProductId());
 				orderProductOV.getOrderProduct().setReservePendingDate(shoppingTrolley.getReservePendingDate());
 				orderProductOV.getOrderProduct().setReservePendingEndDate(shoppingTrolley.getReservePendingEndDate());
 				orderProductOV.getOrderProduct().setPendingCount(shoppingTrolley.getPendingCount());
 				orderProductOV.getOrderProduct().setSaleCount(shoppingTrolley.getSaleCount());
 				if (ov.getGuestOrderInfo().getService().compareTo(prod.getService()) < 0) 
-					ov.getGuestOrderInfo().setService(ov.getGuestOrderInfo().getService().add((prod.getService())));
+					ov.getGuestOrderInfo().setService(ov.getGuestOrderInfo().getService()
+							.add((prod.getService())));
 				if (ov.getGuestOrderInfo().getCarriage().compareTo(prod.getCarriage()) < 0) 
 					ov.getGuestOrderInfo().setCarriage(prod.getCarriage());
 				orderProductOV.setRealUnitPrice(realUnitPrice);
 				orderProductOV.setIsLease(prod.getLeaseFlag());
 				ret = ret.add(orderProductOV.getOrderProduct().getPrePayAmount())
-					.subtract(orderProductOV.getOrderProduct().getPaidAmount())
-					.subtract(orderProductOV.getOrderProduct().getRefundAmount())
-					.add(orderProductOV.getOrderProduct().getBail())
-					.subtract(orderProductOV.getOrderProduct().getRefundBail());
+//					.subtract(orderProductOV.getOrderProduct().getPaidAmount())
+//					.subtract(orderProductOV.getOrderProduct().getRefundAmount())
+//					.subtract(orderProductOV.getOrderProduct().getRefundBail())
+					.add(orderProductOV.getOrderProduct().getBail());
 				ov.getOrderProductList().add(orderProductOV);
 			}
 		}
