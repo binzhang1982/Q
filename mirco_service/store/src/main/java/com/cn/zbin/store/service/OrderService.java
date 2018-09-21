@@ -125,6 +125,7 @@ public class OrderService {
 	
 	@Transactional
 	public String askDeferLeaseProdCust(String customerid, OrderOperationHistory orderOperation) {
+		String ret = "";
 		GuestOrderInfo order = checkPaidGuestOrder(orderOperation.getOrderId());
 		if (!order.getCustomerId().equals(customerid)) 
 			throw new BusinessException(StoreConstants.CHK_ERR_90017);
@@ -143,8 +144,116 @@ public class OrderService {
 		BigDecimal realPrice = getLeaseRealPrice(pendingCount, orderProd.getProductId());
 		BigDecimal preLeaseAmount = getLeaseAmount(pendingCount, realPrice);
 		
-		//TODO
-		return "";
+		BigDecimal paidAmount = calcLeaseOrderProductPaid(orderProd);
+		GuestOrderInfo newGuestOrder = deferGuestOrder(order, orderOperation);
+		OrderProduct newOrderProd = deferOrderProduct(newGuestOrder, pendingCount, 
+				orderProd, orderOperation);
+
+		orderOperation.setOrderOperId(UUID.randomUUID().toString());
+		orderOperation.setAskErId(customerid);
+		orderOperation.setAskOperCode(StoreKeyConstants.ORDER_OPERATION_ASK_DEFER);
+		orderOperation.setAskTime(Utils.getChinaCurrentTime());
+		
+		if (paidAmount.compareTo(preLeaseAmount) >= 0) {
+			//生成新订单商品状态为使用中，预付已付押金为0等。
+			newOrderProd.setPaidAmount(new BigDecimal(0));
+			newOrderProd.setPrePayAmount(new BigDecimal(0));
+			newOrderProd.setStatusCode(StoreKeyConstants.ORDER_PROD_STATUS_USING);
+			orderProductMapper.insertSelective(newOrderProd);
+
+			//生成新订单状态为待评价
+			newGuestOrder.setTotalAmount(new BigDecimal(0));
+			newGuestOrder.setTotalLeaseAmount(new BigDecimal(0));
+			newGuestOrder.setStatusCode(StoreKeyConstants.ORDER_STATUS_WAIT_COMMENT);
+			guestOrderInfoMapper.insertSelective(newGuestOrder);
+			
+			//更新旧订单商品状态为已续租。
+			orderProd.setStatusCode(StoreKeyConstants.ORDER_PROD_STATUS_RELET);
+			orderProductMapper.updateByPrimaryKeySelective(orderProd);
+			
+			//更新操作表(同意续租)
+			orderOperation.setAnsComment("已续租成功!");
+			orderOperation.setAnsErId(StoreKeyConstants.SYSTEM_EMP_ID);
+			orderOperation.setAnsOperCode(StoreKeyConstants.ORDER_OPERATION_CONF_DEFER);
+			orderOperation.setAnsTime(Utils.getChinaCurrentTime());
+			orderOperation.setCalcAmount(new BigDecimal(0));
+			orderOperationHistoryMapper.insertSelective(orderOperation);
+			
+			ret = "已续租成功!";
+		} else {
+			//生成新订单商品无状态，预付款为差额
+			BigDecimal prePayAmount = preLeaseAmount.subtract(paidAmount);
+			newOrderProd.setPrePayAmount(prePayAmount);
+			orderProductMapper.insertSelective(newOrderProd);
+
+			//生成新订单状态为未付款并保存应付款
+			newGuestOrder.setTotalAmount(prePayAmount);
+			newGuestOrder.setTotalLeaseAmount(prePayAmount);
+			newGuestOrder.setStatusCode(StoreKeyConstants.ORDER_STATUS_UNPAID);
+			guestOrderInfoMapper.insertSelective(newGuestOrder);
+
+			//更新操作表(同意续租)
+			orderOperation.setAnsComment("已生成缴纳续租费用的订单，请及时支付完成续租!");
+			orderOperation.setCalcAmount(prePayAmount);
+			orderOperationHistoryMapper.insertSelective(orderOperation);
+			
+			ret = "已生成缴纳续租费用的订单，请及时支付完成续租!";
+		}
+		return ret;
+	}
+	
+	private GuestOrderInfo deferGuestOrder(GuestOrderInfo order, 
+			OrderOperationHistory orderOperation) {
+		GuestOrderInfo newGuestOrder = new GuestOrderInfo();
+		newGuestOrder.setOrderId(UUID.randomUUID().toString());
+		newGuestOrder.setCustomerId(order.getCustomerId());
+		newGuestOrder.setCarriage(new BigDecimal(0));
+		newGuestOrder.setService(new BigDecimal(0));
+		newGuestOrder.setTotalBail(new BigDecimal(0));
+		newGuestOrder.setCustAddressId(order.getCustAddressId());
+		newGuestOrder.setCustInvoiceId(order.getCustInvoiceId());
+		newGuestOrder.setIsOffered(Boolean.FALSE);
+		newGuestOrder.setCustMessage(orderOperation.getAskComment());
+		newGuestOrder.setCourierNumber(order.getCourierNumber());
+		newGuestOrder.setPaymentCode(order.getPaymentCode());
+		newGuestOrder.setRemark("续租订单");
+		newGuestOrder.setCreateEmpId(StoreKeyConstants.SYSTEM_EMP_ID);
+		newGuestOrder.setUpdateEmpId(StoreKeyConstants.SYSTEM_EMP_ID);
+		return newGuestOrder;
+	}
+	
+	private OrderProduct deferOrderProduct(GuestOrderInfo newGuestOrder, Long pendingCount,
+			OrderProduct orderProd, OrderOperationHistory orderOperation) {
+		OrderProduct newOrderProd = new OrderProduct();
+		newOrderProd.setOrderProductId(UUID.randomUUID().toString());
+		newOrderProd.setOrderId(newGuestOrder.getOrderId());
+		newOrderProd.setProductId(orderProd.getProductId());
+		newOrderProd.setIsDelete(Boolean.FALSE);
+		newOrderProd.setRefOrderProductId(orderProd.getOrderProductId());
+		newOrderProd.setRefTypeCode(StoreKeyConstants.REF_TYPE_DEFER);
+		newOrderProd.setActualPendingDate(orderProd.getActualPendingDate());
+		newOrderProd.setActualPendingEndDate(orderOperation.getDeferDate());
+		newOrderProd.setReservePendingDate(orderProd.getActualPendingDate());
+		newOrderProd.setReservePendingEndDate(orderOperation.getDeferDate());
+		newOrderProd.setPendingCount(pendingCount);
+		newOrderProd.setSaleCount(orderProd.getSaleCount());
+		newOrderProd.setBail(new BigDecimal(0));
+		newOrderProd.setRemark("续租订单商品");
+		newOrderProd.setCreateEmpId(StoreKeyConstants.SYSTEM_EMP_ID);
+		newOrderProd.setUpdateEmpId(StoreKeyConstants.SYSTEM_EMP_ID);
+		return newOrderProd;
+	}
+
+	private BigDecimal calcLeaseOrderProductPaid(OrderProduct orderProd) {
+		BigDecimal paid = orderProd.getPaidAmount();
+		
+		String refOrderProductId = orderProd.getRefOrderProductId();
+		if (refOrderProductId== null) {
+			return paid;
+		} else {
+			OrderProduct record = orderProductMapper.selectByPrimaryKey(refOrderProductId);
+			return paid.add(calcLeaseOrderProductPaid(record));
+		}
 	}
 	
 	@Transactional
@@ -183,10 +292,10 @@ public class OrderService {
 		orderOperationHistoryMapper.updateByPrimaryKey(operation);
 		
 		//逐级退款
-		refundOrderProduct(orderProd, empid, calcAmount.getAmount(), orderOperation.getOrderOperId());
+		refundLeaseOrderProduct(orderProd, empid, calcAmount.getAmount(), orderOperation.getOrderOperId());
 	}
 	
-	private void refundOrderProduct(OrderProduct orderProd, String empid, BigDecimal calcAmount,
+	private void refundLeaseOrderProduct(OrderProduct orderProd, String empid, BigDecimal calcAmount,
 			String orderOperId) {
 		orderProd.setUpdateEmpId(empid);
 		if (orderProd.getPaidAmount().compareTo(new BigDecimal(0)) == 0 && 
@@ -228,14 +337,17 @@ public class OrderService {
 				refund.setRefundStatus(StoreKeyConstants.REFUND_STATE_NOREFUND);
 				refund.setWxApi("leaseEnd");
 				wxRefundHistoryMapper.insertSelective(refund);
+				
+				orderProd.setRefundCode(refund.getOutRefundNo());
 			}
+			
 		}
 		orderProductMapper.updateByPrimaryKey(orderProd);
 		
 		String refOrderProductId = orderProd.getRefOrderProductId();
 		if (refOrderProductId== null) return;
 		OrderProduct record = orderProductMapper.selectByPrimaryKey(refOrderProductId);
-		refundOrderProduct(record, empid, calcAmount, orderOperId);
+		refundLeaseOrderProduct(record, empid, calcAmount, orderOperId);
 	}
 	
 	private WxPayHistory checkPaidHistory(String outTradeNo, String orderId) {
