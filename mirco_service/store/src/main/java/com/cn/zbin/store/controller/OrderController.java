@@ -24,8 +24,10 @@ import com.cn.zbin.store.dto.OrderProduct;
 import com.cn.zbin.store.dto.ProductComment;
 import com.cn.zbin.store.dto.ShoppingTrolleyInfo;
 import com.cn.zbin.store.dto.WxPayHistory;
+import com.cn.zbin.store.dto.WxRefundHistory;
 import com.cn.zbin.store.exception.BusinessException;
 import com.cn.zbin.store.service.OrderService;
+import com.cn.zbin.store.utils.AESUtil;
 import com.cn.zbin.store.utils.StoreConstants;
 import com.cn.zbin.store.utils.StoreKeyConstants;
 import com.cn.zbin.store.utils.Utils;
@@ -521,7 +523,7 @@ public class OrderController {
 		return ret;
 	}
 
-	@RequestMapping(value = "/lease/recycle/", 
+	@RequestMapping(value = "/lease/recycle", 
 			produces = {"application/json;charset=UTF-8"}, 
 			method = { RequestMethod.GET })
 	public void getRecycleOrders() {
@@ -593,4 +595,33 @@ public class OrderController {
 		}
 		return ret;
 	}
+
+	@RequestMapping(value = "/wxrefund/sys", 
+			method = { RequestMethod.POST })
+	public MsgData wxRefundOrderBySystem(
+			@RequestParam(value = "appid", required = true) String appid) {
+		logger.info("post api: /order/wxrefund/sys || appid: " + appid);
+		MsgData ret = new MsgData();
+		try {
+			List<WxRefundHistory> refunds = orderService.getUnRefundHistory();
+			for (WxRefundHistory refund : refunds) {
+				try {
+					orderService.updateRefundHistory(orderService.applyRefund(refund, appid,
+							StoreKeyConstants.MCHID, StoreKeyConstants.PAYSECRET));
+				} catch(BusinessException be) {
+					logger.info(be.getMessage());
+				} catch(Exception e) {
+					e.printStackTrace();
+				}
+			}
+		} catch(BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getMessage());
+		} catch(Exception e) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(StoreConstants.CHK_ERR_99999);
+		}
+		return ret;
+	}
+	
 }

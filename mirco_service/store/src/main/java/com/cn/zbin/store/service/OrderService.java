@@ -52,6 +52,7 @@ import com.cn.zbin.store.dto.WeChatMessageHistory;
 import com.cn.zbin.store.dto.WxPayHistory;
 import com.cn.zbin.store.dto.WxPayHistoryExample;
 import com.cn.zbin.store.dto.WxRefundHistory;
+import com.cn.zbin.store.dto.WxRefundHistoryExample;
 import com.cn.zbin.store.exception.BusinessException;
 import com.cn.zbin.store.mapper.CodeDictInfoMapper;
 import com.cn.zbin.store.mapper.CustomerAddressMapper;
@@ -164,6 +165,7 @@ public class OrderService {
 			//生成新订单状态为待评价
 			newGuestOrder.setTotalAmount(new BigDecimal(0));
 			newGuestOrder.setTotalLeaseAmount(new BigDecimal(0));
+			newGuestOrder.setPaymentVoucher("");
 			newGuestOrder.setStatusCode(StoreKeyConstants.ORDER_STATUS_WAIT_COMMENT);
 			guestOrderInfoMapper.insertSelective(newGuestOrder);
 			
@@ -304,16 +306,16 @@ public class OrderService {
 			orderProd.setRefundBail(new BigDecimal(0));
 			orderProd.setStatusCode(StoreKeyConstants.ORDER_PROD_STATUS_REFUNDED);
 		} else {
+			if (calcAmount.subtract(orderProd.getBail()).compareTo(new BigDecimal(0)) >= 0) {
+				orderProd.setRefundBail(orderProd.getBail());
+				calcAmount = calcAmount.subtract(orderProd.getBail());
+			} else {
+				orderProd.setRefundBail(calcAmount);
+				calcAmount = new BigDecimal(0);
+			}
 			if (calcAmount.subtract(orderProd.getPaidAmount()).compareTo(new BigDecimal(0)) >= 0) {
 				orderProd.setRefundAmount(orderProd.getPaidAmount());
 				calcAmount = calcAmount.subtract(orderProd.getPaidAmount());
-			} else {
-				orderProd.setRefundAmount(calcAmount);
-				calcAmount = new BigDecimal(0);
-			}
-			if (calcAmount.subtract(orderProd.getBail()).compareTo(new BigDecimal(0)) >= 0) {
-				orderProd.setRefundAmount(orderProd.getBail());
-				calcAmount = calcAmount.subtract(orderProd.getBail());
 			} else {
 				orderProd.setRefundAmount(calcAmount);
 				calcAmount = new BigDecimal(0);
@@ -560,29 +562,31 @@ public class OrderService {
 			throw new BusinessException(StoreConstants.CHK_ERR_90027);
 		
 		String orderProductId = operation.getOrderProductId();
-		OrderProduct prod = orderProductMapper.selectByPrimaryKey(orderProductId);
-		if (prod == null) 
+		OrderProduct orderProd = orderProductMapper.selectByPrimaryKey(orderProductId);
+		if (orderProd == null) 
 			throw new BusinessException(StoreConstants.CHK_ERR_90023);
-		if (prod.getStatusCode() == null) 
+		if (orderProd.getStatusCode() == null) 
 			throw new BusinessException(StoreConstants.CHK_ERR_90025);
-		if (!StoreKeyConstants.ORDER_PROD_STATUS_WAIT_RETURN.equals(prod.getStatusCode())) 
+		if (!StoreKeyConstants.ORDER_PROD_STATUS_WAIT_RETURN.equals(orderProd.getStatusCode())) 
 			throw new BusinessException(StoreConstants.CHK_ERR_90025);
-		if (recycleDate.compareTo(prod.getActualPendingEndDate()) > 0) 
+		if (recycleDate.compareTo(orderProd.getActualPendingEndDate()) > 0) 
 			throw new BusinessException(StoreConstants.CHK_ERR_90024);
+		
+		ProductInfo prod = productInfoMapper.selectByPrimaryKey(orderProd.getProductId());
 		
 		LeaseCalcAmountMsgData ret = new LeaseCalcAmountMsgData();
 		ret.setOrderProductId(orderProductId);
 		BigDecimal amount = new BigDecimal(0);
-		BigDecimal paid = prod.getPaidAmount()==null?new BigDecimal(0):prod.getPaidAmount(); 
-		BigDecimal bail = prod.getBail()==null?new BigDecimal(0):prod.getBail();
+		BigDecimal paid = calcLeaseOrderProductPaid(orderProd); 
+		BigDecimal bail = prod != null?prod.getBail():new BigDecimal(0);
 		ret.setBail(bail);
 		ret.setPaid(paid);
-		ret.setStartDate(prod.getActualPendingDate());
-		ret.setOrginEndDate(prod.getActualPendingEndDate());
+		ret.setStartDate(orderProd.getActualPendingDate());
+		ret.setOrginEndDate(orderProd.getActualPendingEndDate());
 		ret.setRecycleDate(recycleDate);
 		
-		Long pendingCount = getPendingCount(prod.getActualPendingDate(), recycleDate);
-		BigDecimal realPrice = getLeaseRealPrice(pendingCount, prod.getProductId());
+		Long pendingCount = getPendingCount(orderProd.getActualPendingDate(), recycleDate);
+		BigDecimal realPrice = getLeaseRealPrice(pendingCount, orderProd.getProductId());
 		BigDecimal preLeaseAmount = getLeaseAmount(pendingCount, realPrice);
 		amount = amount.add(paid).add(bail).subtract(preLeaseAmount);
 
@@ -723,7 +727,7 @@ public class OrderService {
 					rec.setOrderProductId(prod.getOrderProductId());
 					rec.setStatusCode(StoreKeyConstants.ORDER_PROD_STATUS_USING);
 					rec.setActualSendDate(Utils.getChinaCurrentTimeInDay());
-					if (rec.getReservePendingDate() != null) {
+					if (prod.getReservePendingDate() != null) {
 						rec.setActualPendingDate(Utils.getChinaCurrentTimeInDay());
 						rec.setActualPendingEndDate(DateUtils.addDays(
 								rec.getActualPendingDate(), prod.getPendingCount().intValue()));
@@ -744,30 +748,35 @@ public class OrderService {
 		}
 	}
 	
-	public WxRefundHistory applyRefund(WxPayHistory payHist, OrderOperationHistory operHist,
-			String appid, String mch_id, String key) throws BusinessException, Exception {
+	public List<WxRefundHistory> getUnRefundHistory() {
+		WxRefundHistoryExample exam_wrh = new WxRefundHistoryExample();
+		exam_wrh.createCriteria().andRefundStatusEqualTo(StoreKeyConstants.REFUND_STATE_NOREFUND);
+		List<WxRefundHistory> ret = wxRefundHistoryMapper.selectByExample(exam_wrh);
+		if (!Utils.listNotNull(ret)) ret = new ArrayList<WxRefundHistory>();
+		return ret;
+	}
+	
+	public void updateRefundHistory(WxRefundHistory refund) {
+		wxRefundHistoryMapper.updateByPrimaryKeySelective(refund);
+	}
+	
+	public WxRefundHistory applyRefund(WxRefundHistory refund, String appid, 
+			String mch_id, String key) throws BusinessException, Exception {
 		WxRefundHistory ret = new WxRefundHistory();
+        ret.setOutRefundNo(refund.getOutRefundNo());
+        
 		QLHWXPayConfig config = new QLHWXPayConfig(StoreKeyConstants.CERT_PATH, appid, key, mch_id);
         WXPay wxpay = new WXPay(config);
         Map<String, String> data = new HashMap<String, String>();
-        data.put("transaction_id", payHist.getTransactionId());
-        String outRefundNo = Utils.getRefundNo();
-        data.put("out_refund_no", outRefundNo);
-        data.put("total_fee", String.valueOf(payHist.getTotalFee()));
-        Integer refundFee = operHist.getAdjustAmount().multiply(new BigDecimal(100)).intValue();
-        data.put("refund_fee", String.valueOf(refundFee));
+        data.put("transaction_id", refund.getTransactionId());
+        data.put("out_refund_no", refund.getOutRefundNo());
+        data.put("total_fee", String.valueOf(refund.getTotalFee()));
+        data.put("refund_fee", String.valueOf(refund.getRefundFee()));
         //TODO 异步通知地址（请注意必须是外网）
         data.put("notify_url", "http://106.15.88.109/store/order/wxrefund/notify");
         Map<String, String> resp = wxpay.refund(data);
         
         if (resp != null) {
-        	ret.setOutRefundNo(outRefundNo);
-        	ret.setOrderId(payHist.getOrderId());
-        	ret.setOrderOperId(operHist.getOrderOperId());
-        	ret.setOutTradeNo(payHist.getOutTradeNo());
-        	ret.setRefundFee(refundFee);
-        	ret.setTotalFee(payHist.getTotalFee());
-        	ret.setTransactionId(payHist.getTransactionId());
             ret.setReturnCode(resp.get("return_code"));
             ret.setReturnMsg(resp.get("return_msg"));
             ret.setRefundStatus(StoreKeyConstants.REFUND_STATE_PROCESSING);
@@ -782,6 +791,45 @@ public class OrderService {
         }
 		return ret;
 	}
+	
+//	public WxRefundHistory applyRefund(WxPayHistory payHist, OrderOperationHistory operHist,
+//			String appid, String mch_id, String key) throws BusinessException, Exception {
+//		WxRefundHistory ret = new WxRefundHistory();
+//		QLHWXPayConfig config = new QLHWXPayConfig(StoreKeyConstants.CERT_PATH, appid, key, mch_id);
+//        WXPay wxpay = new WXPay(config);
+//        Map<String, String> data = new HashMap<String, String>();
+//        data.put("transaction_id", payHist.getTransactionId());
+//        String outRefundNo = Utils.getRefundNo();
+//        data.put("out_refund_no", outRefundNo);
+//        data.put("total_fee", String.valueOf(payHist.getTotalFee()));
+//        Integer refundFee = operHist.getAdjustAmount().multiply(new BigDecimal(100)).intValue();
+//        data.put("refund_fee", String.valueOf(refundFee));
+//        //TODO 异步通知地址（请注意必须是外网）
+//        data.put("notify_url", "http://106.15.88.109/store/order/wxrefund/notify");
+//        Map<String, String> resp = wxpay.refund(data);
+//        
+//        if (resp != null) {
+//        	ret.setOutRefundNo(outRefundNo);
+//        	ret.setOrderId(payHist.getOrderId());
+//        	ret.setOrderOperId(operHist.getOrderOperId());
+//        	ret.setOutTradeNo(payHist.getOutTradeNo());
+//        	ret.setRefundFee(refundFee);
+//        	ret.setTotalFee(payHist.getTotalFee());
+//        	ret.setTransactionId(payHist.getTransactionId());
+//            ret.setReturnCode(resp.get("return_code"));
+//            ret.setReturnMsg(resp.get("return_msg"));
+//            ret.setRefundStatus(StoreKeyConstants.REFUND_STATE_PROCESSING);
+//        	ret.setWxApi("refund");
+//            if (resp.containsKey("nonce_str")) ret.setNonceStr(resp.get("nonce_str"));
+//            if (resp.containsKey("sign")) ret.setSign(resp.get("sign"));
+//            if (resp.containsKey("result_code")) ret.setResultCode(resp.get("result_code"));
+//            if (resp.containsKey("err_code")) ret.setErrCode(resp.get("err_code"));
+//            if (resp.containsKey("err_code_des")) ret.setErrCodeDes(resp.get("err_code_des"));
+//            if (resp.containsKey("refund_id")) ret.setRefundId(resp.get("refund_id"));
+//            if (resp.containsKey("cash_fee")) ret.setCashFee(Integer.valueOf(resp.get("cash_fee")));
+//        }
+//		return ret;
+//	}
 	
 	public WxPayHistory notifyPayOrder(String bean) throws Exception {
 		WxPayHistory ret = new WxPayHistory();
@@ -877,21 +925,51 @@ public class OrderService {
 		GuestOrderInfo order = guestOrderInfoMapper.selectByPrimaryKey(hist.getOrderId());
 		switch (hist.getTradeState()) {
 			case StoreKeyConstants.PAY_STATE_SUCCESS:
+				Boolean isDefer = Boolean.FALSE;
 				order.setOrderId(hist.getOrderId());
 				order.setPaymentVoucher(hist.getOutTradeNo());
-				order.setStatusCode(StoreKeyConstants.ORDER_STATUS_WAIT_DELIVERY);
-				guestOrderInfoMapper.updateByPrimaryKeySelective(order);
 				OrderProductExample exam_op = new OrderProductExample();
 				exam_op.createCriteria().andOrderIdEqualTo(hist.getOrderId());
 				List<OrderProduct> prods = orderProductMapper.selectByExample(exam_op);
 				if (Utils.listNotNull(prods)) {
 					for (OrderProduct prod : prods) {
 						OrderProduct record = new OrderProduct();
+						if (prod.getRefOrderProductId() != null &&
+								StoreKeyConstants.REF_TYPE_DEFER.equals(prod.getRefTypeCode())) {
+							isDefer = Boolean.TRUE;
+							record.setStatusCode(StoreKeyConstants.ORDER_PROD_STATUS_USING);
+							
+							//订单商品
+							OrderProduct refProd = new OrderProduct();
+							refProd.setOrderProductId(prod.getRefOrderProductId());
+							refProd.setStatusCode(StoreKeyConstants.ORDER_PROD_STATUS_RELET);
+							orderProductMapper.updateByPrimaryKeySelective(refProd);
+							
+							//操作表
+							OrderOperationHistoryExample exam_ooh = new OrderOperationHistoryExample();
+							exam_ooh.createCriteria().andOrderProductIdEqualTo(prod.getRefOrderProductId());
+							List<OrderOperationHistory> operLst = orderOperationHistoryMapper.selectByExample(exam_ooh);
+							if (Utils.listNotNull(operLst)) {
+								OrderOperationHistory orderOperation = operLst.get(0);
+								orderOperation.setAnsComment("已续租成功!");
+								orderOperation.setAnsErId(StoreKeyConstants.SYSTEM_EMP_ID);
+								orderOperation.setAnsOperCode(StoreKeyConstants.ORDER_OPERATION_CONF_DEFER);
+								orderOperation.setAnsTime(Utils.getChinaCurrentTime());
+								orderOperationHistoryMapper.updateByPrimaryKeySelective(orderOperation);
+							}
+						}
+						
 						record.setOrderProductId(prod.getOrderProductId());
 						record.setPaidAmount(prod.getPrePayAmount());
 						orderProductMapper.updateByPrimaryKeySelective(record);
 					}
 				}
+				if (isDefer)
+					order.setStatusCode(StoreKeyConstants.ORDER_STATUS_WAIT_COMMENT);
+				else
+					order.setStatusCode(StoreKeyConstants.ORDER_STATUS_WAIT_DELIVERY);
+				guestOrderInfoMapper.updateByPrimaryKeySelective(order);
+				
 				break;
 			case StoreKeyConstants.PAY_STATE_NOTPAY:
 				if (StoreKeyConstants.ORDER_STATUS_UNPAID.equals(order.getStatusCode())) {

@@ -239,4 +239,14 @@ public class StoreController {
     			" || bean: " + bean);
     	return storeService.askEndLeaseProd(customerid, bean);
     }
+    
+    @PostMapping(value="/order/lease/ask/defer")
+    @CrossOrigin
+    public String askDeferLeaseProd(
+			@RequestParam("customerid") String customerid, 
+			@RequestBody String bean) {
+    	logger.info("post api: /store/order/lease/ask/defer || customerid: " + customerid +
+    			" || bean: " + bean);
+    	return storeService.askDeferLeaseProd(customerid, bean);
+    }
 }

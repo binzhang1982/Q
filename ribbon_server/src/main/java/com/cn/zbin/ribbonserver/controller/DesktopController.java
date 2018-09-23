@@ -113,7 +113,7 @@ public class DesktopController {
     	return desktopService.agreeRecycleLeaseProduct(empid, bean);
     }
     
-    @PostMapping(value = "/order/lease/recyle/reject")
+    @PostMapping(value = "/order/lease/recycle/reject")
     @CrossOrigin
     public String rejectRecycleLeaseProduct(
     		@RequestParam(value = "empid", required = true) String empid,

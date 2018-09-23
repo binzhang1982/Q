@@ -37,6 +37,7 @@ public class StoreConstants {
 	public final static String CHK_ERR_90033 = "90033:该申请需要退款!";
 	public final static String CHK_ERR_90034 = "90034:没有填写续租日期!";
 	public final static String CHK_ERR_90035 = "90035:选中续租日没在实际结租日之后，请选择结租功能!";
+	public final static String CHK_ERR_90036 = "90036:订单退款记录不存在!";
 	
 	public final static String CHK_ERR_99996 = "99996:支付通知没有返回商户订单号!";
 	public final static String CHK_ERR_99997 = "99997:支付通知返回的商户订单号不存在!";
