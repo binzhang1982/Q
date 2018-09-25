@@ -57,21 +57,6 @@ public class CustomerService {
 		CustomerDiseaseHistoryExample exam_cdh = new CustomerDiseaseHistoryExample();
 		exam_cdh.createCriteria().andCustomerIdEqualTo(customerid);
 		customerDiseaseHistoryMapper.deleteByExample(exam_cdh);
-		
-		//TODO 疾病列表
-//		CodeDictInfoExample exam_cdi;
-//		for(CustomerDiseaseHistory dis : diseaseList) {
-//			dis.setHistoryId(UUID.randomUUID().toString());
-//			dis.setCustomerId(customerid);
-//			if (StringUtils.isBlank(dis.getDiseaseCode())) dis.setDiseaseCode("");
-//			exam_cdi = new CodeDictInfoExample();
-//			exam_cdi.createCriteria().andCodecateEqualTo(MgmtConstants.CODE_CATE_DISC)
-//									.andDictcodeEqualTo(dis.getDiseaseCode());
-//			if (codeDictInfoMapper.countByExample(exam_cdi) == 0)
-//				throw new BusinessException(MgmtConstants.CHK_ERR_80009);
-//			
-//			customerDiseaseHistoryMapper.insert(dis);
-//		}
 	}
 	
 	public List<CustomerDiseaseHistory> getDiseaseHistory(String customerid) {

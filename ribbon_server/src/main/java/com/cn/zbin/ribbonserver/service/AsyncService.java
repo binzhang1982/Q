@@ -86,6 +86,30 @@ public class AsyncService {
 			e.printStackTrace();
 		}
 	}
+	
+	@Async("asyncServiceExecutor")
+	public void executUnifiedRefundAsync() {
+		try {
+	    	String urlStore = "http://SERVICE-STORE/order/wxrefund/unified/sys?appid={appid}";
+	    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+	    	uriVariables.put("appid", RibbonKeyConstants.APPID);
+	        restTemplate.postForObject(urlStore, null, String.class, uriVariables);
+		} catch (RestClientException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	@Async("asyncServiceExecutor")
+	public void executRefundQueryAsync() {
+		try {
+	    	String urlStore = "http://SERVICE-STORE/order/wxrefund/query/sys?appid={appid}";
+	    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+	    	uriVariables.put("appid", RibbonKeyConstants.APPID);
+	        restTemplate.postForObject(urlStore, null, String.class, uriVariables);
+		} catch (RestClientException e) {
+			e.printStackTrace();
+		}
+	}
 
 	@Async("asyncSingtonServiceExecutor")
 	public void executeScanPayOrderAsync() {

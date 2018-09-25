@@ -1,6 +1,7 @@
 package com.cn.zbin.store.service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -125,6 +126,136 @@ public class OrderService {
 	private WxRefundHistoryMapper wxRefundHistoryMapper;
 	
 	@Transactional
+	public String agreeChangeOrders(String empid, OrderOperationHistory orderOperation) {
+		OrderOperationHistory operation = checkAskingOperation(
+				orderOperation.getOrderOperId(), StoreKeyConstants.ORDER_OPERATION_ASK_CHANGE);
+		OrderProduct orderProd = checkAskingOrderProduct(operation.getOrderProductId(),
+				operation.getOrderId(), StoreKeyConstants.ORDER_PROD_STATUS_USING);
+		operation.setAnsErId(empid);
+		operation.setAnsComment(orderOperation.getAnsComment());
+		operation.setAnsOperCode(StoreKeyConstants.ORDER_OPERATION_CONF_CHANGE);
+		operation.setAnsTime(Utils.getChinaCurrentTime());
+		orderOperationHistoryMapper.updateByPrimaryKey(operation);
+		
+		OrderProduct subsidy = initSubsidyOrderProd(orderProd.getProductId(), empid,
+				operation.getOrderProductId(), StoreKeyConstants.REF_TYPE_CHANGE);
+		orderProductMapper.insertSelective(subsidy);
+		GuestOrderInfo order = initSubsidyOrder(operation.getOrderId(), empid, subsidy);
+		guestOrderInfoMapper.insertSelective(order);
+		return "已生成缴纳运费补差额的订单，请及时通知顾客支付完成退换货!";
+	}
+	
+	private GuestOrderInfo initSubsidyOrder(String orderId, String empid, 
+			OrderProduct subsidy) {
+		GuestOrderInfo ret = new GuestOrderInfo();
+		GuestOrderInfo order = guestOrderInfoMapper.selectByPrimaryKey(orderId);
+		if (order == null) throw new BusinessException(StoreConstants.CHK_ERR_90016);
+		
+		ret.setOrderId(subsidy.getOrderId());
+		ret.setStatusCode(StoreKeyConstants.ORDER_STATUS_UNPAID);
+		ret.setPaymentCode(order.getPaymentCode());
+		ret.setTotalAmount(subsidy.getPrePayAmount());
+		ret.setTotalBail(new BigDecimal(0));
+		ret.setTotalLeaseAmount(new BigDecimal(0));
+		ret.setCarriage(new BigDecimal(0));
+		ret.setService(new BigDecimal(0));
+		ret.setCustAddressId(order.getCustAddressId());
+		ret.setCustInvoiceId(order.getCustInvoiceId());
+		ret.setCustomerId(order.getCustomerId());
+		ret.setIsOffered(Boolean.FALSE);
+		ret.setRemark(subsidy.getRemark());
+		ret.setCreateEmpId(empid);
+		ret.setUpdateEmpId(empid);
+		return ret;
+	}
+	
+	private OrderProduct initSubsidyOrderProd(String prodId, String empid, 
+			String refOrderProdId, String refTypeCode) {
+		ProductPrice subsidyUnitPrice = getUnitPrice(Boolean.FALSE, null, 
+				StoreKeyConstants.SUBSIDY_PROD_ID);
+		OrderProduct ret = new OrderProduct();
+		ProductInfo prod = productInfoMapper.selectByPrimaryKey(prodId);
+		if (prod == null) throw new BusinessException(StoreConstants.CHK_ERR_90001);
+		if (prod.getService().compareTo(new BigDecimal(0)) == 0 && 
+				prod.getCarriage().compareTo(new BigDecimal(0)) == 0)
+			throw new BusinessException(StoreConstants.CHK_ERR_90040);
+		BigDecimal unitPrice = subsidyUnitPrice.getRealPrice();
+		BigDecimal saleCnt = new BigDecimal(0);
+		if (prod.getService().compareTo(new BigDecimal(0)) != 0) 
+			saleCnt = prod.getService().divide(unitPrice, 0, RoundingMode.FLOOR);
+		else if (prod.getCarriage().compareTo(new BigDecimal(0)) != 0) 
+			saleCnt = prod.getCarriage().divide(unitPrice, 0, RoundingMode.FLOOR);
+		
+		ret.setOrderId(UUID.randomUUID().toString());
+		ret.setOrderProductId(UUID.randomUUID().toString());
+		ret.setSaleCount(saleCnt.intValue());
+		ret.setPrePayAmount(prod.getService().compareTo(new BigDecimal(0)) != 0?
+				prod.getService():prod.getCarriage());
+		ret.setBail(new BigDecimal(0));
+		ret.setIsDelete(Boolean.FALSE);
+		ret.setProductId(StoreKeyConstants.SUBSIDY_PROD_ID);
+		ret.setRefOrderProductId(refOrderProdId);
+		ret.setRefTypeCode(refTypeCode);
+		ret.setRemark("退换货补贴");
+		ret.setCreateEmpId(empid);
+		ret.setUpdateEmpId(empid);
+		return ret;
+	}
+	
+	@Transactional
+	public void rejectChangeOrders(String empid, OrderOperationHistory orderOperation) {
+		OrderOperationHistory operation = checkAskingOperation(
+				orderOperation.getOrderOperId(), StoreKeyConstants.ORDER_OPERATION_ASK_CHANGE);
+		checkAskingOrderProduct(operation.getOrderProductId(),
+				operation.getOrderId(), StoreKeyConstants.ORDER_PROD_STATUS_USING);
+		operation.setAnsErId(empid);
+		operation.setAnsComment(orderOperation.getAnsComment());
+		operation.setAnsOperCode(StoreKeyConstants.ORDER_OPERATION_REJECT_CHANGE);
+		operation.setAnsTime(Utils.getChinaCurrentTime());
+		orderOperationHistoryMapper.updateByPrimaryKey(operation);
+	}
+	
+	@Transactional
+	public void askChangeProdCust(String customerid, OrderOperationHistory orderOperation) {
+		GuestOrderInfo order = checkPaidGuestOrder(orderOperation.getOrderId());
+		if (!order.getCustomerId().equals(customerid)) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90017);
+		
+		OrderProduct orderProd = checkAskingOrderProduct(orderOperation.getOrderProductId(),
+				orderOperation.getOrderId(), StoreKeyConstants.ORDER_PROD_STATUS_USING);
+		if (orderOperation.getReturnCount() == null) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90037);
+		if (orderOperation.getReturnCount() > orderProd.getSaleCount())
+			throw new BusinessException(StoreConstants.CHK_ERR_90038);
+		if (Utils.addTimeFromCurrentTime(Utils.INTERVAL_TYPE_DAY, 0 - StoreKeyConstants.CHANGE_INTERVAL_DAYS)
+				.compareTo(orderProd.getActualSendDate()) > 0)
+			throw new BusinessException(StoreConstants.CHK_ERR_90039);
+		
+		askChangeProd(customerid, orderOperation);
+	}
+
+	private void askChangeProd(String id, OrderOperationHistory orderOperation) {
+		OrderOperationHistoryExample exam_ooh = new OrderOperationHistoryExample();
+		exam_ooh.createCriteria().andOrderIdEqualTo(orderOperation.getOrderId())
+								.andOrderProductIdEqualTo(orderOperation.getOrderProductId())
+								.andAskOperCodeIsNotNull()
+								.andAnsOperCodeIsNull();
+		if (orderOperationHistoryMapper.countByExample(exam_ooh) > 0) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90028);
+		
+		OrderOperationHistory record = new OrderOperationHistory();
+		record.setOrderOperId(UUID.randomUUID().toString());
+		record.setOrderId(orderOperation.getOrderId());
+		record.setOrderProductId(orderOperation.getOrderProductId());
+		record.setReturnCount(orderOperation.getReturnCount());
+		record.setAskOperCode(StoreKeyConstants.ORDER_OPERATION_ASK_CHANGE);
+		record.setAskErId(id);
+		record.setAskComment(orderOperation.getAskComment());
+		record.setAskTime(Utils.getChinaCurrentTime());
+		orderOperationHistoryMapper.insertSelective(record);
+	}
+	
+	@Transactional
 	public String askDeferLeaseProdCust(String customerid, OrderOperationHistory orderOperation) {
 		String ret = "";
 		GuestOrderInfo order = checkPaidGuestOrder(orderOperation.getOrderId());
@@ -237,6 +368,7 @@ public class OrderService {
 		newOrderProd.setActualPendingEndDate(orderOperation.getDeferDate());
 		newOrderProd.setReservePendingDate(orderProd.getActualPendingDate());
 		newOrderProd.setReservePendingEndDate(orderOperation.getDeferDate());
+		newOrderProd.setActualSendDate(orderProd.getActualSendDate());
 		newOrderProd.setPendingCount(pendingCount);
 		newOrderProd.setSaleCount(orderProd.getSaleCount());
 		newOrderProd.setBail(new BigDecimal(0));
@@ -430,8 +562,8 @@ public class OrderService {
 		Integer waitReturningCnt = orderProductMapper.countByExample(exam_op);
 		
 		List<String> statusLst = new ArrayList<String>();
-		statusLst.add(StoreKeyConstants.ORDER_STATUS_CHANGE);
-		statusLst.add(StoreKeyConstants.ORDER_STATUS_RETURN);
+		statusLst.add(StoreKeyConstants.ORDER_STATUS_CHANGING);
+		statusLst.add(StoreKeyConstants.ORDER_STATUS_RETURNING);
 		GuestOrderInfoExample exam_goi = new GuestOrderInfoExample();
 		exam_goi.createCriteria().andStatusCodeIn(statusLst);
 		Integer waitChgRetCnt = guestOrderInfoMapper.countByExample(exam_goi);
@@ -452,7 +584,7 @@ public class OrderService {
 	
 	public List<OrderProduct> getOverDueLeaseProd() {
 		Date dueTime = Utils.addTimeFromCurrentTime(Utils.INTERVAL_TYPE_DAY
-				, StoreKeyConstants.END_PENDING_DAYS);
+				, StoreKeyConstants.END_INTERVAL_DAYS);
 		OrderProductExample exam_op = new OrderProductExample();
 		exam_op.createCriteria().andActualPendingEndDateLessThanOrEqualTo(dueTime)
 								.andStatusCodeEqualTo(StoreKeyConstants.ORDER_PROD_STATUS_USING)
@@ -508,7 +640,7 @@ public class OrderService {
 		
 		if (orderOperation.getPendingEndDate() == null) 
 			throw new BusinessException(StoreConstants.CHK_ERR_90021);
-		if (Utils.addTimeFromCurrentTime(Utils.INTERVAL_TYPE_DAY, StoreKeyConstants.END_PENDING_DAYS)
+		if (Utils.addTimeFromCurrentTime(Utils.INTERVAL_TYPE_DAY, StoreKeyConstants.END_INTERVAL_DAYS)
 				.compareTo(orderOperation.getPendingEndDate()) > 0 ) 
 			throw new BusinessException(StoreConstants.CHK_ERR_90022);
 
@@ -556,8 +688,8 @@ public class OrderService {
 		OrderOperationHistory operation = orderOperationHistoryMapper.selectByPrimaryKey(orderOperId);
 		if (operation == null) 
 			throw new BusinessException(StoreConstants.CHK_ERR_90026);
-		Date maxRecycle = DateUtils.addDays(operation.getPendingEndDate(), StoreKeyConstants.QA_INTERVAL_DAYS);
-		Date minRecycle = DateUtils.addDays(operation.getPendingEndDate(), 0 - StoreKeyConstants.QA_INTERVAL_DAYS);
+		Date maxRecycle = DateUtils.addDays(operation.getPendingEndDate(), StoreKeyConstants.SRVC_INTERVAL_DAYS);
+		Date minRecycle = DateUtils.addDays(operation.getPendingEndDate(), 0 - StoreKeyConstants.SRVC_INTERVAL_DAYS);
 		if (maxRecycle.compareTo(recycleDate) < 0 || minRecycle.compareTo(recycleDate) > 0)
 			throw new BusinessException(StoreConstants.CHK_ERR_90027);
 		
@@ -710,14 +842,21 @@ public class OrderService {
 		if (StoreKeyConstants.OPERATION_TYPE_CUSTOMER.equals(type) && 
 				!order.getCustomerId().equals(id))
 			throw new BusinessException(StoreConstants.CHK_ERR_90017);
-		if (order.getStatusCode().equals(StoreKeyConstants.ORDER_STATUS_WAIT_DELIVERY)) {
-			GuestOrderInfo record = new GuestOrderInfo();
-			record.setOrderId(orderid);
-			record.setStatusCode(StoreKeyConstants.ORDER_STATUS_WAIT_COMMENT);
-			if (StoreKeyConstants.OPERATION_TYPE_MANAGEMENT.equals(type))
-				record.setUpdateEmpId(id);
-			guestOrderInfoMapper.updateByPrimaryKeySelective(record);
+		if (!StoreKeyConstants.ORDER_STATUS_WAIT_DELIVERY.equals(order.getStatusCode()) &&
+				!StoreKeyConstants.ORDER_STATUS_CHANGING.equals(order.getStatusCode()))
+			throw new BusinessException(StoreConstants.CHK_ERR_90018);
 			
+		GuestOrderInfo record = new GuestOrderInfo();
+		record.setOrderId(orderid);
+		if (StoreKeyConstants.ORDER_STATUS_WAIT_DELIVERY.equals(order.getStatusCode()))
+			record.setStatusCode(StoreKeyConstants.ORDER_STATUS_WAIT_COMMENT);
+		else
+			record.setStatusCode(StoreKeyConstants.ORDER_STATUS_CLOSED);
+		if (StoreKeyConstants.OPERATION_TYPE_MANAGEMENT.equals(type))
+			record.setUpdateEmpId(id);
+		guestOrderInfoMapper.updateByPrimaryKeySelective(record);
+		
+		if (StoreKeyConstants.ORDER_STATUS_WAIT_DELIVERY.equals(order.getStatusCode())) {
 			OrderProductExample exam_op = new OrderProductExample();
 			exam_op.createCriteria().andOrderIdEqualTo(orderid);
 			List<OrderProduct> prods = orderProductMapper.selectByExample(exam_op);
@@ -735,17 +874,89 @@ public class OrderService {
 					orderProductMapper.updateByPrimaryKeySelective(rec);
 				}
 			}
-			
-			OrderOperationHistory operation = new OrderOperationHistory();
-			operation.setOrderOperId(UUID.randomUUID().toString());
-			operation.setAskOperCode(StoreKeyConstants.ORDER_OPERATION_CONFIRM);
-			operation.setAskErId(id);
-			operation.setAskTime(Utils.getChinaCurrentTime());
-			operation.setOrderId(orderid);
-			orderOperationHistoryMapper.insertSelective(operation);
-		} else {
-			throw new BusinessException(StoreConstants.CHK_ERR_90018);
 		}
+		
+		OrderOperationHistory operation = new OrderOperationHistory();
+		operation.setOrderOperId(UUID.randomUUID().toString());
+		operation.setAskOperCode(StoreKeyConstants.ORDER_OPERATION_CONFIRM);
+		operation.setAskErId(id);
+		operation.setAskTime(Utils.getChinaCurrentTime());
+		operation.setOrderId(orderid);
+		orderOperationHistoryMapper.insertSelective(operation);
+	}
+	
+	@Transactional
+	public void updateRefundHistory(WxRefundHistory refund, String orderOperId) {
+		wxRefundHistoryMapper.updateByPrimaryKeySelective(refund);
+		if (StoreKeyConstants.REFUND_STATE_SUCCESS.equals(refund.getRefundStatus())) {
+			OrderOperationHistory operation = orderOperationHistoryMapper.selectByPrimaryKey(orderOperId);
+			if (operation != null) {
+				OrderProduct orderProd = orderProductMapper.selectByPrimaryKey(
+						operation.getOrderProductId());
+				if (orderProd != null) {
+					if (!StoreKeyConstants.ORDER_PROD_STATUS_REFUND_FAILED.equals(
+							orderProd.getStatusCode())) {
+						orderProd.setStatusCode(StoreKeyConstants.ORDER_PROD_STATUS_REFUNDED);
+						orderProductMapper.updateByPrimaryKeySelective(orderProd);
+					}
+				}
+			}
+		} else if (StoreKeyConstants.REFUND_STATE_CHANGE.equals(refund.getRefundStatus()) || 
+				StoreKeyConstants.REFUND_STATE_CLOSE.equals(refund.getRefundStatus())) {
+			OrderOperationHistory operation = orderOperationHistoryMapper.selectByPrimaryKey(orderOperId);
+			if (operation != null) {
+				OrderProduct orderProd = orderProductMapper.selectByPrimaryKey(
+						operation.getOrderProductId());
+				if (orderProd != null) {
+					orderProd.setStatusCode(StoreKeyConstants.ORDER_PROD_STATUS_REFUNDED);
+					orderProductMapper.updateByPrimaryKeySelective(orderProd);
+				}
+			}
+		}
+	}
+	
+	public List<WxRefundHistory> getProcessingRefundHistory() {
+		WxRefundHistoryExample exam_wrh = new WxRefundHistoryExample();
+		exam_wrh.createCriteria().andRefundStatusEqualTo(StoreKeyConstants.REFUND_STATE_PROCESSING);
+		List<WxRefundHistory> ret = wxRefundHistoryMapper.selectByExample(exam_wrh);
+		if (!Utils.listNotNull(ret)) ret = new ArrayList<WxRefundHistory>();
+		return ret;
+	}
+	
+	public WxRefundHistory queryRefund(WxRefundHistory refund, String appid, 
+			String mch_id, String key) throws BusinessException, Exception {
+		WxRefundHistory ret = new WxRefundHistory();
+		QLHWXPayConfig config = new QLHWXPayConfig(null, appid, key, mch_id);
+        WXPay wxpay = new WXPay(config);
+        Map<String, String> data = new HashMap<String, String>();
+        data.put("out_refund_no", refund.getOutRefundNo());
+        Map<String, String> resp = wxpay.refundQuery(data);
+        
+        if (resp != null) {
+        	ret.setOutRefundNo(refund.getOutRefundNo());
+            ret.setReturnCode(resp.get("return_code"));
+            ret.setReturnMsg(resp.get("return_msg"));
+			ret.setWxApi("queryrefund");
+            if (resp.containsKey("nonce_str")) ret.setNonceStr(resp.get("nonce_str"));
+            if (resp.containsKey("sign")) ret.setSign(resp.get("sign"));
+            if (resp.containsKey("result_code")) ret.setResultCode(resp.get("result_code"));
+            if (resp.containsKey("err_code")) ret.setErrCode(resp.get("err_code"));
+            if (resp.containsKey("err_code_des")) ret.setErrCodeDes(resp.get("err_code_des"));
+            if (resp.containsKey("cash_fee")) ret.setCashFee(Integer.parseInt(resp.get("cash_fee")));
+            if (resp.containsKey("refund_count")) 
+            	ret.setRefundCount(Integer.parseInt(resp.get("refund_count")));
+            if (resp.containsKey("refund_status_0"))
+            	ret.setRefundStatus(resp.get("refund_status_0"));
+            if (resp.containsKey("refund_success_time_0")) {
+            	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            	ret.setSuccessTime((Date)sdf.parse(resp.get("refund_success_time_0")));
+            }
+            if (resp.containsKey("refund_recv_accout_0"))
+            	ret.setRefundRecvAccout(resp.get("refund_recv_accout_0"));
+            if (resp.containsKey("refund_account_0"))
+            	ret.setRefundAccount(resp.get("refund_account_0"));
+        }
+        return ret;
 	}
 	
 	public List<WxRefundHistory> getUnRefundHistory() {
@@ -756,6 +967,7 @@ public class OrderService {
 		return ret;
 	}
 	
+	@Transactional
 	public void updateRefundHistory(WxRefundHistory refund) {
 		wxRefundHistoryMapper.updateByPrimaryKeySelective(refund);
 	}
@@ -772,7 +984,6 @@ public class OrderService {
         data.put("out_refund_no", refund.getOutRefundNo());
         data.put("total_fee", String.valueOf(refund.getTotalFee()));
         data.put("refund_fee", String.valueOf(refund.getRefundFee()));
-        //TODO 异步通知地址（请注意必须是外网）
         data.put("notify_url", "http://106.15.88.109/store/order/wxrefund/notify");
         Map<String, String> resp = wxpay.refund(data);
         
@@ -791,45 +1002,6 @@ public class OrderService {
         }
 		return ret;
 	}
-	
-//	public WxRefundHistory applyRefund(WxPayHistory payHist, OrderOperationHistory operHist,
-//			String appid, String mch_id, String key) throws BusinessException, Exception {
-//		WxRefundHistory ret = new WxRefundHistory();
-//		QLHWXPayConfig config = new QLHWXPayConfig(StoreKeyConstants.CERT_PATH, appid, key, mch_id);
-//        WXPay wxpay = new WXPay(config);
-//        Map<String, String> data = new HashMap<String, String>();
-//        data.put("transaction_id", payHist.getTransactionId());
-//        String outRefundNo = Utils.getRefundNo();
-//        data.put("out_refund_no", outRefundNo);
-//        data.put("total_fee", String.valueOf(payHist.getTotalFee()));
-//        Integer refundFee = operHist.getAdjustAmount().multiply(new BigDecimal(100)).intValue();
-//        data.put("refund_fee", String.valueOf(refundFee));
-//        //TODO 异步通知地址（请注意必须是外网）
-//        data.put("notify_url", "http://106.15.88.109/store/order/wxrefund/notify");
-//        Map<String, String> resp = wxpay.refund(data);
-//        
-//        if (resp != null) {
-//        	ret.setOutRefundNo(outRefundNo);
-//        	ret.setOrderId(payHist.getOrderId());
-//        	ret.setOrderOperId(operHist.getOrderOperId());
-//        	ret.setOutTradeNo(payHist.getOutTradeNo());
-//        	ret.setRefundFee(refundFee);
-//        	ret.setTotalFee(payHist.getTotalFee());
-//        	ret.setTransactionId(payHist.getTransactionId());
-//            ret.setReturnCode(resp.get("return_code"));
-//            ret.setReturnMsg(resp.get("return_msg"));
-//            ret.setRefundStatus(StoreKeyConstants.REFUND_STATE_PROCESSING);
-//        	ret.setWxApi("refund");
-//            if (resp.containsKey("nonce_str")) ret.setNonceStr(resp.get("nonce_str"));
-//            if (resp.containsKey("sign")) ret.setSign(resp.get("sign"));
-//            if (resp.containsKey("result_code")) ret.setResultCode(resp.get("result_code"));
-//            if (resp.containsKey("err_code")) ret.setErrCode(resp.get("err_code"));
-//            if (resp.containsKey("err_code_des")) ret.setErrCodeDes(resp.get("err_code_des"));
-//            if (resp.containsKey("refund_id")) ret.setRefundId(resp.get("refund_id"));
-//            if (resp.containsKey("cash_fee")) ret.setCashFee(Integer.valueOf(resp.get("cash_fee")));
-//        }
-//		return ret;
-//	}
 	
 	public WxPayHistory notifyPayOrder(String bean) throws Exception {
 		WxPayHistory ret = new WxPayHistory();
@@ -925,7 +1097,7 @@ public class OrderService {
 		GuestOrderInfo order = guestOrderInfoMapper.selectByPrimaryKey(hist.getOrderId());
 		switch (hist.getTradeState()) {
 			case StoreKeyConstants.PAY_STATE_SUCCESS:
-				Boolean isDefer = Boolean.FALSE;
+				String refType = "";
 				order.setOrderId(hist.getOrderId());
 				order.setPaymentVoucher(hist.getOutTradeNo());
 				OrderProductExample exam_op = new OrderProductExample();
@@ -934,28 +1106,34 @@ public class OrderService {
 				if (Utils.listNotNull(prods)) {
 					for (OrderProduct prod : prods) {
 						OrderProduct record = new OrderProduct();
-						if (prod.getRefOrderProductId() != null &&
-								StoreKeyConstants.REF_TYPE_DEFER.equals(prod.getRefTypeCode())) {
-							isDefer = Boolean.TRUE;
-							record.setStatusCode(StoreKeyConstants.ORDER_PROD_STATUS_USING);
-							
-							//订单商品
-							OrderProduct refProd = new OrderProduct();
-							refProd.setOrderProductId(prod.getRefOrderProductId());
-							refProd.setStatusCode(StoreKeyConstants.ORDER_PROD_STATUS_RELET);
-							orderProductMapper.updateByPrimaryKeySelective(refProd);
-							
-							//操作表
-							OrderOperationHistoryExample exam_ooh = new OrderOperationHistoryExample();
-							exam_ooh.createCriteria().andOrderProductIdEqualTo(prod.getRefOrderProductId());
-							List<OrderOperationHistory> operLst = orderOperationHistoryMapper.selectByExample(exam_ooh);
-							if (Utils.listNotNull(operLst)) {
-								OrderOperationHistory orderOperation = operLst.get(0);
-								orderOperation.setAnsComment("已续租成功!");
-								orderOperation.setAnsErId(StoreKeyConstants.SYSTEM_EMP_ID);
-								orderOperation.setAnsOperCode(StoreKeyConstants.ORDER_OPERATION_CONF_DEFER);
-								orderOperation.setAnsTime(Utils.getChinaCurrentTime());
-								orderOperationHistoryMapper.updateByPrimaryKeySelective(orderOperation);
+						if (prod.getRefOrderProductId() != null) {
+							if (StoreKeyConstants.REF_TYPE_DEFER.equals(prod.getRefTypeCode())) {
+								//延期
+								refType = StoreKeyConstants.REF_TYPE_DEFER;
+								record.setStatusCode(StoreKeyConstants.ORDER_PROD_STATUS_USING);
+								
+								//订单商品
+								OrderProduct refProd = new OrderProduct();
+								refProd.setOrderProductId(prod.getRefOrderProductId());
+								refProd.setStatusCode(StoreKeyConstants.ORDER_PROD_STATUS_RELET);
+								orderProductMapper.updateByPrimaryKeySelective(refProd);
+								
+								//操作表
+								OrderOperationHistoryExample exam_ooh = new OrderOperationHistoryExample();
+								exam_ooh.createCriteria().andOrderProductIdEqualTo(prod.getRefOrderProductId());
+								List<OrderOperationHistory> operLst = orderOperationHistoryMapper.selectByExample(exam_ooh);
+								if (Utils.listNotNull(operLst)) {
+									OrderOperationHistory orderOperation = operLst.get(0);
+									orderOperation.setAnsComment("已续租成功!");
+									orderOperation.setAnsErId(StoreKeyConstants.SYSTEM_EMP_ID);
+									orderOperation.setAnsOperCode(StoreKeyConstants.ORDER_OPERATION_CONF_DEFER);
+									orderOperation.setAnsTime(Utils.getChinaCurrentTime());
+									orderOperationHistoryMapper.updateByPrimaryKeySelective(orderOperation);
+								}
+							} else if (StoreKeyConstants.REF_TYPE_CHANGE.equals(prod.getRefTypeCode())) {
+								refType = StoreKeyConstants.REF_TYPE_CHANGE;
+							} else if (StoreKeyConstants.REF_TYPE_RETURN.equals(prod.getRefTypeCode())) {
+								refType = StoreKeyConstants.REF_TYPE_RETURN;
 							}
 						}
 						
@@ -964,8 +1142,12 @@ public class OrderService {
 						orderProductMapper.updateByPrimaryKeySelective(record);
 					}
 				}
-				if (isDefer)
+				if (StoreKeyConstants.REF_TYPE_DEFER.equals(refType))
 					order.setStatusCode(StoreKeyConstants.ORDER_STATUS_WAIT_COMMENT);
+				else if (StoreKeyConstants.REF_TYPE_CHANGE.equals(refType))
+					order.setStatusCode(StoreKeyConstants.ORDER_STATUS_CHANGING);
+				else if (StoreKeyConstants.REF_TYPE_RETURN.equals(refType))
+					order.setStatusCode(StoreKeyConstants.ORDER_STATUS_RETURNING);					
 				else
 					order.setStatusCode(StoreKeyConstants.ORDER_STATUS_WAIT_DELIVERY);
 				guestOrderInfoMapper.updateByPrimaryKeySelective(order);

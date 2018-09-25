@@ -582,7 +582,7 @@ public class OrderController {
 			@RequestParam("customerid") String customerid, 
 			@RequestBody OrderOperationHistory orderOperation) {
 		logger.info("post api: /order/lease/ask/defer || customerid: " + customerid +
-				" || orderOperationID: " + orderOperation.getOrderOperId());
+				" || orderProductID: " + orderOperation.getOrderProductId());
 		MsgData ret = new MsgData();
 		try {
 			ret.setMessage(orderService.askDeferLeaseProdCust(customerid, orderOperation));
@@ -596,11 +596,11 @@ public class OrderController {
 		return ret;
 	}
 
-	@RequestMapping(value = "/wxrefund/sys", 
+	@RequestMapping(value = "/wxrefund/unified/sys", 
 			method = { RequestMethod.POST })
 	public MsgData wxRefundOrderBySystem(
 			@RequestParam(value = "appid", required = true) String appid) {
-		logger.info("post api: /order/wxrefund/sys || appid: " + appid);
+		logger.info("post api: /order/wxrefund/sys");
 		MsgData ret = new MsgData();
 		try {
 			List<WxRefundHistory> refunds = orderService.getUnRefundHistory();
@@ -623,5 +623,98 @@ public class OrderController {
 		}
 		return ret;
 	}
-	
+
+	@RequestMapping(value = "/wxrefund/query/sys", 
+			method = { RequestMethod.POST })
+	public MsgData wxRefundOrderQueryBySystem(
+			@RequestParam(value = "appid", required = true) String appid) {
+		logger.info("post api: /order/wxrefund/query/sys");
+		MsgData ret = new MsgData();
+		try {
+			List<WxRefundHistory> refunds = orderService.getProcessingRefundHistory();
+			for (WxRefundHistory refund : refunds) {
+				try {
+					orderService.updateRefundHistory(orderService.queryRefund(refund, appid,
+							StoreKeyConstants.MCHID, StoreKeyConstants.PAYSECRET), refund.getOrderOperId());
+				} catch(BusinessException be) {
+					logger.info(be.getMessage());
+				} catch(Exception e) {
+					e.printStackTrace();
+				}
+			}
+		} catch(BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getMessage());
+		} catch(Exception e) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(StoreConstants.CHK_ERR_99999);
+		}
+		return ret;
+	}
+
+	@RequestMapping(value = "/ask/change",
+			consumes = {"application/json;charset=UTF-8"}, 
+			produces = {"application/json;charset=UTF-8"}, 
+			method = { RequestMethod.POST })
+	public MsgData askChangeProdCust(
+			@RequestParam("customerid") String customerid, 
+			@RequestBody OrderOperationHistory orderOperation) {
+		logger.info("post api: /order/ask/change || customerid: " + customerid +
+				" || orderProductId: " + orderOperation.getOrderProductId());
+		MsgData ret = new MsgData();
+		try {
+			orderService.askChangeProdCust(customerid, orderOperation);
+		} catch (BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getMessage());
+		} catch (Exception e) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(StoreConstants.CHK_ERR_99999);
+		}
+		return ret;
+	}
+
+	@RequestMapping(value = "/change/agree",
+			consumes = {"application/json;charset=UTF-8"}, 
+			produces = {"application/json;charset=UTF-8"}, 
+			method = { RequestMethod.POST })
+	public MsgData agreeChangeOrders(
+			@RequestParam(value = "empid", required = true) String empid,
+			@RequestBody OrderOperationHistory orderOperation) {
+		logger.info("post api: /order/change/agree || empid: " + empid +
+				" || orderOperationID: " + orderOperation.getOrderOperId());
+		MsgData ret = new MsgData();
+		try {
+			ret.setMessage(orderService.agreeChangeOrders(empid, orderOperation));
+		} catch (BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getMessage());
+		} catch (Exception e) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(StoreConstants.CHK_ERR_99999);
+		}
+		return ret;
+	}
+
+	@RequestMapping(value = "/change/reject",
+			consumes = {"application/json;charset=UTF-8"}, 
+			produces = {"application/json;charset=UTF-8"}, 
+			method = { RequestMethod.POST })
+	public MsgData rejectChangeOrders(
+			@RequestParam(value = "empid", required = true) String empid,
+			@RequestBody OrderOperationHistory orderOperation) {
+		logger.info("post api: /order/change/reject || empid: " + empid +
+				" || orderOperationID: " + orderOperation.getOrderOperId());
+		MsgData ret = new MsgData();
+		try {
+			orderService.rejectChangeOrders(empid, orderOperation);
+		} catch (BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getMessage());
+		} catch (Exception e) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(StoreConstants.CHK_ERR_99999);
+		}
+		return ret;
+	}
 }

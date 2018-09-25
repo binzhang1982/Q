@@ -38,6 +38,11 @@ public class StoreConstants {
 	public final static String CHK_ERR_90034 = "90034:没有填写续租日期!";
 	public final static String CHK_ERR_90035 = "90035:选中续租日没在实际结租日之后，请选择结租功能!";
 	public final static String CHK_ERR_90036 = "90036:订单退款记录不存在!";
+	public final static String CHK_ERR_90037 = "90037:没有填写退换货数量!";
+	public final static String CHK_ERR_90038 = "90038:退换货数量不正确!";
+	public final static String CHK_ERR_90039 = "90039:超过可以换货的期限!";
+	public final static String CHK_ERR_90040 = "90040:顾客不需要支付任何运费或服务费补贴!";
+	
 	
 	public final static String CHK_ERR_99996 = "99996:支付通知没有返回商户订单号!";
 	public final static String CHK_ERR_99997 = "99997:支付通知返回的商户订单号不存在!";

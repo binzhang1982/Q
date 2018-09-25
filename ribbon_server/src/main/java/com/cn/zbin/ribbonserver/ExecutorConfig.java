@@ -19,12 +19,12 @@ public class ExecutorConfig {
 	@Bean
     public Executor asyncServiceExecutor() {
         logger.info("start asyncServiceExecutor");
-//        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        ThreadPoolTaskExecutor executor = new VisiableThreadPoolTaskExecutor();
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+//        ThreadPoolTaskExecutor executor = new VisiableThreadPoolTaskExecutor();
         //配置核心线程数
-        executor.setCorePoolSize(200);
+        executor.setCorePoolSize(300);
         //配置最大线程数
-        executor.setMaxPoolSize(400);
+        executor.setMaxPoolSize(600);
         //配置队列大小
         executor.setQueueCapacity(99999);
         //配置线程池中的线程的名称前缀

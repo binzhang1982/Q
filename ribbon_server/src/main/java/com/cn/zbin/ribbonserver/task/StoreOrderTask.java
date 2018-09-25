@@ -39,4 +39,14 @@ public class StoreOrderTask {
 	public void dueNotifyTask() {
 		asyncService.executDueNotifyAsync();
 	}
+	
+	@Scheduled(cron="0 0 2 * * ?")
+	public void unifiedRefundTask() {
+		asyncService.executUnifiedRefundAsync();
+	}
+	
+	@Scheduled(cron="0 30 0/2 * * ?")
+	public void queryRefundTask() {
+		asyncService.executRefundQueryAsync();
+	}
 }
