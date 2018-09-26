@@ -327,4 +327,38 @@ public class StoreService {
     public String askDeferLeaseProdError(String customerid, String bean) {
     	return "failed";
     }
+    
+    @HystrixCommand(fallbackMethod = "askChangeProdError")
+    public String askChangeProd(String customerid, String bean) {
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("customerid", customerid);
+    	
+        HttpHeaders headers =new HttpHeaders();
+        MediaType mtype = MediaType.parseMediaType("application/json; charset=UTF-8");
+        headers.setContentType(mtype);
+        HttpEntity<String> request = new HttpEntity<String>(bean, headers);
+
+        return restTemplate.postForObject("http://SERVICE-STORE/order/ask/change" 
+				+ "?customerid={customerid}", request, String.class, uriVariables);
+    }
+    public String askChangeProdError(String customerid, String bean) {
+    	return "failed";
+    }
+    
+    @HystrixCommand(fallbackMethod = "askReturnSalesProdError")
+    public String askReturnSalesProd(String customerid, String bean) {
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("customerid", customerid);
+    	
+        HttpHeaders headers =new HttpHeaders();
+        MediaType mtype = MediaType.parseMediaType("application/json; charset=UTF-8");
+        headers.setContentType(mtype);
+        HttpEntity<String> request = new HttpEntity<String>(bean, headers);
+
+        return restTemplate.postForObject("http://SERVICE-STORE/order/sales/ask/return" 
+				+ "?customerid={customerid}", request, String.class, uriVariables);
+    }
+    public String askReturnSalesProdError(String customerid, String bean) {
+    	return "failed";
+    }
 }

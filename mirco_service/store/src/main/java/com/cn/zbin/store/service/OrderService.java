@@ -124,6 +124,85 @@ public class OrderService {
 	private MessageHistoryMapper messageHistoryMapper;
 	@Autowired
 	private WxRefundHistoryMapper wxRefundHistoryMapper;
+
+	@Transactional
+	public String agreeReturnOrders(String empid, OrderOperationHistory orderOperation) {
+		OrderOperationHistory operation = checkAskingOperation(
+				orderOperation.getOrderOperId(), StoreKeyConstants.ORDER_OPERATION_ASK_RETURN);
+		OrderProduct orderProd = checkAskingOrderProduct(operation.getOrderProductId(),
+				operation.getOrderId(), StoreKeyConstants.ORDER_PROD_STATUS_USING);
+		operation.setAnsErId(empid);
+		operation.setAnsComment(orderOperation.getAnsComment());
+		operation.setAnsOperCode(StoreKeyConstants.ORDER_OPERATION_CONF_RETURN);
+		operation.setAnsTime(Utils.getChinaCurrentTime());
+		orderOperationHistoryMapper.updateByPrimaryKey(operation);
+		
+		OrderProduct subsidy = initSubsidyOrderProd(orderProd.getProductId(), empid,
+				operation.getOrderProductId(), StoreKeyConstants.REF_TYPE_RETURN);
+		orderProductMapper.insertSelective(subsidy);
+		GuestOrderInfo order = initSubsidyOrder(operation.getOrderId(), empid, subsidy);
+		guestOrderInfoMapper.insertSelective(order);
+		return "已生成缴纳运费补差额的订单，请及时通知顾客支付完成退换货!";
+	}
+	
+	@Transactional
+	public void rejectReturnOrders(String empid, OrderOperationHistory orderOperation) {
+		OrderOperationHistory operation = checkAskingOperation(
+				orderOperation.getOrderOperId(), StoreKeyConstants.ORDER_OPERATION_ASK_RETURN);
+		checkAskingOrderProduct(operation.getOrderProductId(),
+				operation.getOrderId(), StoreKeyConstants.ORDER_PROD_STATUS_USING);
+		operation.setAnsErId(empid);
+		operation.setAnsComment(orderOperation.getAnsComment());
+		operation.setAnsOperCode(StoreKeyConstants.ORDER_OPERATION_REJECT_RETURN);
+		operation.setAnsTime(Utils.getChinaCurrentTime());
+		orderOperationHistoryMapper.updateByPrimaryKey(operation);
+	}
+	
+	@Transactional
+	public void askReturnSalesProdCust(String customerid, OrderOperationHistory orderOperation) {
+		GuestOrderInfo order = checkPaidGuestOrder(orderOperation.getOrderId());
+		if (!order.getCustomerId().equals(customerid)) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90017);
+		
+		OrderProduct orderProd = checkAskingOrderProduct(orderOperation.getOrderProductId(),
+				orderOperation.getOrderId(), StoreKeyConstants.ORDER_PROD_STATUS_USING);
+		if (orderOperation.getReturnCount() == null) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90037);
+		if (orderOperation.getReturnCount() > orderProd.getSaleCount())
+			throw new BusinessException(StoreConstants.CHK_ERR_90038);
+		if (Utils.addTimeFromCurrentTime(Utils.INTERVAL_TYPE_DAY, 0 - StoreKeyConstants.RETURN_INTERVAL_DAYS)
+				.compareTo(orderProd.getActualSendDate()) > 0)
+			throw new BusinessException(StoreConstants.CHK_ERR_90041);
+		
+		ProductInfo prod = productInfoMapper.selectByPrimaryKey(orderProd.getProductId());
+		if (prod == null) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90001);
+		if (prod.getLeaseFlag())
+			throw new BusinessException(StoreConstants.CHK_ERR_90042);
+		
+		askReturnSalesProd(customerid, orderOperation);
+	}
+
+	private void askReturnSalesProd(String id, OrderOperationHistory orderOperation) {
+		OrderOperationHistoryExample exam_ooh = new OrderOperationHistoryExample();
+		exam_ooh.createCriteria().andOrderIdEqualTo(orderOperation.getOrderId())
+								.andOrderProductIdEqualTo(orderOperation.getOrderProductId())
+								.andAskOperCodeIsNotNull()
+								.andAnsOperCodeIsNull();
+		if (orderOperationHistoryMapper.countByExample(exam_ooh) > 0) 
+			throw new BusinessException(StoreConstants.CHK_ERR_90028);
+		
+		OrderOperationHistory record = new OrderOperationHistory();
+		record.setOrderOperId(UUID.randomUUID().toString());
+		record.setOrderId(orderOperation.getOrderId());
+		record.setOrderProductId(orderOperation.getOrderProductId());
+		record.setReturnCount(orderOperation.getReturnCount());
+		record.setAskOperCode(StoreKeyConstants.ORDER_OPERATION_ASK_RETURN);
+		record.setAskErId(id);
+		record.setAskComment(orderOperation.getAskComment());
+		record.setAskTime(Utils.getChinaCurrentTime());
+		orderOperationHistoryMapper.insertSelective(record);
+	}
 	
 	@Transactional
 	public String agreeChangeOrders(String empid, OrderOperationHistory orderOperation) {

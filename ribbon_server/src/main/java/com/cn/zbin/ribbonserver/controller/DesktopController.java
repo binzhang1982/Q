@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.cn.zbin.ribbonserver.bto.MsgData;
 import com.cn.zbin.ribbonserver.service.DesktopService;
 import com.cn.zbin.ribbonserver.utils.RibbonKeyConstants;
-import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 
 @RestController
@@ -127,6 +126,70 @@ public class DesktopController {
     	if (!"".equals(strAuth)) return strAuth;
     	
     	return desktopService.rejectRecycleLeaseProduct(empid, bean);
+    }
+    
+    @PostMapping(value = "/order/change/agree")
+    @CrossOrigin
+    public String agreeChangeAllProduct(
+    		@RequestParam(value = "empid", required = true) String empid,
+			@RequestParam(value = "token", required = true) String token,
+			@RequestBody String bean) {
+    	logger.info("post api /desktop/order/change/agree || empid: " + empid
+				+ " || token: " + token + " || bean: " + bean);
+    	String strToken = checkToken(empid, token);
+    	if (!"".equals(strToken)) return strToken;
+    	String strAuth = checkAuth(empid, RibbonKeyConstants.AUTH_ORDER);
+    	if (!"".equals(strAuth)) return strAuth;
+
+    	return desktopService.agreeChangeAllProduct(empid, bean);
+    }
+    
+    @PostMapping(value = "/order/change/reject")
+    @CrossOrigin
+    public String rejectChangeAllProduct(
+    		@RequestParam(value = "empid", required = true) String empid,
+			@RequestParam(value = "token", required = true) String token,
+			@RequestBody String bean) {
+    	logger.info("post api /desktop/order/change/reject || empid: " + empid
+				+ " || token: " + token + " || bean: " + bean);
+    	String strToken = checkToken(empid, token);
+    	if (!"".equals(strToken)) return strToken;
+    	String strAuth = checkAuth(empid, RibbonKeyConstants.AUTH_ORDER);
+    	if (!"".equals(strAuth)) return strAuth;
+    	
+    	return desktopService.rejectChangeAllProduct(empid, bean);
+    }
+    
+    @PostMapping(value = "/order/sales/return/agree")
+    @CrossOrigin
+    public String agreeReturnSalesProduct(
+    		@RequestParam(value = "empid", required = true) String empid,
+			@RequestParam(value = "token", required = true) String token,
+			@RequestBody String bean) {
+    	logger.info("post api /desktop/order/sales/return/agree || empid: " + empid
+				+ " || token: " + token + " || bean: " + bean);
+    	String strToken = checkToken(empid, token);
+    	if (!"".equals(strToken)) return strToken;
+    	String strAuth = checkAuth(empid, RibbonKeyConstants.AUTH_ORDER);
+    	if (!"".equals(strAuth)) return strAuth;
+
+    	return desktopService.agreeReturnSalesProduct(empid, bean);
+    }
+    
+    @PostMapping(value = "/order/sales/return/reject")
+    @CrossOrigin
+    public String rejectReturnSalesProduct(
+    		@RequestParam(value = "empid", required = true) String empid,
+			@RequestParam(value = "token", required = true) String token,
+			@RequestBody String bean) {
+    	logger.info("post api /desktop/order/sales/return/reject || empid: " + empid
+				+ " || token: " + token + " || bean: " + bean);
+    	String strToken = checkToken(empid, token);
+    	if (!"".equals(strToken)) return strToken;
+    	String strAuth = checkAuth(empid, RibbonKeyConstants.AUTH_ORDER);
+    	if (!"".equals(strAuth)) return strAuth;
+    	
+    	return desktopService.rejectReturnSalesProduct(empid, bean);
     }
     
     private String checkToken(String empid, String token) {

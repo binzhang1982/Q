@@ -27,7 +27,6 @@ import com.cn.zbin.store.dto.WxPayHistory;
 import com.cn.zbin.store.dto.WxRefundHistory;
 import com.cn.zbin.store.exception.BusinessException;
 import com.cn.zbin.store.service.OrderService;
-import com.cn.zbin.store.utils.AESUtil;
 import com.cn.zbin.store.utils.StoreConstants;
 import com.cn.zbin.store.utils.StoreKeyConstants;
 import com.cn.zbin.store.utils.Utils;
@@ -708,6 +707,72 @@ public class OrderController {
 		MsgData ret = new MsgData();
 		try {
 			orderService.rejectChangeOrders(empid, orderOperation);
+		} catch (BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getMessage());
+		} catch (Exception e) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(StoreConstants.CHK_ERR_99999);
+		}
+		return ret;
+	}
+
+	@RequestMapping(value = "/sales/ask/return",
+			consumes = {"application/json;charset=UTF-8"}, 
+			produces = {"application/json;charset=UTF-8"}, 
+			method = { RequestMethod.POST })
+	public MsgData askReturnSalesCust(
+			@RequestParam("customerid") String customerid, 
+			@RequestBody OrderOperationHistory orderOperation) {
+		logger.info("post api: /order/sales/ask/return || customerid: " + customerid +
+				" || orderProductId: " + orderOperation.getOrderProductId());
+		MsgData ret = new MsgData();
+		try {
+			orderService.askChangeProdCust(customerid, orderOperation);
+		} catch (BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getMessage());
+		} catch (Exception e) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(StoreConstants.CHK_ERR_99999);
+		}
+		return ret;
+	}
+	
+	@RequestMapping(value = "/sales/return/agree",
+			consumes = {"application/json;charset=UTF-8"}, 
+			produces = {"application/json;charset=UTF-8"}, 
+			method = { RequestMethod.POST })
+	public MsgData agreeReturnOrders(
+			@RequestParam(value = "empid", required = true) String empid,
+			@RequestBody OrderOperationHistory orderOperation) {
+		logger.info("post api: /order/sales/return/agree || empid: " + empid +
+				" || orderOperationID: " + orderOperation.getOrderOperId());
+		MsgData ret = new MsgData();
+		try {
+			ret.setMessage(orderService.agreeReturnOrders(empid, orderOperation));
+		} catch (BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getMessage());
+		} catch (Exception e) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(StoreConstants.CHK_ERR_99999);
+		}
+		return ret;
+	}
+
+	@RequestMapping(value = "/sales/return/reject",
+			consumes = {"application/json;charset=UTF-8"}, 
+			produces = {"application/json;charset=UTF-8"}, 
+			method = { RequestMethod.POST })
+	public MsgData rejectReturnOrders(
+			@RequestParam(value = "empid", required = true) String empid,
+			@RequestBody OrderOperationHistory orderOperation) {
+		logger.info("post api: /order/sales/return/reject || empid: " + empid +
+				" || orderOperationID: " + orderOperation.getOrderOperId());
+		MsgData ret = new MsgData();
+		try {
+			orderService.rejectReturnOrders(empid, orderOperation);
 		} catch (BusinessException be) {
 			ret.setStatus(MsgData.status_ng);
 			ret.setMessage(be.getMessage());

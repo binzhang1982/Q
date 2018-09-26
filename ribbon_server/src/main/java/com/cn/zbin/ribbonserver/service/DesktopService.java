@@ -126,4 +126,77 @@ public class DesktopService {
     public String rejectRecycleLeaseProductError(String empid, String bean) {
     	return "failed";
     }
+    
+    @HystrixCommand(fallbackMethod = "agreeChangeAllProductError")
+    public String agreeChangeAllProduct(String empid, String bean) {
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("empid", empid);
+    	
+        HttpHeaders headers =new HttpHeaders();
+        MediaType mtype = MediaType.parseMediaType("application/json; charset=UTF-8");
+        headers.setContentType(mtype);
+        HttpEntity<String> request = new HttpEntity<String>(bean, headers);
+
+        return restTemplate.postForObject("http://SERVICE-STORE/order/change/agree" 
+    			+ "?empid={empid}", request, String.class, uriVariables);
+    }
+    public String agreeChangeAllProductError(String empid, String bean) {
+    	return "failed";
+    }
+    
+    @HystrixCommand(fallbackMethod = "rejectChangeAllProductError")
+    public String rejectChangeAllProduct(String empid, String bean) {
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("empid", empid);
+    	
+        HttpHeaders headers =new HttpHeaders();
+        MediaType mtype = MediaType.parseMediaType("application/json; charset=UTF-8");
+        headers.setContentType(mtype);
+        HttpEntity<String> request = new HttpEntity<String>(bean, headers);
+
+        return restTemplate.postForObject("http://SERVICE-STORE/order/change/reject" 
+    			+ "?empid={empid}", request, String.class, uriVariables);
+    }
+    public String rejectChangeAllProductError(String empid, String bean) {
+    	return "failed";
+    }
+    
+    @HystrixCommand(fallbackMethod = "agreeReturnSalesProductError")
+    public String agreeReturnSalesProduct(String empid, String bean) {
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("empid", empid);
+    	
+        HttpHeaders headers =new HttpHeaders();
+        MediaType mtype = MediaType.parseMediaType("application/json; charset=UTF-8");
+        headers.setContentType(mtype);
+        HttpEntity<String> request = new HttpEntity<String>(bean, headers);
+
+        return restTemplate.postForObject("http://SERVICE-STORE/order/sales/return/agree" 
+    			+ "?empid={empid}", request, String.class, uriVariables);
+    }
+    public String agreeReturnSalesProductError(String empid, String bean) {
+    	return "failed";
+    }
+    
+//    @HystrixCommand(fallbackMethod = "rejectReturnSalesProductError")
+    @HystrixCommand(fallbackMethod = "hystrixError")
+    public String rejectReturnSalesProduct(String empid, String bean) {
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("empid", empid);
+    	
+        HttpHeaders headers =new HttpHeaders();
+        MediaType mtype = MediaType.parseMediaType("application/json; charset=UTF-8");
+        headers.setContentType(mtype);
+        HttpEntity<String> request = new HttpEntity<String>(bean, headers);
+
+        return restTemplate.postForObject("http://SERVICE-STORE/order/sales/return/reject" 
+    			+ "?empid={empid}", request, String.class, uriVariables);
+    }
+    public String rejectReturnSalesProductError(String empid, String bean) {
+    	return "failed";
+    }
+    
+    public String hystrixError(String... args) {
+    	return "failed";
+    }
 }

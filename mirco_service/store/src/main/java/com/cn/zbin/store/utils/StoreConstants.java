@@ -42,6 +42,8 @@ public class StoreConstants {
 	public final static String CHK_ERR_90038 = "90038:退换货数量不正确!";
 	public final static String CHK_ERR_90039 = "90039:超过可以换货的期限!";
 	public final static String CHK_ERR_90040 = "90040:顾客不需要支付任何运费或服务费补贴!";
+	public final static String CHK_ERR_90041 = "90041:超过可以退货的期限!";
+	public final static String CHK_ERR_90042 = "90042:租赁的商品不能退货!";
 	
 	
 	public final static String CHK_ERR_99996 = "99996:支付通知没有返回商户订单号!";

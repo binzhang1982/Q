@@ -249,4 +249,24 @@ public class StoreController {
     			" || bean: " + bean);
     	return storeService.askDeferLeaseProd(customerid, bean);
     }
+    
+    @PostMapping(value="/order/ask/change")
+    @CrossOrigin
+    public String askChangeProd(
+			@RequestParam("customerid") String customerid, 
+			@RequestBody String bean) {
+    	logger.info("post api: /store/order/ask/change || customerid: " + customerid +
+    			" || bean: " + bean);
+    	return storeService.askChangeProd(customerid, bean);
+    }
+    
+    @PostMapping(value="/order/sales/ask/return")
+    @CrossOrigin
+    public String askReturnSalesProd(
+			@RequestParam("customerid") String customerid, 
+			@RequestBody String bean) {
+    	logger.info("post api: /store/order/sales/ask/return || customerid: " + customerid +
+    			" || bean: " + bean);
+    	return storeService.askReturnSalesProd(customerid, bean);
+    }
 }
