@@ -337,33 +337,6 @@ public class OrderController {
 		}
 		return ret;
 	}
-	
-	//TODO
-	@RequestMapping(value = "/return/agree", 
-			produces = {"application/json;charset=UTF-8"}, 
-			method = { RequestMethod.GET })
-	public MsgData agreeReturn(
-			@RequestParam(value = "orderoperid", required = true) String orderoperid,
-			@RequestParam(value = "empid", required = true) String empid,
-			@RequestParam(value = "appid", required = true) String appid) {
-		logger.info("get api: /order/return/agree || orderoperid: " + orderoperid +
-				" || empid: " + empid);
-		MsgData ret = new MsgData();
-		try {
-//			hist = orderService.applyPayUnified(orderId, customerId, 
-//					spbillCreateIp, appid, StoreKeyConstants.MCHID, StoreKeyConstants.PAYSECRET);
-		} catch (BusinessException be) {
-			ret.setStatus(MsgData.status_ng);
-			ret.setMessage(be.getMessage());
-			return ret;
-		} catch (Exception e) {
-			e.printStackTrace();
-			ret.setStatus(MsgData.status_ng);
-			ret.setMessage(StoreConstants.CHK_ERR_99999);
-			return ret;
-		}
-		return ret;
-	}
 
 	@RequestMapping(value = "/delivery/confirm", 
 			produces = {"application/json;charset=UTF-8"}, 
@@ -728,7 +701,7 @@ public class OrderController {
 				" || orderProductId: " + orderOperation.getOrderProductId());
 		MsgData ret = new MsgData();
 		try {
-			orderService.askChangeProdCust(customerid, orderOperation);
+			orderService.askReturnSalesProdCust(customerid, orderOperation);
 		} catch (BusinessException be) {
 			ret.setStatus(MsgData.status_ng);
 			ret.setMessage(be.getMessage());

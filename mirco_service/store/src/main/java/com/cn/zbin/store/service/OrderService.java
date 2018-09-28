@@ -922,7 +922,8 @@ public class OrderService {
 				!order.getCustomerId().equals(id))
 			throw new BusinessException(StoreConstants.CHK_ERR_90017);
 		if (!StoreKeyConstants.ORDER_STATUS_WAIT_DELIVERY.equals(order.getStatusCode()) &&
-				!StoreKeyConstants.ORDER_STATUS_CHANGING.equals(order.getStatusCode()))
+				!StoreKeyConstants.ORDER_STATUS_CHANGING.equals(order.getStatusCode()) &&
+				!StoreKeyConstants.ORDER_STATUS_RETURNING.equals(order.getStatusCode()))
 			throw new BusinessException(StoreConstants.CHK_ERR_90018);
 			
 		GuestOrderInfo record = new GuestOrderInfo();
@@ -953,6 +954,32 @@ public class OrderService {
 					orderProductMapper.updateByPrimaryKeySelective(rec);
 				}
 			}
+		} else if (StoreKeyConstants.ORDER_STATUS_RETURNING.equals(order.getStatusCode())) {
+			//订单为退货中时，关联订单商品的状态改为待退款，生成退款操作历史。
+			OrderProductExample exam_op = new OrderProductExample();
+			exam_op.createCriteria().andOrderIdEqualTo(orderid);
+			List<OrderProduct> prods = orderProductMapper.selectByExample(exam_op);
+			if (Utils.listNotNull(prods)) {
+				for (OrderProduct prod : prods) {
+					OrderProduct refOrderProd = orderProductMapper.selectByPrimaryKey(prod.getRefOrderProductId());
+					OrderOperationHistoryExample exam_ooh = new OrderOperationHistoryExample();
+					exam_ooh.createCriteria().andOrderIdEqualTo(refOrderProd.getOrderId())
+											.andOrderProductIdEqualTo(refOrderProd.getOrderProductId())
+											.andAskOperCodeEqualTo(StoreKeyConstants.ORDER_OPERATION_ASK_RETURN)
+											.andAnsOperCodeEqualTo(StoreKeyConstants.ORDER_OPERATION_CONF_RETURN);
+					List<OrderOperationHistory> opers = orderOperationHistoryMapper.selectByExample(exam_ooh);
+					if (Utils.listNotNull(opers)) {
+						OrderOperationHistory oper = opers.get(0);
+						Integer returnCnt = oper.getReturnCount();
+						ProductPrice unitPrice = getUnitPrice(Boolean.FALSE, null, refOrderProd.getProductId());
+						BigDecimal calcAmount = unitPrice.getRealPrice().multiply(new BigDecimal(returnCnt));
+						if (StoreKeyConstants.OPERATION_TYPE_MANAGEMENT.equals(type))
+							refundSalesOrderProduct(refOrderProd, id, calcAmount, oper.getOrderOperId());
+						else
+							refundSalesOrderProduct(refOrderProd, StoreKeyConstants.SYSTEM_EMP_ID, calcAmount, oper.getOrderOperId());
+					}
+				}
+			}
 		}
 		
 		OrderOperationHistory operation = new OrderOperationHistory();
@@ -962,6 +989,61 @@ public class OrderService {
 		operation.setAskTime(Utils.getChinaCurrentTime());
 		operation.setOrderId(orderid);
 		orderOperationHistoryMapper.insertSelective(operation);
+	}
+	
+
+	private void refundSalesOrderProduct(OrderProduct orderProd, String empid, BigDecimal calcAmount,
+			String orderOperId) {
+		orderProd.setUpdateEmpId(empid);
+		if (orderProd.getPaidAmount().compareTo(new BigDecimal(0)) == 0 && 
+				orderProd.getBail().compareTo(new BigDecimal(0)) == 0) {
+			orderProd.setRefundAmount(new BigDecimal(0));
+			orderProd.setRefundBail(new BigDecimal(0));
+			orderProd.setStatusCode(StoreKeyConstants.ORDER_PROD_STATUS_REFUNDED);
+		} else {
+			if (calcAmount.subtract(orderProd.getBail()).compareTo(new BigDecimal(0)) >= 0) {
+				orderProd.setRefundBail(orderProd.getBail());
+				calcAmount = calcAmount.subtract(orderProd.getBail());
+			} else {
+				orderProd.setRefundBail(calcAmount);
+				calcAmount = new BigDecimal(0);
+			}
+			if (calcAmount.subtract(orderProd.getPaidAmount()).compareTo(new BigDecimal(0)) >= 0) {
+				orderProd.setRefundAmount(orderProd.getPaidAmount());
+				calcAmount = calcAmount.subtract(orderProd.getPaidAmount());
+			} else {
+				orderProd.setRefundAmount(calcAmount);
+				calcAmount = new BigDecimal(0);
+			}
+			orderProd.setStatusCode(StoreKeyConstants.ORDER_PROD_STATUS_WAIT_REFUND);
+			
+			BigDecimal refundTotalAmount = orderProd.getRefundAmount().add(orderProd.getRefundBail());
+			if (refundTotalAmount.compareTo(new BigDecimal(0)) > 0) {
+				String orderId = orderProd.getOrderId();
+				GuestOrderInfo order = checkPaidGuestOrder(orderId);
+				WxPayHistory pay = checkPaidHistory(order.getPaymentVoucher(), orderId);
+				
+				WxRefundHistory refund = new WxRefundHistory();
+				refund.setOutRefundNo(Utils.getRefundNo());
+				refund.setOrderOperId(orderOperId);
+				refund.setOrderId(orderId);
+				refund.setTransactionId(pay.getTransactionId());
+				refund.setOutTradeNo(pay.getOutTradeNo());
+				refund.setTotalFee(pay.getTotalFee());
+				refund.setRefundFee(refundTotalAmount.multiply(new BigDecimal(100)).intValue());
+				refund.setRefundStatus(StoreKeyConstants.REFUND_STATE_NOREFUND);
+				refund.setWxApi("salesReturn");
+				wxRefundHistoryMapper.insertSelective(refund);
+				
+				orderProd.setRefundCode(refund.getOutRefundNo());
+			}
+		}
+		orderProductMapper.updateByPrimaryKey(orderProd);
+		
+		String refOrderProductId = orderProd.getRefOrderProductId();
+		if (refOrderProductId== null) return;
+		OrderProduct record = orderProductMapper.selectByPrimaryKey(refOrderProductId);
+		refundLeaseOrderProduct(record, empid, calcAmount, orderOperId);
 	}
 	
 	@Transactional
@@ -1213,6 +1295,11 @@ public class OrderService {
 								refType = StoreKeyConstants.REF_TYPE_CHANGE;
 							} else if (StoreKeyConstants.REF_TYPE_RETURN.equals(prod.getRefTypeCode())) {
 								refType = StoreKeyConstants.REF_TYPE_RETURN;
+								//关联订单商品状态：待回收
+								OrderProduct refProd = new OrderProduct();
+								refProd.setOrderProductId(prod.getRefOrderProductId());
+								refProd.setStatusCode(StoreKeyConstants.ORDER_PROD_STATUS_WAIT_RETURN);
+								orderProductMapper.updateByPrimaryKeySelective(refProd);
 							}
 						}
 						

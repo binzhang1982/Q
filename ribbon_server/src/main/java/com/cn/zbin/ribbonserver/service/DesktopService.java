@@ -178,8 +178,7 @@ public class DesktopService {
     	return "failed";
     }
     
-//    @HystrixCommand(fallbackMethod = "rejectReturnSalesProductError")
-    @HystrixCommand(fallbackMethod = "hystrixError")
+    @HystrixCommand(fallbackMethod = "rejectReturnSalesProductError")
     public String rejectReturnSalesProduct(String empid, String bean) {
     	Map<String, Object> uriVariables = new HashMap<String, Object>();
     	uriVariables.put("empid", empid);
@@ -193,10 +192,6 @@ public class DesktopService {
     			+ "?empid={empid}", request, String.class, uriVariables);
     }
     public String rejectReturnSalesProductError(String empid, String bean) {
-    	return "failed";
-    }
-    
-    public String hystrixError(String... args) {
     	return "failed";
     }
 }
