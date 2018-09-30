@@ -124,6 +124,55 @@ public class OrderService {
 	private MessageHistoryMapper messageHistoryMapper;
 	@Autowired
 	private WxRefundHistoryMapper wxRefundHistoryMapper;
+	
+	public void closeOrder() {
+		GuestOrderInfoExample exam_goi = new GuestOrderInfoExample();
+		exam_goi.createCriteria().andStatusCodeEqualTo(StoreKeyConstants.ORDER_STATUS_COMMENT_CONFIRM);
+		List<GuestOrderInfo> orderList = guestOrderInfoMapper.selectByExample(exam_goi);
+		if (Utils.listNotNull(orderList))
+			for (GuestOrderInfo order : orderList) {
+				OrderProductExample exam_op = new OrderProductExample();
+				exam_op.createCriteria().andOrderIdEqualTo(order.getOrderId());
+				List<OrderProduct> orderProds = orderProductMapper.selectByExample(exam_op);
+				if (Utils.listNotNull(orderProds)) {
+					boolean op_status = true;
+					for (OrderProduct orderProd : orderProds) {
+						if (orderProd.getPendingCount() > 0) {
+							if (!StoreKeyConstants.ORDER_PROD_STATUS_REFUNDED
+									.equals(orderProd.getStatusCode())) {
+								op_status = false;
+								break;
+							} else if (Utils.addTimeFromCurrentTime(Utils.INTERVAL_TYPE_DAY, 
+									0 - StoreKeyConstants.CLOSED_INTERVAL_DAYS)
+									.compareTo(orderProd.getActualPendingEndDate()) < 0) {
+								op_status = false;
+								break;
+							}
+						} else {
+							if (!StoreKeyConstants.ORDER_PROD_STATUS_USING
+									.equals(orderProd.getStatusCode()) && 
+								!StoreKeyConstants.ORDER_PROD_STATUS_REFUNDED
+									.equals(orderProd.getStatusCode())) {
+								op_status = false;
+								break;
+							} else if (Utils.addTimeFromCurrentTime(Utils.INTERVAL_TYPE_DAY, 
+									0 - StoreKeyConstants.CLOSED_INTERVAL_DAYS)
+									.compareTo(orderProd.getActualSendDate()) < 0) {
+								op_status = false;
+								break;
+							}
+						}
+					}
+					if (op_status) {
+						GuestOrderInfo record = new GuestOrderInfo();
+						record.setOrderId(order.getOrderId());
+						record.setStatusCode(StoreKeyConstants.ORDER_STATUS_CLOSED);
+						record.setUpdateEmpId(StoreKeyConstants.SYSTEM_EMP_ID);
+						guestOrderInfoMapper.updateByPrimaryKeySelective(record);
+					}
+				}
+			}
+	}
 
 	@Transactional
 	public String agreeReturnOrders(String empid, OrderOperationHistory orderOperation) {
@@ -271,6 +320,7 @@ public class OrderService {
 		ret.setPrePayAmount(prod.getService().compareTo(new BigDecimal(0)) != 0?
 				prod.getService():prod.getCarriage());
 		ret.setBail(new BigDecimal(0));
+		ret.setPendingCount(new Long(0));
 		ret.setIsDelete(Boolean.FALSE);
 		ret.setProductId(StoreKeyConstants.SUBSIDY_PROD_ID);
 		ret.setRefOrderProductId(refOrderProdId);
@@ -961,6 +1011,11 @@ public class OrderService {
 			List<OrderProduct> prods = orderProductMapper.selectByExample(exam_op);
 			if (Utils.listNotNull(prods)) {
 				for (OrderProduct prod : prods) {
+					OrderProduct rec = new OrderProduct();
+					rec.setOrderProductId(prod.getOrderProductId());
+					rec.setActualSendDate(Utils.getChinaCurrentTimeInDay());
+					orderProductMapper.updateByPrimaryKeySelective(rec);
+					
 					OrderProduct refOrderProd = orderProductMapper.selectByPrimaryKey(prod.getRefOrderProductId());
 					OrderOperationHistoryExample exam_ooh = new OrderOperationHistoryExample();
 					exam_ooh.createCriteria().andOrderIdEqualTo(refOrderProd.getOrderId())
@@ -978,6 +1033,19 @@ public class OrderService {
 						else
 							refundSalesOrderProduct(refOrderProd, StoreKeyConstants.SYSTEM_EMP_ID, calcAmount, oper.getOrderOperId());
 					}
+				}
+			}
+		} else if (StoreKeyConstants.ORDER_STATUS_CHANGING.equals(order.getStatusCode())) {
+			//订单为换货中时
+			OrderProductExample exam_op = new OrderProductExample();
+			exam_op.createCriteria().andOrderIdEqualTo(orderid);
+			List<OrderProduct> prods = orderProductMapper.selectByExample(exam_op);
+			if (Utils.listNotNull(prods)) {
+				for (OrderProduct prod : prods) {
+					OrderProduct rec = new OrderProduct();
+					rec.setOrderProductId(prod.getOrderProductId());
+					rec.setActualSendDate(Utils.getChinaCurrentTimeInDay());
+					orderProductMapper.updateByPrimaryKeySelective(rec);
 				}
 			}
 		}

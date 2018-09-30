@@ -30,23 +30,28 @@ public class StoreOrderTask {
 		asyncService.executeCommentDefaultOrderAsync();
 	}
 
-	@Scheduled(cron="0 0 7 * * ?")
+	@Scheduled(cron="0 0 9 * * ?")
 	public void dueLeaseOrderTask() {
-		asyncService.executDueLeaseOrderAsync();
+		asyncService.executeDueLeaseOrderAsync();
 	}
 	
 	@Scheduled(cron="0 0 0/1 * * ?")
 	public void dueNotifyTask() {
-		asyncService.executDueNotifyAsync();
+		asyncService.executeDueNotifyAsync();
 	}
 	
-	@Scheduled(cron="0 0 2 * * ?")
+	@Scheduled(cron="0 0 0/6 * * ?")
 	public void unifiedRefundTask() {
-		asyncService.executUnifiedRefundAsync();
+		asyncService.executeUnifiedRefundAsync();
 	}
 	
 	@Scheduled(cron="0 30 0/2 * * ?")
 	public void queryRefundTask() {
-		asyncService.executRefundQueryAsync();
+		asyncService.executeRefundQueryAsync();
+	}
+	
+	@Scheduled(cron="0 0 4 * * ?")
+	public void closeOrderTask() {
+		asyncService.executeCloseOrderAsync();
 	}
 }

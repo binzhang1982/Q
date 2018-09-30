@@ -755,4 +755,21 @@ public class OrderController {
 		}
 		return ret;
 	}
+
+	@RequestMapping(value = "/close/sys", 
+			method = { RequestMethod.POST })
+	public MsgData closeOrderBySystem() {
+		logger.info("post api: /order/close/sys");
+		MsgData ret = new MsgData();
+		try {
+			orderService.closeOrder();
+		} catch (BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getMessage());
+		} catch (Exception e) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(StoreConstants.CHK_ERR_99999);
+		}
+		return ret;
+	}
 }

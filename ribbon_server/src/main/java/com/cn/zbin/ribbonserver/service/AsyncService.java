@@ -68,7 +68,7 @@ public class AsyncService {
 	}
 	
 	@Async("asyncServiceExecutor")
-	public void executDueLeaseOrderAsync() {
+	public void executeDueLeaseOrderAsync() {
 		try {
 	    	String urlOrder = "http://SERVICE-STORE/order/lease/due/sys";
 	        restTemplate.postForObject(urlOrder, null, String.class);
@@ -78,7 +78,7 @@ public class AsyncService {
 	}
 
 	@Async("asyncServiceExecutor")
-	public void executDueNotifyAsync() {
+	public void executeDueNotifyAsync() {
 		try {
 	    	String urlMgmt = "http://SERVICE-MGMT/customer/due/notify/sys";
 	        restTemplate.getForObject(urlMgmt, String.class);
@@ -88,7 +88,7 @@ public class AsyncService {
 	}
 	
 	@Async("asyncServiceExecutor")
-	public void executUnifiedRefundAsync() {
+	public void executeUnifiedRefundAsync() {
 		try {
 	    	String urlStore = "http://SERVICE-STORE/order/wxrefund/unified/sys?appid={appid}";
 	    	Map<String, Object> uriVariables = new HashMap<String, Object>();
@@ -100,12 +100,22 @@ public class AsyncService {
 	}
 	
 	@Async("asyncServiceExecutor")
-	public void executRefundQueryAsync() {
+	public void executeRefundQueryAsync() {
 		try {
 	    	String urlStore = "http://SERVICE-STORE/order/wxrefund/query/sys?appid={appid}";
 	    	Map<String, Object> uriVariables = new HashMap<String, Object>();
 	    	uriVariables.put("appid", RibbonKeyConstants.APPID);
 	        restTemplate.postForObject(urlStore, null, String.class, uriVariables);
+		} catch (RestClientException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	@Async("asyncServiceExecutor")
+	public void executeCloseOrderAsync() {
+		try {
+	    	String urlStore = "http://SERVICE-STORE/order/close/sys";
+	        restTemplate.postForObject(urlStore, null, String.class);
 		} catch (RestClientException e) {
 			e.printStackTrace();
 		}
