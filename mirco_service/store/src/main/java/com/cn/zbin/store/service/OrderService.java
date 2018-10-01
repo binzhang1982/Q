@@ -26,6 +26,7 @@ import com.cn.zbin.store.bto.OrderProductOverView;
 import com.cn.zbin.store.bto.WxPayH5Param;
 import com.cn.zbin.store.dto.CodeDictInfo;
 import com.cn.zbin.store.dto.CustomerAddress;
+import com.cn.zbin.store.dto.CustomerAddressExample;
 import com.cn.zbin.store.dto.CustomerInfo;
 import com.cn.zbin.store.dto.CustomerInvoice;
 import com.cn.zbin.store.dto.EmployeeInfo;
@@ -710,10 +711,19 @@ public class OrderService {
 	public void addDesktopProcNotifyMessage(String openId, String msg) {
 		addWechatMessage(openId, msg);
 	}
+
+	public List<String> getOverDueOrderIds(Integer dueDays) {
+		List<String> ret = new ArrayList<String>();
+		List<OrderProduct> orderProds = getOverDueLeaseProd(dueDays);
+		if (Utils.listNotNull(orderProds))
+			for (OrderProduct orderProd : orderProds)
+				if (!ret.contains(orderProd.getOrderId()))
+					ret.add(orderProd.getOrderId());
+		return ret;
+	}
 	
-	public List<OrderProduct> getOverDueLeaseProd() {
-		Date dueTime = Utils.addTimeFromCurrentTime(Utils.INTERVAL_TYPE_DAY
-				, StoreKeyConstants.END_INTERVAL_DAYS);
+	public List<OrderProduct> getOverDueLeaseProd(Integer dueDays) {
+		Date dueTime = Utils.addTimeFromCurrentTime(Utils.INTERVAL_TYPE_DAY, dueDays);
 		OrderProductExample exam_op = new OrderProductExample();
 		exam_op.createCriteria().andActualPendingEndDateLessThanOrEqualTo(dueTime)
 								.andStatusCodeEqualTo(StoreKeyConstants.ORDER_PROD_STATUS_USING)
@@ -1572,6 +1582,65 @@ public class OrderService {
 		if (opertionType == StoreKeyConstants.OPERATION_TYPE_MANAGEMENT)
 			record.setUpdateEmpId(operatorId);
 		guestOrderInfoMapper.updateByPrimaryKeySelective(record);
+	}
+	
+	public Long countOrder(Integer lease) {
+		return new Long(orderProductMapper.countOrderByLeaseFlag(lease));
+	}
+	
+	public List<String> getCustAddress(String name, String telno) {
+		List<String> ret = new ArrayList<String>();
+		if (name == null && telno == null) return ret;
+		CustomerAddressExample exam_ca = new CustomerAddressExample();
+		exam_ca.createCriteria();
+		if (name != null)
+			exam_ca.getOredCriteria().get(0).andRecipientNameEqualTo(name);
+		if (telno != null)
+			exam_ca.getOredCriteria().get(0).andRecipientPhoneEqualTo(telno);
+		List<CustomerAddress> addrs = customerAddressMapper.selectByExample(exam_ca);
+		if (Utils.listNotNull(addrs)) 
+			for (CustomerAddress addr : addrs)
+				ret.add(addr.getCustAddressId());
+		
+		return ret;
+	}
+	
+	public Long countGuestOrderList(String status, Date createDate, 
+			List<String> custAddressIds, List<String> orderIds) {
+		return new Long(guestOrderInfoMapper.countByExample(
+				createGuestOrderInfoExample(status, createDate, custAddressIds, orderIds)));
+	}
+	
+	public List<GuestOrderOverView> getGuestOrderList(String status, Date createDate, 
+			List<String> custAddressIds, List<String> orderIds, Integer offset, Integer limit) {
+		List<GuestOrderOverView> ret = new ArrayList<GuestOrderOverView>();
+		List<GuestOrderInfo> guestOrderList = guestOrderInfoMapper.selectOnePageByExample(
+				createGuestOrderInfoExample(status, createDate, custAddressIds, orderIds), offset, 
+				limit, "update_time desc");
+		if (Utils.listNotNull(guestOrderList)) {
+			for (GuestOrderInfo guestOrder : guestOrderList) {
+				ret.add(getGuestOrderOverView(guestOrder));
+			}
+		}
+		return ret;
+	}
+
+	private GuestOrderInfoExample createGuestOrderInfoExample(String status, 
+			Date createDate, List<String> custAddressIds, List<String> orderIds) {
+		GuestOrderInfoExample exam_go = new GuestOrderInfoExample();
+		exam_go.createCriteria();
+		if (status != null)
+			exam_go.getOredCriteria().get(0).andStatusCodeEqualTo(status);
+		if (createDate != null)
+			exam_go.getOredCriteria().get(0)
+				.andCreateTimeGreaterThanOrEqualTo(createDate)
+				.andCreateTimeLessThan(DateUtils.addDays(createDate, 1));
+		if (Utils.listNotNull(custAddressIds))
+			exam_go.getOredCriteria().get(0).andCustAddressIdIn(custAddressIds);
+		if (Utils.listNotNull(orderIds))
+			exam_go.getOredCriteria().get(0).andOrderIdIn(orderIds);
+		
+		return exam_go;
 	}
 	
 	public List<GuestOrderOverView> getGuestOrderList(String customerid,

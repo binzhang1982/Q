@@ -24,25 +24,6 @@ public class DesktopController {
 	protected static final Logger logger = LoggerFactory.getLogger(DesktopController.class);
     @Autowired
     private DesktopService desktopService;
-
-    @GetMapping(value = "/order/list")
-    @CrossOrigin
-	public String getOrderList(
-			@RequestParam(value = "empid", required = true) String empid,
-			@RequestParam(value = "token", required = true) String token,
-			@RequestParam(value = "status", required = false) String status,
-			@RequestParam(value = "offset", required = false) Integer offset, 
-			@RequestParam(value = "limit", required = false) Integer limit) {
-    	logger.info("get api /desktop/order/list || empid: " + empid
-				+ " || token: " + token + " || status: " + status
-				+ " || offset: " + offset + " || limit: " + limit);
-    	String strToken = checkToken(empid, token);
-    	if (!"".equals(strToken)) return strToken;
-    	String strAuth = checkAuth(empid, RibbonKeyConstants.AUTH_ORDER);
-    	if (!"".equals(strAuth)) return strAuth;
-    	
-    	return "";
-    }
     
     @PostMapping(value = "/order/courier")
     @CrossOrigin
@@ -190,6 +171,77 @@ public class DesktopController {
     	if (!"".equals(strAuth)) return strAuth;
     	
     	return desktopService.rejectReturnSalesProduct(empid, bean);
+    }
+    
+    @GetMapping(value = "/customer/count")
+    @CrossOrigin
+    public String countCustomer(
+    		@RequestParam(value = "empid", required = true) String empid,
+			@RequestParam(value = "token", required = true) String token) {
+    	logger.info("get api /desktop/customer/count || empid: " + empid
+				+ " || token: " + token);
+    	String strToken = checkToken(empid, token);
+    	if (!"".equals(strToken)) return strToken;
+    	String strAuth = checkAuth(empid, RibbonKeyConstants.AUTH_MEMBER);
+    	if (!"".equals(strAuth)) return strAuth;
+    	
+    	return desktopService.countCustomer();
+    }
+
+    @GetMapping(value = "/order/count")
+    @CrossOrigin
+    public String countOrder(
+    		@RequestParam(value = "empid", required = true) String empid,
+			@RequestParam(value = "token", required = true) String token,
+			@RequestParam(value = "lease", required = true) Integer lease) {
+    	logger.info("get api /desktop/order/count || empid: " + empid
+				+ " || token: " + token + " || lease: " + lease);
+    	String strToken = checkToken(empid, token);
+    	if (!"".equals(strToken)) return strToken;
+    	String strAuth = checkAuth(empid, RibbonKeyConstants.AUTH_ORDER);
+    	if (!"".equals(strAuth)) return strAuth;
+    	
+    	return desktopService.countOrder(lease);
+    }
+
+    @GetMapping(value = "/order/list")
+    @CrossOrigin
+    public String getOrderList(
+    		@RequestParam(value = "empid", required = true) String empid,
+			@RequestParam(value = "token", required = true) String token,
+			@RequestParam(value = "status", required = false) String status,
+			@RequestParam(value = "createdate", required = false) String createdate,
+			@RequestParam(value = "name", required = false) String name,
+			@RequestParam(value = "telno", required = false) String telno,
+			@RequestParam(value = "offset", required = false) Integer offset,
+			@RequestParam(value = "limit", required = false) Integer limit) {
+    	logger.info("get api /desktop/order/list || empid: " + empid
+				+ " || token: " + token + " || status: " + status
+				+ " || createdate: " + createdate + " || name: " + name
+				+ " || telno: " + telno + " || offset: " + offset + " || limit: " + limit);
+    	String strToken = checkToken(empid, token);
+    	if (!"".equals(strToken)) return strToken;
+    	String strAuth = checkAuth(empid, RibbonKeyConstants.AUTH_ORDER);
+    	if (!"".equals(strAuth)) return strAuth;
+    	
+    	return desktopService.getOrderList(status, createdate, name, telno, offset, limit);
+    }
+    
+    @GetMapping(value = "/order/due/list")
+    @CrossOrigin
+    public String getDueOrderList(
+    		@RequestParam(value = "empid", required = true) String empid,
+			@RequestParam(value = "token", required = true) String token,
+			@RequestParam(value = "offset", required = false) Integer offset,
+			@RequestParam(value = "limit", required = false) Integer limit) {
+    	logger.info("get api /desktop/order/list || empid: " + empid
+				+ " || token: " + token + " || offset: " + offset + " || limit: " + limit);
+    	String strToken = checkToken(empid, token);
+    	if (!"".equals(strToken)) return strToken;
+    	String strAuth = checkAuth(empid, RibbonKeyConstants.AUTH_ORDER);
+    	if (!"".equals(strAuth)) return strAuth;
+    	
+    	return desktopService.getDueOrderList(offset, limit);
     }
     
     private String checkToken(String empid, String token) {

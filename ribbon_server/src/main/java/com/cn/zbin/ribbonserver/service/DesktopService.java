@@ -39,15 +39,6 @@ public class DesktopService {
     public String checkAuthError(String empid, String auth) {
     	return "failed";
     }
-    
-    
-    @HystrixCommand(fallbackMethod = "getOrderListError")
-    public String getOrderList(String status, Integer offset, Integer limit) {
-    	return "";
-    }
-    public String getOrderListError(String status, Integer offset, Integer limit) {
-    	return "failed";
-    }
 
     @HystrixCommand(fallbackMethod = "setOrderCourierNumberError")
     public String setOrderCourierNumber(String empid, String orderid, String courierno) {
@@ -192,6 +183,58 @@ public class DesktopService {
     			+ "?empid={empid}", request, String.class, uriVariables);
     }
     public String rejectReturnSalesProductError(String empid, String bean) {
+    	return "failed";
+    }
+
+    @HystrixCommand(fallbackMethod = "countCustomerError")
+    public String countCustomer() {
+        return restTemplate.getForObject("http://SERVICE-MGMT/customer/count", String.class);
+    }
+    public String countCustomerError() {
+    	return "failed";
+    }
+
+    @HystrixCommand(fallbackMethod = "countOrderError")
+    public String countOrder(Integer lease) {
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("lease", lease);
+        return restTemplate.getForObject("http://SERVICE-STORE/order/count?lease={lease}", 
+        		String.class, uriVariables);
+    }
+    public String countOrderError(Integer lease) {
+    	return "failed";
+    }
+    
+    @HystrixCommand(fallbackMethod = "getOrderListError")
+    public String getOrderList(String status, String createdate, 
+    		String name, String telno, Integer offset, Integer limit) {
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("status", status != null ? status : "");
+    	uriVariables.put("createdate", createdate != null ? createdate : "");
+    	uriVariables.put("name", name != null ? name : "");
+    	uriVariables.put("telno", telno != null ? telno : "");
+    	uriVariables.put("offset", offset != null ? offset : "");
+    	uriVariables.put("limit", limit != null ? limit : "");
+    	
+        return restTemplate.getForObject("http://SERVICE-STORE/order/list/sys?status={status}"
+        		+ "&createdate={createdate}&name={name}&telno={telno}&offset={offset}&limit={limit}", 
+        		String.class, uriVariables);
+    }
+    public String getOrderListError(String status, String createdate, 
+    		String name, String telno, Integer offset, Integer limit) {
+    	return "failed";
+    }
+
+    @HystrixCommand(fallbackMethod = "getDueOrderListError")
+    public String getDueOrderList(Integer offset, Integer limit) {
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("offset", offset != null ? offset : "");
+    	uriVariables.put("limit", limit != null ? limit : "");
+    	
+        return restTemplate.getForObject("http://SERVICE-STORE/order/due/list/sys"
+        		+ "?offset={offset}&limit={limit}", String.class, uriVariables);
+    }
+    public String getDueOrderListError(Integer offset, Integer limit) {
     	return "failed";
     }
 }

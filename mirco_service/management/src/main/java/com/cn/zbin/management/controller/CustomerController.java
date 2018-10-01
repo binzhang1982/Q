@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cn.zbin.management.bto.CountMsgData;
 import com.cn.zbin.management.bto.CustomerAddressMsgData;
 import com.cn.zbin.management.bto.CustomerAddressOverView;
 import com.cn.zbin.management.bto.CustomerInfoMsgData;
@@ -37,6 +38,24 @@ public class CustomerController {
 	private CustomerService customerService;
 	@Autowired
 	private SmsService smsService;
+
+	@RequestMapping(value = "/count", 
+			produces = {"application/json;charset=UTF-8"}, 
+			method = { RequestMethod.GET })
+	public CountMsgData countCustomer() {
+		logger.info("get api: /customer/count");
+		CountMsgData ret = new CountMsgData();
+		try {
+			ret.setCount(customerService.countCustomer());
+		} catch (BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getMessage());
+		} catch (Exception e) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(MgmtConstants.CHK_ERR_99999);
+		}
+		return ret;
+	}
 	
 	@RequestMapping(value = "",
 			method = { RequestMethod.POST })

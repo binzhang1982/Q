@@ -1,5 +1,6 @@
 package com.cn.zbin.store.controller;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -14,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cn.zbin.store.bto.CountMsgData;
+import com.cn.zbin.store.bto.GuestOrderListMsgData;
 import com.cn.zbin.store.bto.GuestOrderOverView;
 import com.cn.zbin.store.bto.LeaseCalcAmountMsgData;
 import com.cn.zbin.store.bto.MsgData;
@@ -66,6 +69,88 @@ public class OrderController {
 			ret.setStatus(MsgData.status_ng);
 			ret.setMessage(be.getMessage());
 		} catch (Exception e) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(StoreConstants.CHK_ERR_99999);
+		}
+		return ret;
+	}
+
+	@RequestMapping(value = "/count", 
+			produces = {"application/json;charset=UTF-8"}, 
+			method = { RequestMethod.GET })
+	public CountMsgData countOrder(
+			@RequestParam("lease") Integer lease) {
+		logger.info("get api: /order/count || lease: " + lease);
+		CountMsgData ret = new CountMsgData();
+		try {
+			ret.setCount(orderService.countOrder(lease));
+		} catch (BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getMessage());
+		} catch (Exception e) {
+			e.printStackTrace();
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(StoreConstants.CHK_ERR_99999);
+		}
+		return ret;
+	}
+	
+
+	@RequestMapping(value = "/due/list/sys",
+			produces = {"application/json;charset=UTF-8"}, 
+			method = { RequestMethod.GET })
+	public GuestOrderListMsgData getDueList(
+			@RequestParam(value = "offset", required = false) Integer offset, 
+			@RequestParam(value = "limit", required = false) Integer limit) {
+		logger.info("get api: /order/due/list/sys"
+				+ " || offset: " + offset + " || limit: " + limit);
+		GuestOrderListMsgData ret = new GuestOrderListMsgData();
+		try {
+			List<String> dueOrderIds = orderService.getOverDueOrderIds(
+					StoreKeyConstants.NOTIFY_END_INTERVAL_DAYS);
+			if (Utils.listNotNull(dueOrderIds)) {
+				ret.setTotalCount(orderService.countGuestOrderList(null, null, null, dueOrderIds));
+				ret.setGuestOrderList(orderService.getGuestOrderList(null, null, null, dueOrderIds,
+						offset, limit));
+			} else {
+				ret.setGuestOrderList(new ArrayList<GuestOrderOverView>());
+			}
+		} catch (BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getMessage());
+		} catch (Exception e) {
+			e.printStackTrace();
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(StoreConstants.CHK_ERR_99999);
+		}
+		return ret;
+	}
+	
+	@RequestMapping(value = "/list/sys", 
+			produces = {"application/json;charset=UTF-8"}, 
+			method = { RequestMethod.GET })
+	public GuestOrderListMsgData getGuestOrderListSys(
+			@RequestParam(value = "status", required = false) String status,
+			@RequestParam(value = "createdate", required = false) 
+			@DateTimeFormat(pattern="yyyy-MM-dd") Date createdate,
+			@RequestParam(value = "name", required = false) String name,
+			@RequestParam(value = "telno", required = false) String telno,
+			@RequestParam(value = "offset", required = false) Integer offset, 
+			@RequestParam(value = "limit", required = false) Integer limit) {
+		logger.info("get api: /order/list/sys || status: " + status 
+				+ " || createdate: " + createdate + " || name: " + name + " || telno: " + telno
+				+ " || offset: " + offset + " || limit: " + limit);
+		GuestOrderListMsgData ret = new GuestOrderListMsgData();
+		try {
+			List<String> custAddressIds = orderService.getCustAddress(name, telno);
+			ret.setTotalCount(orderService.countGuestOrderList(status, createdate, custAddressIds, null));
+			ret.setGuestOrderList(orderService.getGuestOrderList(status, createdate, custAddressIds, null,
+					offset, limit));
+		} catch (BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getMessage());
+		} catch (Exception e) {
+			e.printStackTrace();
 			ret.setStatus(MsgData.status_ng);
 			ret.setMessage(StoreConstants.CHK_ERR_99999);
 		}
@@ -457,7 +542,8 @@ public class OrderController {
 		MsgData ret = new MsgData();
 		//给顾客:即将租赁到期
 		try {
-			List<OrderProduct> dueOrderProds = orderService.getOverDueLeaseProd();
+			List<OrderProduct> dueOrderProds = orderService.getOverDueLeaseProd(
+					StoreKeyConstants.END_INTERVAL_DAYS);
 			for (OrderProduct prod : dueOrderProds) {
 				try {
 					orderService.askEndLeaseProdSys(prod);

@@ -51,6 +51,10 @@ public class CustomerService {
 	@Autowired
 	private CustomerDiseaseHistoryMapper customerDiseaseHistoryMapper;
 
+	public Long countCustomer() {
+		return new Long(customerInfoMapper.countByExample(new CustomerInfoExample()));
+	}
+	
 	@Transactional
 	public void updDiseaseHistory(String customerid, List<CustomerDiseaseHistory> diseaseList)
 		throws BusinessException,Exception {

@@ -93,4 +93,8 @@ public interface OrderProductMapper {
      * @mbggenerated
      */
     int updateByPrimaryKey(OrderProduct record);
+    
+    
+    
+    int countOrderByLeaseFlag(@Param("lease") Integer lease);
 }
