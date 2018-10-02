@@ -17,12 +17,14 @@ import com.cn.zbin.store.dto.ProductImageExample;
 import com.cn.zbin.store.dto.ProductInfo;
 import com.cn.zbin.store.dto.ProductPrice;
 import com.cn.zbin.store.dto.ProductPriceExample;
+import com.cn.zbin.store.dto.ProductStockExample;
 import com.cn.zbin.store.dto.ShoppingTrolleyInfo;
 import com.cn.zbin.store.dto.ShoppingTrolleyInfoExample;
 import com.cn.zbin.store.exception.BusinessException;
 import com.cn.zbin.store.mapper.ProductImageMapper;
 import com.cn.zbin.store.mapper.ProductInfoMapper;
 import com.cn.zbin.store.mapper.ProductPriceMapper;
+import com.cn.zbin.store.mapper.ProductStockMapper;
 import com.cn.zbin.store.mapper.ShoppingTrolleyInfoMapper;
 import com.cn.zbin.store.utils.StoreConstants;
 import com.cn.zbin.store.utils.StoreKeyConstants;
@@ -39,6 +41,8 @@ public class TrolleyService {
 	private ProductImageMapper productImageMapper;
 	@Autowired
 	private ProductPriceMapper productPriceMapper;
+	@Autowired
+	private ProductStockMapper productStockMapper;
 	
 	public ShoppingTrolleyOverView getTrolleyList(String custid, String strScope) {
 		ShoppingTrolleyOverView ret = new ShoppingTrolleyOverView();
@@ -125,7 +129,7 @@ public class TrolleyService {
 				record.setDeleteCode(StoreKeyConstants.TROLLEY_DEL_REASON_GUEST);
 				shoppingTrolleyInfoMapper.updateByPrimaryKeySelective(record);
 				msg = StoreConstants.CHK_ERR_90011;
-			} else if (saleCnt > product.getStock()) {
+			} else if (saleCnt > getProductStockQuantity(prodID)) {
 				throw new BusinessException(StoreConstants.CHK_ERR_90002);
 			} else {
 				record = new ShoppingTrolleyInfo();
@@ -191,5 +195,11 @@ public class TrolleyService {
 				shoppingTrolleyInfoMapper.insertSelective(trolleyBean);
 			}
 		}
+	}
+	
+	private Integer getProductStockQuantity(String prodID) {
+		ProductStockExample exam_ps = new ProductStockExample();
+		exam_ps.createCriteria().andProductIdEqualTo(prodID);
+		return productStockMapper.sumByExample(exam_ps);
 	}
 }

@@ -48,6 +48,8 @@ import com.cn.zbin.store.dto.ProductImageExample;
 import com.cn.zbin.store.dto.ProductInfo;
 import com.cn.zbin.store.dto.ProductPrice;
 import com.cn.zbin.store.dto.ProductPriceExample;
+import com.cn.zbin.store.dto.ProductStock;
+import com.cn.zbin.store.dto.ProductStockExample;
 import com.cn.zbin.store.dto.ShoppingTrolleyInfo;
 import com.cn.zbin.store.dto.ShoppingTrolleyInfoExample;
 import com.cn.zbin.store.dto.WeChatMessageHistory;
@@ -72,6 +74,7 @@ import com.cn.zbin.store.mapper.ProductCommentMapper;
 import com.cn.zbin.store.mapper.ProductImageMapper;
 import com.cn.zbin.store.mapper.ProductInfoMapper;
 import com.cn.zbin.store.mapper.ProductPriceMapper;
+import com.cn.zbin.store.mapper.ProductStockMapper;
 import com.cn.zbin.store.mapper.ShoppingTrolleyInfoMapper;
 import com.cn.zbin.store.mapper.WeChatMessageHistoryMapper;
 import com.cn.zbin.store.mapper.WxPayHistoryMapper;
@@ -125,6 +128,8 @@ public class OrderService {
 	private MessageHistoryMapper messageHistoryMapper;
 	@Autowired
 	private WxRefundHistoryMapper wxRefundHistoryMapper;
+	@Autowired
+	private ProductStockMapper productStockMapper;
 	
 	public void closeOrder() {
 		GuestOrderInfoExample exam_goi = new GuestOrderInfoExample();
@@ -554,6 +559,13 @@ public class OrderService {
 		operation.setCalcAmount(calcAmount.getAmount());
 		operation.setPayRefundType(StoreKeyConstants.REFUND_TYPE);
 		orderOperationHistoryMapper.updateByPrimaryKey(operation);
+		
+		ProductStock stock = new ProductStock();
+		stock.setProductStockId(UUID.randomUUID().toString());
+		stock.setProductId(orderProd.getProductId());
+		stock.setQuantity(orderProd.getSaleCount());
+		stock.setStockType(StoreKeyConstants.STOCK_TYPE_RECYCLE);
+		productStockMapper.insertSelective(stock);
 		
 		//逐级退款
 		refundLeaseOrderProduct(orderProd, empid, calcAmount.getAmount(), orderOperation.getOrderOperId());
@@ -1043,6 +1055,13 @@ public class OrderService {
 						else
 							refundSalesOrderProduct(refOrderProd, StoreKeyConstants.SYSTEM_EMP_ID, calcAmount, oper.getOrderOperId());
 					}
+					
+					ProductStock stock = new ProductStock();
+					stock.setProductStockId(UUID.randomUUID().toString());
+					stock.setProductId(refOrderProd.getProductId());
+					stock.setQuantity(refOrderProd.getSaleCount());
+					stock.setStockType(StoreKeyConstants.STOCK_TYPE_RETURN);
+					productStockMapper.insertSelective(stock);
 				}
 			}
 		} else if (StoreKeyConstants.ORDER_STATUS_CHANGING.equals(order.getStatusCode())) {
@@ -1582,6 +1601,19 @@ public class OrderService {
 		if (opertionType == StoreKeyConstants.OPERATION_TYPE_MANAGEMENT)
 			record.setUpdateEmpId(operatorId);
 		guestOrderInfoMapper.updateByPrimaryKeySelective(record);
+		
+		OrderProductExample exam_op = new OrderProductExample();
+		exam_op.createCriteria().andOrderIdEqualTo(operation.getOrderId());
+		List<OrderProduct> orderProds = orderProductMapper.selectByExample(exam_op);
+		if (Utils.listNotNull(orderProds))
+			for (OrderProduct orderProd : orderProds) {
+				ProductStock stock = new ProductStock();
+				stock.setProductStockId(UUID.randomUUID().toString());
+				stock.setProductId(orderProd.getProductId());
+				stock.setQuantity(orderProd.getSaleCount());
+				stock.setStockType(StoreKeyConstants.STOCK_TYPE_CANCEL);
+				productStockMapper.insertSelective(stock);
+			}
 	}
 	
 	public Long countOrder(Integer lease) {
@@ -1767,6 +1799,13 @@ public class OrderService {
 			orderProd.setCreateEmpId(StoreKeyConstants.SYSTEM_EMP_ID);
 			orderProd.setUpdateEmpId(StoreKeyConstants.SYSTEM_EMP_ID);
 			orderProductMapper.insert(orderProd);
+			
+			ProductStock stock = new ProductStock();
+			stock.setProductStockId(UUID.randomUUID().toString());
+			stock.setProductId(orderProd.getProductId());
+			stock.setQuantity(0 - orderProd.getSaleCount());
+			stock.setStockType(StoreKeyConstants.STOCK_TYPE_BUY);
+			productStockMapper.insertSelective(stock);
 		}
 		
 		if (totalAmount.compareTo(actualAmount) != 0) 
@@ -1971,5 +2010,11 @@ public class OrderService {
 			}
 		}
 		return null;
+	}
+	
+	private Integer getProductStockQuantity(String prodID) {
+		ProductStockExample exam_ps = new ProductStockExample();
+		exam_ps.createCriteria().andProductIdEqualTo(prodID);
+		return productStockMapper.sumByExample(exam_ps);
 	}
 }

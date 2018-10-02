@@ -40,6 +40,7 @@ import com.cn.zbin.store.dto.ProductInfo;
 import com.cn.zbin.store.dto.ProductInfoExample;
 import com.cn.zbin.store.dto.ProductPrice;
 import com.cn.zbin.store.dto.ProductPriceExample;
+import com.cn.zbin.store.dto.ProductStockExample;
 import com.cn.zbin.store.dto.ProductViewHistory;
 import com.cn.zbin.store.dto.WeChatUserInfo;
 import com.cn.zbin.store.exception.BusinessException;
@@ -52,6 +53,7 @@ import com.cn.zbin.store.mapper.ProductImageMapper;
 import com.cn.zbin.store.mapper.ProductInfoMapper;
 import com.cn.zbin.store.mapper.ProductPriceMapper;
 import com.cn.zbin.store.mapper.ProductServiceAreaMapper;
+import com.cn.zbin.store.mapper.ProductStockMapper;
 import com.cn.zbin.store.mapper.ProductViewHistoryMapper;
 import com.cn.zbin.store.mapper.WeChatUserInfoMapper;
 import com.cn.zbin.store.utils.StoreConstants;
@@ -83,6 +85,8 @@ public class ProductService {
 	private CustomerInfoMapper customerInfoMapper;
 	@Autowired
 	private WeChatUserInfoMapper weChatUserInfoMapper;
+	@Autowired
+	private ProductStockMapper productStockMapper;
 	
 	public PendingDate calcPendingCount(String pendingStartDate, String pendingEndDate) {
 		PendingDate ret = new PendingDate();
@@ -168,6 +172,7 @@ public class ProductService {
 		ProductDetail ret = new ProductDetail();
 		ret.setProductInfo(productInfoMapper.selectByPrimaryKey(prodID));
 		if (ret.getProductInfo() != null) {
+			ret.getProductInfo().setStock(getProductStockQuantity(prodID));
 			ProductCommentExample exam_pc = new ProductCommentExample();
 			exam_pc.createCriteria().andProductIdEqualTo(prodID);
 			ret.setCommentCount(productCommentMapper.countByExample(exam_pc));
@@ -187,7 +192,6 @@ public class ProductService {
 						}
 					}
 				}
-//				ret.setLastestComment(commentList.get(0));
 			}
 			
 			ProductPriceExample exam_pp = new ProductPriceExample();
@@ -296,6 +300,7 @@ public class ProductService {
 					}
 					prodOutLine = new ProductOutline();
 					pi = pi_list.get(i);
+					pi.setStock(getProductStockQuantity(pi.getProductId()));
 					prodOutLine.setProdInfo(pi);
 					prodOutLine.setMinProdPrice(getMinProductPrice(pi.getProductId()));
 					prodOutLine.setFrontCoverImage(getFrontCoverImage(pi.getProductId()));
@@ -311,6 +316,7 @@ public class ProductService {
 				ProductOutline prodOutLine;
 				for (ProductInfo pi : pi_list) {
 					prodOutLine = new ProductOutline();
+					pi.setStock(getProductStockQuantity(pi.getProductId()));
 					prodOutLine.setProdInfo(pi);
 					prodOutLine.setMinProdPrice(getMinProductPrice(pi.getProductId()));
 					prodOutLine.setFrontCoverImage(getFrontCoverImage(pi.getProductId()));
@@ -343,5 +349,11 @@ public class ProductService {
 		} else {
 			return new ProductPrice();
 		}
+	}
+	
+	private Integer getProductStockQuantity(String prodID) {
+		ProductStockExample exam_ps = new ProductStockExample();
+		exam_ps.createCriteria().andProductIdEqualTo(prodID);
+		return productStockMapper.sumByExample(exam_ps);
 	}
 }
