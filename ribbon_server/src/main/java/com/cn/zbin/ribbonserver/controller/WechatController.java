@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -52,13 +51,6 @@ public class WechatController {
 		logger.info("post api: /wechat/hi || signature: " + signature + " || timestamp: " + timestamp
 				+ " || nonce: " + nonce + " || bean: " + msg.toString());
 		return wechatService.postEventService(signature, timestamp, nonce, msg);
-	}
-	
-	@PutMapping(value = "/partner")
-	@CrossOrigin
-	public String createPartner(@RequestParam("scenestr") String scenestr) {
-		logger.info("put api: /wechat/partner || scenestr: " + scenestr);
-		return wechatService.createPartner(scenestr);
 	}
 	
 	@PostMapping(value = "/user")

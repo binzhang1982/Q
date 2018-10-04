@@ -94,7 +94,6 @@ public class OrderController {
 		}
 		return ret;
 	}
-	
 
 	@RequestMapping(value = "/due/list/sys",
 			produces = {"application/json;charset=UTF-8"}, 
@@ -109,9 +108,10 @@ public class OrderController {
 			List<String> dueOrderIds = orderService.getOverDueOrderIds(
 					StoreKeyConstants.NOTIFY_END_INTERVAL_DAYS);
 			if (Utils.listNotNull(dueOrderIds)) {
-				ret.setTotalCount(orderService.countGuestOrderList(null, null, null, dueOrderIds));
-				ret.setGuestOrderList(orderService.getGuestOrderList(null, null, null, dueOrderIds,
-						offset, limit));
+				ret.setTotalCount(orderService.countGuestOrderList(
+						null, null, null, null, dueOrderIds));
+				ret.setGuestOrderList(orderService.getGuestOrderList(
+						null, null, null, null, dueOrderIds, offset, limit));
 			} else {
 				ret.setGuestOrderList(new ArrayList<GuestOrderOverView>());
 			}
@@ -133,6 +133,7 @@ public class OrderController {
 			@RequestParam(value = "status", required = false) String status,
 			@RequestParam(value = "createdate", required = false) 
 			@DateTimeFormat(pattern="yyyy-MM-dd") Date createdate,
+			@RequestParam(value = "customerid", required = true) String customerid,
 			@RequestParam(value = "name", required = false) String name,
 			@RequestParam(value = "telno", required = false) String telno,
 			@RequestParam(value = "offset", required = false) Integer offset, 
@@ -143,9 +144,10 @@ public class OrderController {
 		GuestOrderListMsgData ret = new GuestOrderListMsgData();
 		try {
 			List<String> custAddressIds = orderService.getCustAddress(name, telno);
-			ret.setTotalCount(orderService.countGuestOrderList(status, createdate, custAddressIds, null));
-			ret.setGuestOrderList(orderService.getGuestOrderList(status, createdate, custAddressIds, null,
-					offset, limit));
+			ret.setTotalCount(orderService.countGuestOrderList(status, createdate, customerid, 
+					custAddressIds, null));
+			ret.setGuestOrderList(orderService.getGuestOrderList(status, createdate, customerid, 
+					custAddressIds, null, offset, limit));
 		} catch (BusinessException be) {
 			ret.setStatus(MsgData.status_ng);
 			ret.setMessage(be.getMessage());

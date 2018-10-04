@@ -57,6 +57,12 @@ public class WechatUserService {
 		}
 	}
 	
+	public Integer checkQrSceneStr(PromotionPartnerInfo partner) {
+		PromotionPartnerInfoExample exam_pp = new PromotionPartnerInfoExample();
+		exam_pp.createCriteria().andSceneStrEqualTo(partner.getSceneStr());
+		return promotionPartnerInfoMapper.countByExample(exam_pp);
+	}
+	
 	@Transactional
 	public void postUser(WeChatUserBaseInfo userBaseInfo) 
 			throws BusinessException, Exception {

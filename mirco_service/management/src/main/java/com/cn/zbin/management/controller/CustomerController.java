@@ -17,6 +17,7 @@ import com.cn.zbin.management.bto.CustomerAddressMsgData;
 import com.cn.zbin.management.bto.CustomerAddressOverView;
 import com.cn.zbin.management.bto.CustomerInfoMsgData;
 import com.cn.zbin.management.bto.CustomerInvoiceMsgData;
+import com.cn.zbin.management.bto.CustomerListMsgData;
 import com.cn.zbin.management.bto.MessageHistoryMsgData;
 import com.cn.zbin.management.bto.MsgData;
 import com.cn.zbin.management.bto.OauthAccessToken;
@@ -38,6 +39,29 @@ public class CustomerController {
 	private CustomerService customerService;
 	@Autowired
 	private SmsService smsService;
+
+	@RequestMapping(value = "/list/sys", 
+			produces = {"application/json;charset=UTF-8"}, 
+			method = { RequestMethod.GET })
+	public CustomerListMsgData getCustomerList(
+			@RequestParam(value = "name", required = false) String name,
+			@RequestParam(value = "telno", required = false) String telno,
+			@RequestParam(value = "offset", required = false) Integer offset, 
+			@RequestParam(value = "limit", required = false) Integer limit) {
+		logger.info("get api: /customer/list/sys");
+		CustomerListMsgData ret = new CustomerListMsgData();
+		try {
+			ret.setTotalCount(customerService.countCustomerList(name, telno));
+			ret.setCustomerList(customerService.getCustomerList(name, telno, offset, limit));
+		} catch (BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getMessage());
+		} catch (Exception e) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(MgmtConstants.CHK_ERR_99999);
+		}
+		return ret;
+	}
 
 	@RequestMapping(value = "/count", 
 			produces = {"application/json;charset=UTF-8"}, 

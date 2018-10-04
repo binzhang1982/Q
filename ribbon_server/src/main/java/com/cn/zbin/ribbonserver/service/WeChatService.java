@@ -52,26 +52,6 @@ public class WeChatService {
     public Boolean getHiCheckError(String signature, String timestamp, String nonce) {
         return Boolean.FALSE;
     }
-    
-    @HystrixCommand(fallbackMethod = "createPartnerError")
-    public String createPartner(String scenestr) {
-        String ret = "";
-		try {
-	    	Map<String, Object> uriVariables = new HashMap<String, Object>();
-	    	uriVariables.put("atk", URLEncoder.encode(RibbonKeyConstants.APPTOKEN, "UTF-8"));
-	    	uriVariables.put("scenestr", scenestr);
-	    	String url = "http://SERVICE-WECHAT/qr/qr_limit_scene?atk={atk}" 
-						+ "&scenestr={scenestr}";
-			ret = restTemplate.getForObject(url, String.class, uriVariables);
-		} catch (RestClientException | UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        return ret;
-    }
-    public String createPartnerError(String scenestr) {
-        return "failed";
-    }
 
     @HystrixCommand(fallbackMethod = "updateUserError")
     public String updateUser(String openid) {

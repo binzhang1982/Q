@@ -74,7 +74,7 @@ public class EmployeeService {
 				if (errCnt > 3)
 					throw new BusinessException(MgmtConstants.CHK_ERR_80013);
 			} catch(BusinessException be) {
-				updateErrorCount(emp.getEmployeeId(), errCnt);
+//				updateErrorCount(emp.getEmployeeId(), errCnt);
 				throw be;
 			}
 		} else {

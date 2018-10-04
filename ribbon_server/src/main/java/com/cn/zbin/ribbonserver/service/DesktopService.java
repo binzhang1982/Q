@@ -1,5 +1,7 @@
 package com.cn.zbin.ribbonserver.service;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -8,8 +10,10 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import com.cn.zbin.ribbonserver.utils.RibbonKeyConstants;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 
 @Service
@@ -193,6 +197,23 @@ public class DesktopService {
     public String countCustomerError() {
     	return "failed";
     }
+    
+    @HystrixCommand(fallbackMethod = "getCustomerListError")
+    public String getCustomerList(String name, String telno, 
+    		Integer offset, Integer limit) {
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("name", name != null ? name : "");
+    	uriVariables.put("telno", telno != null ? telno : "");
+    	uriVariables.put("offset", offset != null ? offset : "");
+    	uriVariables.put("limit", limit != null ? limit : "");
+    	String url = "http://SERVICE-MGMT/customer/list/sys?name={name}"
+    			+ "&telno={telno}&offset={offset}&limit={limit}";
+        return restTemplate.getForObject(url, String.class, uriVariables);
+    }
+    public String getCustomerListError(String name, String telno, 
+    		Integer offset, Integer limit) {
+    	return "failed";
+    }
 
     @HystrixCommand(fallbackMethod = "countOrderError")
     public String countOrder(Integer lease) {
@@ -206,21 +227,23 @@ public class DesktopService {
     }
     
     @HystrixCommand(fallbackMethod = "getOrderListError")
-    public String getOrderList(String status, String createdate, 
+    public String getOrderList(String status, String createdate, String customerid,
     		String name, String telno, Integer offset, Integer limit) {
     	Map<String, Object> uriVariables = new HashMap<String, Object>();
     	uriVariables.put("status", status != null ? status : "");
     	uriVariables.put("createdate", createdate != null ? createdate : "");
+    	uriVariables.put("customerid", customerid != null ? customerid : "");
     	uriVariables.put("name", name != null ? name : "");
     	uriVariables.put("telno", telno != null ? telno : "");
     	uriVariables.put("offset", offset != null ? offset : "");
     	uriVariables.put("limit", limit != null ? limit : "");
     	
         return restTemplate.getForObject("http://SERVICE-STORE/order/list/sys?status={status}"
-        		+ "&createdate={createdate}&name={name}&telno={telno}&offset={offset}&limit={limit}", 
+        		+ "&createdate={createdate}&customerid={customerid}&name={name}&telno={telno}"
+        		+ "&offset={offset}&limit={limit}", 
         		String.class, uriVariables);
     }
-    public String getOrderListError(String status, String createdate, 
+    public String getOrderListError(String status, String createdate, String customerid,
     		String name, String telno, Integer offset, Integer limit) {
     	return "failed";
     }
@@ -236,5 +259,29 @@ public class DesktopService {
     }
     public String getDueOrderListError(Integer offset, Integer limit) {
     	return "failed";
+    }
+    
+    @HystrixCommand(fallbackMethod = "createPartnerError")
+    public String createPartner(String bean) {
+        String ret = "";
+		try {
+	    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+	    	uriVariables.put("atk", URLEncoder.encode(RibbonKeyConstants.APPTOKEN, "UTF-8"));
+	    	String url = "http://SERVICE-WECHAT/qr/partner/create?atk={atk}";
+
+	        HttpHeaders headers =new HttpHeaders();
+	        MediaType mtype = MediaType.parseMediaType("application/json; charset=UTF-8");
+	        headers.setContentType(mtype);
+	        HttpEntity<String> request = new HttpEntity<String>(bean, headers);
+	        
+			ret = restTemplate.postForObject(url, request, String.class, uriVariables);
+		} catch (RestClientException | UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        return ret;
+    }
+    public String createPartnerError(String bean) {
+        return "failed";
     }
 }

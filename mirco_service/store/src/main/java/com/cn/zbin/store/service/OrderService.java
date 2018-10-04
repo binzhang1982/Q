@@ -1625,9 +1625,9 @@ public class OrderService {
 		if (name == null && telno == null) return ret;
 		CustomerAddressExample exam_ca = new CustomerAddressExample();
 		exam_ca.createCriteria();
-		if (name != null)
+		if (StringUtils.isNotBlank(name))
 			exam_ca.getOredCriteria().get(0).andRecipientNameEqualTo(name);
-		if (telno != null)
+		if (StringUtils.isNotBlank(telno))
 			exam_ca.getOredCriteria().get(0).andRecipientPhoneEqualTo(telno);
 		List<CustomerAddress> addrs = customerAddressMapper.selectByExample(exam_ca);
 		if (Utils.listNotNull(addrs)) 
@@ -1637,18 +1637,19 @@ public class OrderService {
 		return ret;
 	}
 	
-	public Long countGuestOrderList(String status, Date createDate, 
+	public Long countGuestOrderList(String status, Date createDate, String customerId,
 			List<String> custAddressIds, List<String> orderIds) {
 		return new Long(guestOrderInfoMapper.countByExample(
-				createGuestOrderInfoExample(status, createDate, custAddressIds, orderIds)));
+				createGuestOrderInfoExample(status, createDate, customerId, custAddressIds, orderIds)));
 	}
 	
 	public List<GuestOrderOverView> getGuestOrderList(String status, Date createDate, 
-			List<String> custAddressIds, List<String> orderIds, Integer offset, Integer limit) {
+			String customerId, List<String> custAddressIds, List<String> orderIds, 
+			Integer offset, Integer limit) {
 		List<GuestOrderOverView> ret = new ArrayList<GuestOrderOverView>();
 		List<GuestOrderInfo> guestOrderList = guestOrderInfoMapper.selectOnePageByExample(
-				createGuestOrderInfoExample(status, createDate, custAddressIds, orderIds), offset, 
-				limit, "update_time desc");
+				createGuestOrderInfoExample(status, createDate, customerId, custAddressIds, orderIds), 
+				offset, limit, "update_time desc");
 		if (Utils.listNotNull(guestOrderList)) {
 			for (GuestOrderInfo guestOrder : guestOrderList) {
 				ret.add(getGuestOrderOverView(guestOrder));
@@ -1657,16 +1658,19 @@ public class OrderService {
 		return ret;
 	}
 
-	private GuestOrderInfoExample createGuestOrderInfoExample(String status, 
-			Date createDate, List<String> custAddressIds, List<String> orderIds) {
+	private GuestOrderInfoExample createGuestOrderInfoExample(String status, Date createDate, 
+			String customerId, List<String> custAddressIds, List<String> orderIds) {
 		GuestOrderInfoExample exam_go = new GuestOrderInfoExample();
 		exam_go.createCriteria();
-		if (status != null)
+		if (StringUtils.isNotBlank(status))
 			exam_go.getOredCriteria().get(0).andStatusCodeEqualTo(status);
 		if (createDate != null)
 			exam_go.getOredCriteria().get(0)
 				.andCreateTimeGreaterThanOrEqualTo(createDate)
 				.andCreateTimeLessThan(DateUtils.addDays(createDate, 1));
+		if (StringUtils.isNotBlank(customerId))
+			exam_go.getOredCriteria().get(0)
+				.andCustomerIdEqualTo(customerId);
 		if (Utils.listNotNull(custAddressIds))
 			exam_go.getOredCriteria().get(0).andCustAddressIdIn(custAddressIds);
 		if (Utils.listNotNull(orderIds))

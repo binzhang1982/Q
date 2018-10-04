@@ -51,6 +51,29 @@ public class CustomerService {
 	@Autowired
 	private CustomerDiseaseHistoryMapper customerDiseaseHistoryMapper;
 
+	public Long countCustomerList(String name, String telno) {
+		return new Long(customerInfoMapper.countByExample(
+				createCustomerInfoExample(name, telno)));
+	}
+	
+	public List<CustomerInfo> getCustomerList(String name, String telno, 
+			Integer offset, Integer limit) {
+		List<CustomerInfo> ret = customerInfoMapper.selectOnePageByExample(
+				createCustomerInfoExample(name, telno),	offset, limit, "update_time desc");
+		if (!Utils.listNotNull(ret)) ret = new ArrayList<CustomerInfo>();
+		return ret;
+	}
+	
+	private CustomerInfoExample createCustomerInfoExample(String name, String telno) {
+		CustomerInfoExample exam_ci = new CustomerInfoExample();
+		exam_ci.createCriteria();
+		if (StringUtils.isNotBlank(name))
+			exam_ci.getOredCriteria().get(0).andCustomerNameEqualTo(name);
+		if (StringUtils.isNotBlank(telno))
+			exam_ci.getOredCriteria().get(0).andTelephoneEqualTo(telno);
+		return exam_ci;
+	}
+	
 	public Long countCustomer() {
 		return new Long(customerInfoMapper.countByExample(new CustomerInfoExample()));
 	}

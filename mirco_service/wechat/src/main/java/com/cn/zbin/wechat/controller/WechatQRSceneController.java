@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,32 +57,39 @@ public class WechatQRSceneController {
 		return result;
 	}
 	
-	@RequestMapping(value = "/partner", 
+	@RequestMapping(value = "/partner/create", 
 			consumes = {"application/json;charset=UTF-8"}, 
 			produces = {"application/json;charset=UTF-8"}, 
 			method = { RequestMethod.POST})
 	public MsgData createPartner(@RequestParam("atk") String atk,
-			@RequestBody List<PromotionPartnerInfo> partnerList) throws UnsupportedEncodingException {
-		logger.info("post api: /qr/partner || atk: " + atk
-				+ " || partnerList: " + partnerList.toString());
+			@RequestBody PromotionPartnerInfo partner) throws UnsupportedEncodingException {
+		logger.info("post api: /qr/partner/create || atk: " + atk
+				+ " || partner: " + partner.toString());
 		MsgData ret = new MsgData();
 		try {
+			if (wechatUserService.checkQrSceneStr(partner) > 0)
+				throw new BusinessException(StringUtils.replace(WechatConstants.CHK_ERR_70001, 
+						"{1}", partner.getSceneStr()));
+			
 	    	Map<String, Object> uriVariables = new HashMap<String, Object>();
 	    	uriVariables.put("atk", URLEncoder.encode(atk, "UTF-8"));
 	    	
 			String url = "https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token={atk}";
-			for (PromotionPartnerInfo partner : partnerList) {
-				HttpHeaders headers = new HttpHeaders();
-				MediaType type = MediaType.parseMediaType("application/json; charset=UTF-8");
-				headers.setContentType(type);
-				String requestJson = "{\"action_name\": \"QR_LIMIT_STR_SCENE\", \"action_info\": {\"scene\": {\"scene_str\": \"" + partner.getSceneStr() + "\"}}}";
-				HttpEntity<String> entity = new HttpEntity<String>(requestJson,headers);
-				QrScene res = restTemplate.postForObject(url, entity, QrScene.class, uriVariables);
-				if (res != null) {
-					partner.setTicket(res.getTicket());
-					partner.setUrl("https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=" + res.getTicket());
-				}
+			HttpHeaders headers = new HttpHeaders();
+			MediaType type = MediaType.parseMediaType("application/json; charset=UTF-8");
+			headers.setContentType(type);
+			String requestJson = "{\"action_name\": \"QR_LIMIT_STR_SCENE\", \"action_info\": "
+					+ "{\"scene\": {\"scene_str\": \"" + partner.getSceneStr() + "\"}}}";
+			HttpEntity<String> entity = new HttpEntity<String>(requestJson,headers);
+			QrScene res = restTemplate.postForObject(url, entity, QrScene.class, uriVariables);
+			if (res != null) {
+				if (res.getTicket() == null) 
+					throw new BusinessException(WechatConstants.CHK_ERR_70002);
+				partner.setTicket(res.getTicket());
+				partner.setUrl("https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=" + res.getTicket());
 				wechatUserService.createPartner(partner);
+			} else {
+				throw new BusinessException(WechatConstants.CHK_ERR_70002);
 			}
 		} catch (BusinessException be) {
 			ret.setStatus(MsgData.status_ng);

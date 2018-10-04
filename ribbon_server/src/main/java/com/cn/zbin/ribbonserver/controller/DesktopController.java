@@ -187,6 +187,25 @@ public class DesktopController {
     	
     	return desktopService.countCustomer();
     }
+    
+    @GetMapping(value = "/customer/list")
+    @CrossOrigin
+    public String getCustomerList(
+    		@RequestParam(value = "empid", required = true) String empid,
+			@RequestParam(value = "token", required = true) String token,
+			@RequestParam(value = "name", required = false) String name,
+			@RequestParam(value = "telno", required = false) String telno,
+			@RequestParam(value = "offset", required = false) Integer offset,
+			@RequestParam(value = "limit", required = false) Integer limit) {
+    	logger.info("get api /desktop/customer/list || empid: " + empid
+				+ " || token: " + token);
+    	String strToken = checkToken(empid, token);
+    	if (!"".equals(strToken)) return strToken;
+    	String strAuth = checkAuth(empid, RibbonKeyConstants.AUTH_MEMBER);
+    	if (!"".equals(strAuth)) return strAuth;
+    	
+    	return desktopService.getCustomerList(name, telno, offset, limit);
+    }
 
     @GetMapping(value = "/order/count")
     @CrossOrigin
@@ -211,6 +230,7 @@ public class DesktopController {
 			@RequestParam(value = "token", required = true) String token,
 			@RequestParam(value = "status", required = false) String status,
 			@RequestParam(value = "createdate", required = false) String createdate,
+			@RequestParam(value = "customerid", required = false) String customerid,
 			@RequestParam(value = "name", required = false) String name,
 			@RequestParam(value = "telno", required = false) String telno,
 			@RequestParam(value = "offset", required = false) Integer offset,
@@ -224,7 +244,8 @@ public class DesktopController {
     	String strAuth = checkAuth(empid, RibbonKeyConstants.AUTH_ORDER);
     	if (!"".equals(strAuth)) return strAuth;
     	
-    	return desktopService.getOrderList(status, createdate, name, telno, offset, limit);
+    	return desktopService.getOrderList(status, createdate, customerid, 
+    			name, telno, offset, limit);
     }
     
     @GetMapping(value = "/order/due/list")
@@ -243,6 +264,22 @@ public class DesktopController {
     	
     	return desktopService.getDueOrderList(offset, limit);
     }
+
+	@PostMapping(value = "/partner/create")
+	@CrossOrigin
+	public String createPartner(
+    		@RequestParam(value = "empid", required = true) String empid,
+			@RequestParam(value = "token", required = true) String token,
+			@RequestBody String bean) {
+		logger.info("post api: /desktop/partner/create || empid: " + empid
+				+ " || token: " + token + " || bean: " + bean);
+    	String strToken = checkToken(empid, token);
+    	if (!"".equals(strToken)) return strToken;
+    	String strAuth = checkAuth(empid, RibbonKeyConstants.AUTH_PARTNER);
+    	if (!"".equals(strAuth)) return strAuth;
+    	
+		return desktopService.createPartner(bean);
+	}
     
     private String checkToken(String empid, String token) {
     	Gson gson = new Gson();

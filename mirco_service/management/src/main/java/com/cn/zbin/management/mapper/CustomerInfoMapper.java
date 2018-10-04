@@ -2,7 +2,9 @@ package com.cn.zbin.management.mapper;
 
 import com.cn.zbin.management.dto.CustomerInfo;
 import com.cn.zbin.management.dto.CustomerInfoExample;
+
 import java.util.List;
+
 import org.apache.ibatis.annotations.Param;
 
 public interface CustomerInfoMapper {
@@ -93,4 +95,10 @@ public interface CustomerInfoMapper {
      * @mbggenerated
      */
     int updateByPrimaryKey(CustomerInfo record);
+    
+    
+    
+    List<CustomerInfo> selectOnePageByExample(@Param("example") CustomerInfoExample example,
+    		@Param("offset") Integer offset, @Param("limit") Integer limit, 
+    		@Param("orderByClause") String orderByClause);
 }
