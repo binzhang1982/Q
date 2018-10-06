@@ -22,6 +22,7 @@ import com.cn.zbin.store.bto.CustomerInvoiceOverView;
 import com.cn.zbin.store.bto.GuestOrderOverView;
 import com.cn.zbin.store.bto.LeaseCalcAmountMsgData;
 import com.cn.zbin.store.bto.MsgData;
+import com.cn.zbin.store.bto.OrderOperationOverView;
 import com.cn.zbin.store.bto.OrderProductOverView;
 import com.cn.zbin.store.bto.WxPayH5Param;
 import com.cn.zbin.store.dto.CodeDictInfo;
@@ -322,6 +323,7 @@ public class OrderService {
 		
 		ret.setOrderId(UUID.randomUUID().toString());
 		ret.setOrderProductId(UUID.randomUUID().toString());
+		ret.setUnitPrice(unitPrice);
 		ret.setSaleCount(saleCnt.intValue());
 		ret.setPrePayAmount(prod.getService().compareTo(new BigDecimal(0)) != 0?
 				prod.getService():prod.getCarriage());
@@ -414,7 +416,7 @@ public class OrderService {
 		BigDecimal paidAmount = calcLeaseOrderProductPaid(orderProd);
 		GuestOrderInfo newGuestOrder = deferGuestOrder(order, orderOperation);
 		OrderProduct newOrderProd = deferOrderProduct(newGuestOrder, pendingCount, 
-				orderProd, orderOperation);
+				realPrice, orderProd, orderOperation);
 
 		orderOperation.setOrderOperId(UUID.randomUUID().toString());
 		orderOperation.setAskErId(customerid);
@@ -491,12 +493,13 @@ public class OrderService {
 	}
 	
 	private OrderProduct deferOrderProduct(GuestOrderInfo newGuestOrder, Long pendingCount,
-			OrderProduct orderProd, OrderOperationHistory orderOperation) {
+			BigDecimal unitPrice, OrderProduct orderProd, OrderOperationHistory orderOperation) {
 		OrderProduct newOrderProd = new OrderProduct();
 		newOrderProd.setOrderProductId(UUID.randomUUID().toString());
 		newOrderProd.setOrderId(newGuestOrder.getOrderId());
 		newOrderProd.setProductId(orderProd.getProductId());
 		newOrderProd.setIsDelete(Boolean.FALSE);
+		newOrderProd.setUnitPrice(unitPrice);
 		newOrderProd.setRefOrderProductId(orderProd.getOrderProductId());
 		newOrderProd.setRefTypeCode(StoreKeyConstants.REF_TYPE_DEFER);
 		newOrderProd.setActualPendingDate(orderProd.getActualPendingDate());
@@ -1048,8 +1051,8 @@ public class OrderService {
 					if (Utils.listNotNull(opers)) {
 						OrderOperationHistory oper = opers.get(0);
 						Integer returnCnt = oper.getReturnCount();
-						ProductPrice unitPrice = getUnitPrice(Boolean.FALSE, null, refOrderProd.getProductId());
-						BigDecimal calcAmount = unitPrice.getRealPrice().multiply(new BigDecimal(returnCnt));
+//						ProductPrice unitPrice = getUnitPrice(Boolean.FALSE, null, refOrderProd.getProductId());
+						BigDecimal calcAmount = refOrderProd.getUnitPrice().multiply(new BigDecimal(returnCnt));
 						if (StoreKeyConstants.OPERATION_TYPE_MANAGEMENT.equals(type))
 							refundSalesOrderProduct(refOrderProd, id, calcAmount, oper.getOrderOperId());
 						else
@@ -1637,6 +1640,45 @@ public class OrderService {
 		return ret;
 	}
 	
+	public Long countOrderOperationList(String askcode, String anscode) {
+		return new Long(orderOperationHistoryMapper.countByExample(
+				createOrderOperationExample(askcode, anscode)));
+	}
+	
+	public List<OrderOperationOverView> getOrderOperationList(String askcode, String anscode,
+			Integer offset, Integer limit) {
+		List<OrderOperationOverView> ret = new ArrayList<OrderOperationOverView>();
+		
+		List<OrderOperationHistory> orderOperationList = orderOperationHistoryMapper.
+				selectOnePageByExample(createOrderOperationExample(askcode, anscode), 				
+				offset, limit, "ask_time desc,ans_time desc");
+		if (Utils.listNotNull(orderOperationList)) {
+			for (OrderOperationHistory orderOperation : orderOperationList) {
+				GuestOrderOverView guestOrder = getGuestOrder(orderOperation.getOrderId());
+				if (guestOrder != null) {
+					OrderOperationOverView operationOV = new OrderOperationOverView();
+					operationOV.setOrderOperation(orderOperation);
+					operationOV.setGuestOrder(guestOrder);
+					ret.add(operationOV);
+				}
+			}
+		}
+		return ret;
+	}
+	
+	private OrderOperationHistoryExample createOrderOperationExample(String askcode, String anscode) {
+		OrderOperationHistoryExample exam_ooh = new OrderOperationHistoryExample();
+		exam_ooh.createCriteria();
+		if (StringUtils.isNotBlank(askcode)) 
+			exam_ooh.getOredCriteria().get(0).andAskOperCodeEqualTo(askcode);
+		if (StringUtils.isNotBlank(anscode))
+			exam_ooh.getOredCriteria().get(0).andAnsOperCodeEqualTo(anscode);
+		else
+			exam_ooh.getOredCriteria().get(0).andAnsOperCodeIsNull();
+		
+		return exam_ooh;
+	}
+	
 	public Long countGuestOrderList(String status, Date createDate, String customerId,
 			List<String> custAddressIds, List<String> orderIds) {
 		return new Long(guestOrderInfoMapper.countByExample(
@@ -1703,8 +1745,9 @@ public class OrderService {
 	private GuestOrderOverView getGuestOrderOverView(GuestOrderInfo guestOrder) {
 		GuestOrderOverView orderOV = new GuestOrderOverView();
 		orderOV.setGuestOrderInfo(guestOrder);
-		CustomerAddress addr = customerAddressMapper.selectByPrimaryKey(
-				guestOrder.getCustAddressId());
+		CustomerAddress addr = null;
+		if (guestOrder.getCustAddressId() != null) 
+			addr = customerAddressMapper.selectByPrimaryKey(guestOrder.getCustAddressId());
 		CustomerAddressOverView addrOV = new CustomerAddressOverView();
 		addrOV.setAddress(addr);
 		if (addr != null) {
@@ -1715,8 +1758,9 @@ public class OrderService {
 		}
 		orderOV.setCustomerAddress(addrOV);
 		
-		CustomerInvoice invoice = customerInvoiceMapper.selectByPrimaryKey(
-				guestOrder.getCustInvoiceId());
+		CustomerInvoice invoice = null;
+		if (guestOrder.getCustInvoiceId() != null) 
+			invoice = customerInvoiceMapper.selectByPrimaryKey(guestOrder.getCustInvoiceId());
 		CustomerInvoiceOverView invoiceOV = new CustomerInvoiceOverView();
 		invoiceOV.setInvoice(invoice);
 		if (invoice != null) {
@@ -1739,9 +1783,10 @@ public class OrderService {
 				if (prod != null) {
 					orderProdOV.setProdInfo(prod);
 					orderProdOV.setIsLease(prod.getLeaseFlag());
-					ProductPrice unitPrice = getUnitPrice(prod.getLeaseFlag(), 
-							orderProd.getPendingCount(), orderProd.getProductId());
-					orderProdOV.setRealUnitPrice(unitPrice.getRealPrice());
+//					ProductPrice unitPrice = getUnitPrice(prod.getLeaseFlag(), 
+//							orderProd.getPendingCount(), orderProd.getProductId());
+//					orderProdOV.setRealUnitPrice(unitPrice.getRealPrice());
+					orderProdOV.setRealUnitPrice(orderProd.getUnitPrice());
 					orderProdOV.setFrontCoverImage(getFrontCoverImage(orderProd.getProductId()));
 				}
 				orderOV.getOrderProductList().add(orderProdOV);
@@ -1751,8 +1796,9 @@ public class OrderService {
 		return orderOV;
 	}
 	
-	public GuestOrderOverView getGuestOrder(String customerid, String orderid) {
+	public GuestOrderOverView getGuestOrder(String orderid) {
 		GuestOrderInfo guestOrder = guestOrderInfoMapper.selectByPrimaryKey(orderid);
+		if (guestOrder == null) return null;
 		return getGuestOrderOverView(guestOrder);
 	}
 	
@@ -1785,13 +1831,16 @@ public class OrderService {
 			if (prod != null) {
 				ProductPrice unitPrice = getUnitPrice(prod.getLeaseFlag(), 
 						orderProd.getPendingCount(), orderProd.getProductId());
+				if (orderProd.getUnitPrice() == null)
+					throw new BusinessException(StoreConstants.CHK_ERR_90043);
+				if (!unitPrice.getRealPrice().equals(orderProd.getUnitPrice()))
+					throw new BusinessException(StoreConstants.CHK_ERR_90043);
 				if (prod.getLeaseFlag() && orderProd.getPrePayAmount().compareTo
-						(unitPrice.getRealPrice().multiply(new BigDecimal(orderProd.getPendingCount()))) != 0) {
+						(unitPrice.getRealPrice().multiply(new BigDecimal(orderProd.getPendingCount()))) != 0)
 					throw new BusinessException(StoreConstants.CHK_ERR_90013);
-				} else if (!prod.getLeaseFlag() &&  orderProd.getPrePayAmount().compareTo
-						(unitPrice.getRealPrice().multiply(new BigDecimal(orderProd.getSaleCount()))) != 0) {
+				else if (!prod.getLeaseFlag() &&  orderProd.getPrePayAmount().compareTo
+						(unitPrice.getRealPrice().multiply(new BigDecimal(orderProd.getSaleCount()))) != 0)
 					throw new BusinessException(StoreConstants.CHK_ERR_90013);
-				}
 			}
 			orderProd.setRefOrderProductId(null);
 			orderProd.setPaidAmount(null);
@@ -1945,6 +1994,7 @@ public class OrderService {
 				orderProductOV.setProdInfo(prod);
 				orderProductOV.setFrontCoverImage(getFrontCoverImage(prod.getProductId()));
 				orderProductOV.setOrderProduct(new OrderProduct());
+				orderProductOV.getOrderProduct().setUnitPrice(realUnitPrice);
 				orderProductOV.getOrderProduct().setBail(prod.getBail()==null?new BigDecimal(0):prod.getBail());
 //				orderProductOV.getOrderProduct().setRefundBail(new BigDecimal(0));
 				if (prod.getLeaseFlag()) {

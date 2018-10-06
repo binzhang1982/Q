@@ -459,4 +459,24 @@
       ans_time = #{ansTime,jdbcType=TIMESTAMP}
     where order_oper_id = #{orderOperId,jdbcType=VARCHAR}
   </update>
+  
+  
+  
+  
+  
+  <select id="selectOnePageByExample" resultMap="BaseResultMap" parameterType="map" >
+    select
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from orderoperationhistory
+    <if test="example != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+    <if test="limit != null">
+      limit ${offset},${limit}
+    </if>
+  </select>
 </mapper>

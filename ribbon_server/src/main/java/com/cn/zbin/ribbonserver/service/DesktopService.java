@@ -247,6 +247,24 @@ public class DesktopService {
     		String name, String telno, Integer offset, Integer limit) {
     	return "failed";
     }
+    
+    @HystrixCommand(fallbackMethod = "getOrderOperationListError")
+    public String getOrderOperationList(String askcode, String anscode, 
+    		Integer offset, Integer limit) {
+    	Map<String, Object> uriVariables = new HashMap<String, Object>();
+    	uriVariables.put("askcode", askcode != null ? askcode : "");
+    	uriVariables.put("anscode", anscode != null ? anscode : "");
+    	uriVariables.put("offset", offset != null ? offset : "");
+    	uriVariables.put("limit", limit != null ? limit : "");
+    	
+        return restTemplate.getForObject("http://SERVICE-STORE/order/oper/list/sys?askcode={askcode}"
+        		+ "&anscode={anscode}&offset={offset}&limit={limit}", 
+        		String.class, uriVariables);
+    }
+    public String getOrderOperationListError(String askcode, String anscode, 
+    		Integer offset, Integer limit) {
+    	return "failed";
+    }
 
     @HystrixCommand(fallbackMethod = "getDueOrderListError")
     public String getDueOrderList(Integer offset, Integer limit) {

@@ -703,6 +703,66 @@ public class OrderProductExample {
             return (Criteria) this;
         }
 
+        public Criteria andUnitPriceIsNull() {
+            addCriterion("unit_price is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnitPriceIsNotNull() {
+            addCriterion("unit_price is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnitPriceEqualTo(BigDecimal value) {
+            addCriterion("unit_price =", value, "unitPrice");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnitPriceNotEqualTo(BigDecimal value) {
+            addCriterion("unit_price <>", value, "unitPrice");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnitPriceGreaterThan(BigDecimal value) {
+            addCriterion("unit_price >", value, "unitPrice");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnitPriceGreaterThanOrEqualTo(BigDecimal value) {
+            addCriterion("unit_price >=", value, "unitPrice");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnitPriceLessThan(BigDecimal value) {
+            addCriterion("unit_price <", value, "unitPrice");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnitPriceLessThanOrEqualTo(BigDecimal value) {
+            addCriterion("unit_price <=", value, "unitPrice");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnitPriceIn(List<BigDecimal> values) {
+            addCriterion("unit_price in", values, "unitPrice");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnitPriceNotIn(List<BigDecimal> values) {
+            addCriterion("unit_price not in", values, "unitPrice");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnitPriceBetween(BigDecimal value1, BigDecimal value2) {
+            addCriterion("unit_price between", value1, value2, "unitPrice");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnitPriceNotBetween(BigDecimal value1, BigDecimal value2) {
+            addCriterion("unit_price not between", value1, value2, "unitPrice");
+            return (Criteria) this;
+        }
+
         public Criteria andSaleCountIsNull() {
             addCriterion("sale_count is null");
             return (Criteria) this;

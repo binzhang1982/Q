@@ -20,6 +20,7 @@ import com.cn.zbin.store.bto.GuestOrderListMsgData;
 import com.cn.zbin.store.bto.GuestOrderOverView;
 import com.cn.zbin.store.bto.LeaseCalcAmountMsgData;
 import com.cn.zbin.store.bto.MsgData;
+import com.cn.zbin.store.bto.OrderOperationListMsgData;
 import com.cn.zbin.store.bto.WxPayOverView;
 import com.cn.zbin.store.dto.GuestOrderInfo;
 import com.cn.zbin.store.dto.OrderOperationHistory;
@@ -125,6 +126,33 @@ public class OrderController {
 		}
 		return ret;
 	}
+
+	@RequestMapping(value = "/oper/list/sys", 
+			produces = {"application/json;charset=UTF-8"}, 
+			method = { RequestMethod.GET })
+	public OrderOperationListMsgData getOrderOperationListSys(
+			@RequestParam(value = "askcode", required = false) String askcode,
+			@RequestParam(value = "anscode", required = false) String anscode,
+			@RequestParam(value = "offset", required = false) Integer offset, 
+			@RequestParam(value = "limit", required = false) Integer limit) {
+		logger.info("get api: /order/oper/list/sys || askcode: " + askcode +
+				" || anscode: " + anscode + " || offset: " + offset + " || limit: " + limit);
+		OrderOperationListMsgData ret = new OrderOperationListMsgData();
+		try {
+			ret.setTotalCount(orderService.countOrderOperationList(
+					askcode, anscode));
+			ret.setOrderOperationList(orderService.getOrderOperationList(
+					askcode, anscode, offset, limit));
+		} catch (BusinessException be) {
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(be.getMessage());
+		} catch (Exception e) {
+			e.printStackTrace();
+			ret.setStatus(MsgData.status_ng);
+			ret.setMessage(StoreConstants.CHK_ERR_99999);
+		}
+		return ret;
+	}
 	
 	@RequestMapping(value = "/list/sys", 
 			produces = {"application/json;charset=UTF-8"}, 
@@ -180,7 +208,7 @@ public class OrderController {
 			@RequestParam("orderid") String orderid) {
 		logger.info("get api: /order || customerid: " + customerid
 				+ " || orderid: " + orderid);
-		return orderService.getGuestOrder(customerid, orderid);
+		return orderService.getGuestOrder(orderid);
 	}
 
 	@RequestMapping(value = "/cancel/cust", 
@@ -581,13 +609,6 @@ public class OrderController {
 		}
 		
 		return ret;
-	}
-
-	@RequestMapping(value = "/lease/recycle", 
-			produces = {"application/json;charset=UTF-8"}, 
-			method = { RequestMethod.GET })
-	public void getRecycleOrders() {
-		//TODO
 	}
 
 	@RequestMapping(value = "/lease/recycle/reject", 

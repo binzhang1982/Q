@@ -2,7 +2,9 @@ package com.cn.zbin.store.mapper;
 
 import com.cn.zbin.store.dto.OrderOperationHistory;
 import com.cn.zbin.store.dto.OrderOperationHistoryExample;
+
 import java.util.List;
+
 import org.apache.ibatis.annotations.Param;
 
 public interface OrderOperationHistoryMapper {
@@ -93,4 +95,11 @@ public interface OrderOperationHistoryMapper {
      * @mbggenerated
      */
     int updateByPrimaryKey(OrderOperationHistory record);
+    
+    
+    
+    
+    List<OrderOperationHistory> selectOnePageByExample(@Param("example") OrderOperationHistoryExample example,
+    		@Param("offset") Integer offset, @Param("limit") Integer limit, 
+    		@Param("orderByClause") String orderByClause);
 }

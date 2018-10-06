@@ -247,6 +247,26 @@ public class DesktopController {
     	return desktopService.getOrderList(status, createdate, customerid, 
     			name, telno, offset, limit);
     }
+
+    @GetMapping(value = "/order/oper/list")
+    @CrossOrigin
+    public String getOrderOperationList(
+    		@RequestParam(value = "empid", required = true) String empid,
+			@RequestParam(value = "token", required = true) String token,
+			@RequestParam(value = "askcode", required = false) String askcode,
+			@RequestParam(value = "anscode", required = false) String anscode,
+			@RequestParam(value = "offset", required = false) Integer offset,
+			@RequestParam(value = "limit", required = false) Integer limit) {
+    	logger.info("get api /desktop/order/list || empid: " + empid
+				+ " || token: " + token + " || askcode: " + askcode
+				+ " || anscode: " + anscode + " || offset: " + offset + " || limit: " + limit);
+    	String strToken = checkToken(empid, token);
+    	if (!"".equals(strToken)) return strToken;
+    	String strAuth = checkAuth(empid, RibbonKeyConstants.AUTH_ORDER);
+    	if (!"".equals(strAuth)) return strAuth;
+    	
+    	return desktopService.getOrderOperationList(askcode, anscode, offset, limit);
+    }
     
     @GetMapping(value = "/order/due/list")
     @CrossOrigin
